@@ -9,7 +9,7 @@
      * Rotas de API/auth/scan     → passa direto (sem cache, sempre online).
 */
 
-const VERSION = 'estoque-v38-argox-cloud-ws';
+const VERSION = 'estoque-v39-imprimir-label';
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 

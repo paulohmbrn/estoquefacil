@@ -178,7 +178,7 @@ export function EtiquetasListaClient({ listas, initialListaId }: Props) {
               disabled={pending || !lista || totalEtiquetas === 0}
               onClick={() => setShowFormatoPicker(true)}
             >
-              {pending ? 'Gerando…' : `Gerar PDF (${totalEtiquetas})`}
+              {pending ? 'Imprimindo…' : `Imprimir (${totalEtiquetas})`}
             </Button>
           </CardContent>
         </Card>
