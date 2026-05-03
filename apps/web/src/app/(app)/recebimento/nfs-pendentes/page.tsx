@@ -1,4 +1,6 @@
-// /recebimento/nfs-pendentes — lista NFes baixadas via SEFAZ aguardando recebimento físico.
+// /recebimento/nfs-sefaz — NFes SEFAZ que perderam a janela de 48h mas ainda
+// estão dentro de 30 dias. Pra recebimento "atrasado" / consulta histórica.
+// (rota antiga `/nfs-pendentes` mantida por compat com bookmarks/PWA cache)
 
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
@@ -11,13 +13,28 @@ import { SefazSyncButton } from './sync-button';
 
 const dt = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo' });
 
+// Janelas:
+// - até 48h → aparece na home /recebimento (Receber Mercadoria)
+// - 48h a 30d → aparece aqui (NFs SEFAZ — atrasadas)
+// - >30d → oculta em ambas (provavelmente já recebida fora do sistema)
+const WINDOW_RECEBER_MERCADORIA_HORAS = 48;
+const WINDOW_HISTORICO_DIAS = 30;
+
 export default async function NfsPendentesPage() {
   const { lojaId } = await requireLojaAtiva();
+  const agora = new Date();
+  const limite48h = new Date(agora.getTime() - WINDOW_RECEBER_MERCADORIA_HORAS * 60 * 60 * 1000);
+  const limite30d = new Date(agora.getTime() - WINDOW_HISTORICO_DIAS * 24 * 60 * 60 * 1000);
+
   const [nfsRaw, funcionariosRaw, ultimoSync, loja] = await Promise.all([
     prisma.notaFiscalImportada.findMany({
-      where: { lojaId, status: 'PENDENTE' },
+      where: {
+        lojaId,
+        status: 'PENDENTE',
+        dataEmissao: { gte: limite30d, lt: limite48h },
+      },
       orderBy: { dataEmissao: 'desc' },
-      take: 50,
+      take: 100,
     }),
     prisma.funcionario.findMany({
       where: { lojaId, ativo: true },
@@ -54,15 +71,15 @@ export default async function NfsPendentesPage() {
       <PageHead
         eyebrow={
           <>
-            <Link href="/recebimento" className="hover:underline">Recebimento</Link> · NFs pendentes
+            <Link href="/recebimento" className="hover:underline">Recebimento</Link> · NFs SEFAZ
           </>
         }
         title={
           <>
-            NFes <em>aguardando</em> recebimento
+            NFes <em>SEFAZ</em>
           </>
         }
-        sub="Notas baixadas automaticamente da SEFAZ pelo CNPJ desta loja. Clique em receber quando a mercadoria chegar."
+        sub={`Notas com mais de ${WINDOW_RECEBER_MERCADORIA_HORAS}h de emissão e até ${WINDOW_HISTORICO_DIAS} dias. As recentes (≤48h) ficam na tela Receber Mercadoria; mais antigas que ${WINDOW_HISTORICO_DIAS} dias são ocultadas.`}
       />
 
       {!certOk && (
@@ -106,7 +123,8 @@ export default async function NfsPendentesPage() {
 
       {nfs.length === 0 ? (
         <Card className="p-10 text-center text-rm-mid text-[13px]">
-          Sem NFes pendentes. {certOk ? 'Aguarde o próximo sync SEFAZ (8x ao dia, a cada 3h).' : ''}
+          Sem NFes nesta janela ({WINDOW_RECEBER_MERCADORIA_HORAS}h–{WINDOW_HISTORICO_DIAS}d).{' '}
+          <Link href="/recebimento" className="rm-link">Veja as recentes em Receber Mercadoria</Link>.
         </Card>
       ) : (
         <NfsClient nfs={nfs} funcionarios={funcionarios} />
