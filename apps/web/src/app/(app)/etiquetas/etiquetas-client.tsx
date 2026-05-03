@@ -63,7 +63,7 @@ export function EtiquetasClient({ produtos, grupos }: Props) {
     });
   }
 
-  function gerarPdf(formato: 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO') {
+  function gerarPdf(formato: 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60') {
     if (itensSelecionados.length === 0) return;
     setErro(null);
     setShowFormatoPicker(false);
@@ -288,17 +288,18 @@ function FormatoPicker({
   totalEtiquetas: number;
   pending: boolean;
   onClose: () => void;
-  onPick: (formato: 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO') => void;
+  onPick: (formato: 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60') => void;
 }) {
   const opcoes: Array<{
-    id: 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO';
+    id: 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60';
     titulo: string;
     sub: string;
     badge: string;
   }> = [
     { id: 'TERMICA_60', titulo: 'Térmica 60×60mm', sub: 'Elgin L42 Pro · 1 etiqueta/página', badge: 'Padrão' },
     { id: 'TERMICA_40', titulo: 'Térmica 40×40mm', sub: 'Elgin L42 Pro · 1 etiqueta/página', badge: 'Compacta' },
-    { id: 'A4_PIMACO', titulo: 'A4 — PIMACO A4360', sub: '12 etiquetas/folha · 63,5 × 38,1mm cada', badge: 'Folha avulsa' },
+    { id: 'A4_PIMACO', titulo: 'A4 — PIMACO A4360', sub: '21 etiquetas/folha · 63,5 × 38,1mm cada', badge: 'Folha avulsa' },
+    { id: 'ARGOX_100X60', titulo: 'Argox OS-214 Plus 100×60mm', sub: 'Arquivo .zpl · envia direto pra impressora (modo ZPL)', badge: 'ZPL' },
   ];
   return (
     <div

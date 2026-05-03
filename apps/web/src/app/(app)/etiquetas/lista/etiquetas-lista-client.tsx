@@ -33,7 +33,7 @@ export function EtiquetasListaClient({ listas, initialListaId }: Props) {
   const totalProdutos = lista?.produtos.length ?? 0;
   const totalEtiquetas = totalProdutos * qtdPorProduto;
 
-  function gerarPdf(formato: 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO') {
+  function gerarPdf(formato: 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60') {
     if (!lista || totalEtiquetas === 0) return;
     setErro(null);
     setShowFormatoPicker(false);
@@ -201,13 +201,14 @@ export function EtiquetasListaClient({ listas, initialListaId }: Props) {
               {[
                 { id: 'TERMICA_60', titulo: 'Térmica 60×60mm', sub: 'Elgin L42 Pro' },
                 { id: 'TERMICA_40', titulo: 'Térmica 40×40mm', sub: 'Elgin L42 Pro · compacta' },
-                { id: 'A4_PIMACO', titulo: 'A4 — PIMACO A4360', sub: '12/folha · 63,5 × 38,1mm' },
+                { id: 'A4_PIMACO', titulo: 'A4 — PIMACO A4360', sub: '21/folha · 63,5 × 38,1mm' },
+                { id: 'ARGOX_100X60', titulo: 'Argox OS-214 Plus 100×60mm', sub: 'Arquivo .zpl pra impressora (modo ZPL)' },
               ].map((o) => (
                 <button
                   key={o.id}
                   type="button"
                   disabled={pending}
-                  onClick={() => gerarPdf(o.id as 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO')}
+                  onClick={() => gerarPdf(o.id as 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60')}
                   className="w-full text-left bg-white border border-hairline rounded-xs p-4 hover:border-rm-green hover:bg-[rgba(0,65,37,.04)] disabled:opacity-50"
                 >
                   <p className="font-sans font-bold text-[14px]">{o.titulo}</p>

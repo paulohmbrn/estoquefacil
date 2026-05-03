@@ -12,6 +12,7 @@ import {
   type EtiquetaItem,
   type EtiquetaFormato,
 } from '@/lib/etiqueta-pdf';
+import { generateEtiquetasZpl } from '@/lib/etiqueta-zpl';
 import { randomBytes } from 'node:crypto';
 
 export const runtime = 'nodejs';
@@ -26,7 +27,9 @@ const itemSchema = z.object({
 
 const bodySchema = z.object({
   itens: z.array(itemSchema).min(1).max(500),
-  formato: z.enum(['TERMICA_60', 'TERMICA_40', 'A4_PIMACO']).default('TERMICA_60'),
+  formato: z
+    .enum(['TERMICA_60', 'TERMICA_40', 'A4_PIMACO', 'ARGOX_100X60'])
+    .default('TERMICA_60'),
 });
 
 function shortId(): string {
@@ -108,15 +111,34 @@ export async function POST(req: NextRequest): Promise<Response> {
       return NextResponse.json({ error: 'Nenhuma etiqueta válida' }, { status: 400 });
     }
 
-    const formato: EtiquetaFormato = parsed.data.formato;
+    const formato = parsed.data.formato;
+
+    // Argox: gera ZPL (texto) ao invés de PDF
+    if (formato === 'ARGOX_100X60') {
+      const [zpl] = await Promise.all([
+        Promise.resolve(generateEtiquetasZpl(items)),
+        prisma.etiqueta.createMany({ data: dbRows }),
+      ]);
+      const filename = `etiquetas-argox-100x60-${new Date().toISOString().slice(0, 10)}-${items.length}.zpl`;
+      return new Response(zpl, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Content-Disposition': `attachment; filename="${filename}"`,
+          'Cache-Control': 'no-store',
+        },
+      });
+    }
+
+    const formatoPdf: EtiquetaFormato = formato;
     const [pdfBytes] = await Promise.all([
-      generateEtiquetasPdf(items, formato),
+      generateEtiquetasPdf(items, formatoPdf),
       prisma.etiqueta.createMany({ data: dbRows }),
     ]);
 
     const tag =
-      formato === 'TERMICA_60' ? 'termica60'
-      : formato === 'TERMICA_40' ? 'termica40'
+      formatoPdf === 'TERMICA_60' ? 'termica60'
+      : formatoPdf === 'TERMICA_40' ? 'termica40'
       : 'a4';
     const filename = `etiquetas-${tag}-${new Date().toISOString().slice(0, 10)}-${items.length}.pdf`;
     return new Response(new Uint8Array(pdfBytes), {
