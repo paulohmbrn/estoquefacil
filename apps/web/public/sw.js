@@ -9,7 +9,7 @@
      * Rotas de API/auth/scan     → passa direto (sem cache, sempre online).
 */
 
-const VERSION = 'estoque-v39-imprimir-label';
+const VERSION = 'estoque-v40-loja-switcher-scroll';
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 

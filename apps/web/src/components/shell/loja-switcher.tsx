@@ -61,8 +61,11 @@ export function LojaSwitcher({ lojas, ativaId }: Props) {
           <ChevronDown size={12} className="text-rm-mid" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="min-w-[260px]">
-        <DropdownMenuLabel>Trocar de loja</DropdownMenuLabel>
+      <DropdownMenuContent
+        align="start"
+        className="min-w-[260px] max-h-[min(70vh,540px)] overflow-y-auto overscroll-contain"
+      >
+        <DropdownMenuLabel className="sticky top-0 bg-white z-10">Trocar de loja</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {lojas.map((l) => (
           <DropdownMenuItem key={l.id} onSelect={() => onSelect(l.id)}>
