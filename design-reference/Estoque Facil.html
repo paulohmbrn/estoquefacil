@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Estoque Fácil — Sistema de controle de estoque</title>
+  <link rel="stylesheet" href="styles/colors_and_type.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Mona+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/app.css" />
+  <style>
+    :root {
+      --font-ui-display: "Mona Sans", "Manrope", -apple-system, system-ui, sans-serif;
+    }
+    /* Apply the UI display font to titles and stat numbers */
+    .ef-page-title,
+    .ef-card-title,
+    .ef-modal-title {
+      font-family: var(--ef-title-font, var(--font-ui-display)) !important;
+      font-style: var(--ef-title-style, normal) !important;
+      font-weight: 700 !important;
+      letter-spacing: -.02em !important;
+    }
+    .ef-page-title em,
+    .ef-card-title em,
+    .ef-modal-title em {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-weight: 600;
+    }
+    /* Stat numbers — comfortable, clean sans (no italic) */
+    .ef-stat-num {
+      font-family: var(--font-ui-display) !important;
+      font-style: normal !important;
+      font-weight: 700 !important;
+      letter-spacing: -.025em !important;
+      font-size: 32px !important;
+      line-height: 1.05 !important;
+    }
+  </style>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- starter components -->
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+
+  <!-- app modules -->
+  <script type="text/babel" src="src/data.jsx"></script>
+  <script type="text/babel" src="src/icons.jsx"></script>
+  <script type="text/babel" src="src/shell.jsx"></script>
+  <script type="text/babel" src="src/screens-desktop.jsx"></script>
+  <script type="text/babel" src="src/screens-mobile.jsx"></script>
+
+  <script type="text/babel" data-presets="env,react">
+    const { useState, useEffect } = React;
+
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "titleFont": "mona",
+      "background": "white"
+    }/*EDITMODE-END*/;
+
+    function App() {
+      const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+      useEffect(() => {
+        const root = document.documentElement;
+        const fontMap = {
+          mona:        { display: "var(--font-ui-display)", style: "normal" },
+          glitten:     { display: "var(--font-display)",    style: "italic" },
+          glittenCaps: { display: "var(--font-display-caps)", style: "normal" },
+          manrope:     { display: "var(--font-body)",       style: "normal" },
+        };
+        const sel = fontMap[tweaks.titleFont] || fontMap.mona;
+        root.style.setProperty('--ef-title-font', sel.display);
+        root.style.setProperty('--ef-title-style', sel.style);
+
+        const bgMap = {
+          white:  '#ffffff',
+          paper:  'var(--rm-paper)',
+          cream:  'var(--rm-cream)',
+        };
+        root.style.setProperty('--ef-app-bg', bgMap[tweaks.background] || '#ffffff');
+      }, [tweaks]);
+
+      return (
+        <>
+          <DesignCanvas>
+            <DCSection id="login" title="00 · Login & seleção de usuário" subtitle="Tela de identificação do operador — estilo FoodCamp redesenhado.">
+              <DCArtboard id="login-1" label="Login — Quem é você?" width={1200} height={760}><ScreenLogin /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="home" title="01 · Dashboard inicial — 3 variações" subtitle="Mesma tela Início explorada em três direções.">
+              <DCArtboard id="home-a" label="A — Cards (clássico)" width={1200} height={900}><ScreenHomeA /></DCArtboard>
+              <DCArtboard id="home-b" label="B — Editorial ‘jornal’" width={1200} height={900}><ScreenHomeB /></DCArtboard>
+              <DCArtboard id="home-c" label="C — Painel operacional" width={1200} height={760}><ScreenHomeC /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="cadastros" title="02 · Cadastros" subtitle="Funcionários, Produtos e Grupos.">
+              <DCArtboard id="cad-func" label="Funcionários — lista" width={1200} height={760}><ScreenFuncionarios /></DCArtboard>
+              <DCArtboard id="cad-prod" label="Produtos — lista" width={1200} height={900}><ScreenProdutos /></DCArtboard>
+              <DCArtboard id="cad-grup" label="Grupos" width={1200} height={760}><ScreenGrupos /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="criar" title="03 · Modal Criar Funcionário — 3 variações" subtitle="Mesma ação, três formatos: modal clássico, split, ou wizard inline.">
+              <DCArtboard id="cf-a" label="A — Modal clássico" width={1200} height={840}><ScreenCriarFuncA /></DCArtboard>
+              <DCArtboard id="cf-b" label="B — Modal split" width={1200} height={840}><ScreenCriarFuncB /></DCArtboard>
+              <DCArtboard id="cf-c" label="C — Wizard inline" width={1200} height={760}><ScreenCriarFuncC /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="etiquetas" title="04 · Impressão em grupo" subtitle="Seleção de produtos + preview da etiqueta térmica.">
+              <DCArtboard id="et-1" label="Etiquetas — imprimir em grupo" width={1280} height={900}><ScreenEtiquetas /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="mobile-cont" title="05 · Mobile — Fluxo Contagem (completo)" subtitle="Lista → responsável → instruções QR → scan → produtos → sucesso.">
+              <DCArtboard id="mc-1" label="1. Listas de contagem" width={380} height={760}><ScreenMobileContagem /></DCArtboard>
+              <DCArtboard id="mc-2" label="2. Quem fará a contagem" width={380} height={760}><ScreenMobileQuem /></DCArtboard>
+              <DCArtboard id="mc-3" label="3. Como contar (QR)" width={380} height={760}><ScreenMobileComoContar /></DCArtboard>
+              <DCArtboard id="mc-4" label="4. Scan QR (câmera)" width={380} height={760}><ScreenMobileScan /></DCArtboard>
+              <DCArtboard id="mc-5" label="5. Lista de produtos" width={380} height={760}><ScreenMobileLista /></DCArtboard>
+              <DCArtboard id="mc-6" label="6. Sucesso" width={380} height={760}><ScreenMobileSucesso /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="mobile-extra" title="06 · Mobile — Recebimento & Menu" subtitle="Recebimento NF-e com temperatura, e o drawer lateral.">
+              <DCArtboard id="mr-1" label="Recebimento NF-e" width={380} height={760}><ScreenMobileRecebimento /></DCArtboard>
+              <DCArtboard id="mr-2" label="Menu lateral" width={380} height={760}><ScreenMobileSidebar /></DCArtboard>
+            </DCSection>
+          </DesignCanvas>
+
+          <TweaksPanel title="Tweaks">
+            <TweakSection title="Tipografia dos t\u00edtulos">
+              <TweakSelect
+                label="Fam\u00edlia"
+                value={tweaks.titleFont}
+                onChange={(v) => setTweak('titleFont', v)}
+                options={[
+                  { value: 'mona',        label: 'Mona Sans (padr\u00e3o)' },
+                  { value: 'glitten',     label: 'Glitten' },
+                  { value: 'glittenCaps', label: 'Glitten Caps' },
+                  { value: 'manrope',     label: 'Manrope' },
+                ]}
+              />
+            </TweakSection>
+            <TweakSection title="Fundo da aplica\u00e7\u00e3o">
+              <TweakRadio
+                label="Cor"
+                value={tweaks.background}
+                onChange={(v) => setTweak('background', v)}
+                options={[
+                  { value: 'white', label: 'Branco' },
+                  { value: 'paper', label: 'Bege' },
+                  { value: 'cream', label: 'Cream' },
+                ]}
+              />
+            </TweakSection>
+          </TweaksPanel>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

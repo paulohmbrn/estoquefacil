@@ -1,0 +1,3107 @@
+[
+  {
+    "code": "1010100500100",
+    "name": "FRANGO DESFIADO KG",
+    "qty": 0.9,
+    "un": "KG",
+    "group": "Proteínas",
+    "subgroup": "Aves",
+    "niceName": "Frango Desfiado"
+  },
+  {
+    "code": "1010101500701",
+    "name": "CARPACCIO COMPLETO C/ 90GR UN",
+    "qty": 2,
+    "un": "UN",
+    "group": "Proteínas",
+    "subgroup": "Bovinas",
+    "niceName": "Carpaccio Completo"
+  },
+  {
+    "code": "1010101501500",
+    "name": "CARNE DE SOL KG",
+    "qty": 4.367,
+    "un": "KG",
+    "group": "Proteínas",
+    "subgroup": "Bovinas",
+    "niceName": "Carne De Sol"
+  },
+  {
+    "code": "1010101502500",
+    "name": "FILE STROGRONOF C/ 200GR UN",
+    "qty": 8,
+    "un": "UN",
+    "group": "Proteínas",
+    "subgroup": "Bovinas",
+    "niceName": "File Strogronof"
+  },
+  {
+    "code": "1010101502701",
+    "name": "FILE PARMEGIANA C/ 150GR UN",
+    "qty": 31,
+    "un": "UN",
+    "group": "Proteínas",
+    "subgroup": "Bovinas",
+    "niceName": "File Parmegiana"
+  },
+  {
+    "code": "1010101503001",
+    "name": "CARNE MOIDA C/ 200GR UN",
+    "qty": 1,
+    "un": "UN",
+    "group": "Proteínas",
+    "subgroup": "Bovinas",
+    "niceName": "Carne Moida"
+  },
+  {
+    "code": "1010101505100",
+    "name": "RAGU DE CARNE KG",
+    "qty": 0.6,
+    "un": "KG",
+    "group": "Proteínas",
+    "subgroup": "Bovinas",
+    "niceName": "Ragu De Carne"
+  },
+  {
+    "code": "1010102001500",
+    "name": "PRESUNTO PARMA KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Proteínas",
+    "subgroup": "Frios e Embutidos",
+    "niceName": "Presunto Parma"
+  },
+  {
+    "code": "1010102002000",
+    "name": "PRESUNTO COZIDO SEM CAPA KG",
+    "qty": 1.297,
+    "un": "KG",
+    "group": "Proteínas",
+    "subgroup": "Frios e Embutidos",
+    "niceName": "Presunto Cozido Sem Capa"
+  },
+  {
+    "code": "1010102002900",
+    "name": "PRESUNTO ROYALE 50GR",
+    "qty": 0.5,
+    "un": "UN",
+    "group": "Proteínas",
+    "subgroup": "Frios e Embutidos",
+    "niceName": "Presunto Royale"
+  },
+  {
+    "code": "1010102500100",
+    "name": "BACON FATIADO KG",
+    "qty": 2.583,
+    "un": "KG",
+    "group": "Proteínas",
+    "subgroup": "Frios e Embutidos",
+    "niceName": "Bacon Fatiado"
+  },
+  {
+    "code": "1010102500500",
+    "name": "LINGUICA CALABRESA KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Proteínas",
+    "subgroup": "Frios e Embutidos",
+    "niceName": "Linguica Calabresa"
+  },
+  {
+    "code": "1010102501500",
+    "name": "LINGUICA PEPPERONI KG",
+    "qty": 0.173,
+    "un": "KG",
+    "group": "Proteínas",
+    "subgroup": "Frios e Embutidos",
+    "niceName": "Linguica Pepperoni"
+  },
+  {
+    "code": "1010104500100",
+    "name": "ATUM TRITURADO KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Proteínas",
+    "subgroup": "Frutos do Mar",
+    "niceName": "Atum Triturado"
+  },
+  {
+    "code": "1010105500100",
+    "name": "CAMARAO PARA PIZZA KG",
+    "qty": 6.456,
+    "un": "KG",
+    "group": "Proteínas",
+    "subgroup": "Frutos do Mar",
+    "niceName": "Camarao Para Pizza"
+  },
+  {
+    "code": "1010105500500",
+    "name": "CAMARAO PARA PRATO KG",
+    "qty": 0.75,
+    "un": "KG",
+    "group": "Proteínas",
+    "subgroup": "Frutos do Mar",
+    "niceName": "Camarao Para Prato"
+  },
+  {
+    "code": "1010500100100",
+    "name": "MASSA PIZZA TRAD GIG UN",
+    "qty": 0,
+    "un": "UN",
+    "group": "Massas",
+    "subgroup": "Pizza",
+    "niceName": "Massa Pizza Trad Gig"
+  },
+  {
+    "code": "1010500101000",
+    "name": "MASSA PIZZA TRAD GDE UN",
+    "qty": 0,
+    "un": "UN",
+    "group": "Massas",
+    "subgroup": "Pizza",
+    "niceName": "Massa Pizza Trad Gde"
+  },
+  {
+    "code": "1010500101500",
+    "name": "MASSA PIZZA TRAD MED UN",
+    "qty": 0,
+    "un": "UN",
+    "group": "Massas",
+    "subgroup": "Pizza",
+    "niceName": "Massa Pizza Trad Med"
+  },
+  {
+    "code": "1010500102500",
+    "name": "MASSA PIZZA TRAD IND UN",
+    "qty": 0,
+    "un": "UN",
+    "group": "Massas",
+    "subgroup": "Pizza",
+    "niceName": "Massa Pizza Trad Ind"
+  },
+  {
+    "code": "1011000100100",
+    "name": "RAPADURA KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Confeitaria",
+    "subgroup": "Doces",
+    "niceName": "Rapadura"
+  },
+  {
+    "code": "1011001004500",
+    "name": "PASTA DE PISTACHE KG",
+    "qty": 1.412,
+    "un": "KG",
+    "group": "Confeitaria",
+    "subgroup": "Pastas e Cremes",
+    "niceName": "Pasta De Pistache"
+  },
+  {
+    "code": "1011001500200",
+    "name": "BRIGADEIRO KG",
+    "qty": 0.783,
+    "un": "KG",
+    "group": "Confeitaria",
+    "subgroup": "Pastas e Cremes",
+    "niceName": "Brigadeiro"
+  },
+  {
+    "code": "1011001500300",
+    "name": "CALDA CHOCOLATE KG",
+    "qty": 0.6,
+    "un": "KG",
+    "group": "Confeitaria",
+    "subgroup": "Pastas e Cremes",
+    "niceName": "Calda Chocolate"
+  },
+  {
+    "code": "1011001500400",
+    "name": "BOLO BROWNIE UN",
+    "qty": 13,
+    "un": "UN",
+    "group": "Confeitaria",
+    "subgroup": "Pastas e Cremes",
+    "niceName": "Bolo Brownie"
+  },
+  {
+    "code": "1011001500500",
+    "name": "BOLO PETIT GATEAU CHOCOLATE UN",
+    "qty": 11,
+    "un": "UN",
+    "group": "Confeitaria",
+    "subgroup": "Pastas e Cremes",
+    "niceName": "Bolo Petit Gateau Chocolate"
+  },
+  {
+    "code": "1011001502300",
+    "name": "BOLO ANIVERSARIO CLIENTE",
+    "qty": 20,
+    "un": "UN",
+    "group": "Confeitaria",
+    "subgroup": "Pastas e Cremes",
+    "niceName": "Bolo Aniversario Cliente"
+  },
+  {
+    "code": "1011001502600",
+    "name": "KINDER BUENO WHITE 39G UN",
+    "qty": 4,
+    "un": "UN",
+    "group": "Confeitaria",
+    "subgroup": "Pastas e Cremes",
+    "niceName": "Kinder Bueno White 39g"
+  },
+  {
+    "code": "1011001502610",
+    "name": "PASTA CARIBE BUENO KG",
+    "qty": 1.468,
+    "un": "KG",
+    "group": "Confeitaria",
+    "subgroup": "Pastas e Cremes",
+    "niceName": "Pasta Caribe Bueno"
+  },
+  {
+    "code": "1011002501500",
+    "name": "CHOCOLATE AO LEITE FORNEAVEL KG",
+    "qty": 7.863,
+    "un": "KG",
+    "group": "Confeitaria",
+    "subgroup": "Chocolates",
+    "niceName": "Chocolate Ao Leite Forneavel"
+  },
+  {
+    "code": "1011002501600",
+    "name": "CHOCOLATE BRANCO FORNEAVEL KG",
+    "qty": 7.783,
+    "un": "KG",
+    "group": "Confeitaria",
+    "subgroup": "Chocolates",
+    "niceName": "Chocolate Branco Forneavel"
+  },
+  {
+    "code": "1011002502000",
+    "name": "CHOCOLATE GRANULADO KG",
+    "qty": 1.557,
+    "un": "KG",
+    "group": "Confeitaria",
+    "subgroup": "Chocolates",
+    "niceName": "Chocolate Granulado"
+  },
+  {
+    "code": "1011002503500",
+    "name": "CHOCOLATE MEIO AMARGO BARRA KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Confeitaria",
+    "subgroup": "Chocolates",
+    "niceName": "Chocolate Meio Amargo Barra"
+  },
+  {
+    "code": "1011002507100",
+    "name": "MILKA ALPINE MILK C/ 100GR",
+    "qty": 0,
+    "un": "UN",
+    "group": "Confeitaria",
+    "subgroup": "Chocolates",
+    "niceName": "Milka Alpine Milk C/"
+  },
+  {
+    "code": "1011003011500",
+    "name": "SORVETE LEITE KG",
+    "qty": 4,
+    "un": "KG",
+    "group": "Confeitaria",
+    "subgroup": "Sorvetes",
+    "niceName": "Sorvete Leite"
+  },
+  {
+    "code": "1011500100600",
+    "name": "ERVA DOCE KG",
+    "qty": 0.3,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Erva Doce"
+  },
+  {
+    "code": "1011500100710",
+    "name": "PAPRICA DOCE KG",
+    "qty": 0.4,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Paprica Doce"
+  },
+  {
+    "code": "1011500101500",
+    "name": "PIMENTA REINO PRETA GRAOS KG",
+    "qty": 0.75,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Pimenta Reino Preta Graos"
+  },
+  {
+    "code": "1011500103000",
+    "name": "PIMENTA TABASCO GF",
+    "qty": 0,
+    "un": "GF",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Pimenta Tabasco Gf"
+  },
+  {
+    "code": "1011500103500",
+    "name": "SAL REFINADO KG",
+    "qty": 5,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Sal Refinado"
+  },
+  {
+    "code": "1011500103600",
+    "name": "SAL GROSSO KG",
+    "qty": 1,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Sal Grosso"
+  },
+  {
+    "code": "1011500104000",
+    "name": "CANELA EM PO KG",
+    "qty": 0.73,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Canela Em Po"
+  },
+  {
+    "code": "1011500105000",
+    "name": "OREGANO KG",
+    "qty": 2.463,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Oregano"
+  },
+  {
+    "code": "1011500500100",
+    "name": "AZEITONA PRETA CALIFORNIA 32/36 KG",
+    "qty": 6.574,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Azeitona Preta California 32/36"
+  },
+  {
+    "code": "1011500500500",
+    "name": "AZEITONAS FATIADA PRETA KG",
+    "qty": 2.486,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Azeitonas Fatiada Preta"
+  },
+  {
+    "code": "1011500500801",
+    "name": "ABOBRINHA TEMPERADA PCT C/ 200GR UN",
+    "qty": 6,
+    "un": "UN",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Abobrinha Temperada Pct"
+  },
+  {
+    "code": "1011500500900",
+    "name": "CEBOLA CARAMELIZADA KG",
+    "qty": 0.69,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Cebola Caramelizada"
+  },
+  {
+    "code": "1011500501000",
+    "name": "COGUMELO FATIADO KG",
+    "qty": 12.239,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Cogumelo Fatiado"
+  },
+  {
+    "code": "1011500501100",
+    "name": "CAPONATA DE LEGUMES KG",
+    "qty": 0.7,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Caponata De Legumes"
+  },
+  {
+    "code": "1011500501110",
+    "name": "CAPONATA DE BERINJELA C/100GR UN",
+    "qty": 0,
+    "un": "UN",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Caponata De Berinjela"
+  },
+  {
+    "code": "1011500501200",
+    "name": "CONFITE TOMATE CEREJA KG",
+    "qty": 0.694,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Confite Tomate Cereja"
+  },
+  {
+    "code": "1011500501500",
+    "name": "TOMATE SECO KG",
+    "qty": 1.041,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Tomate Seco"
+  },
+  {
+    "code": "1011500502000",
+    "name": "PALMITO PICADO KG",
+    "qty": 1.3,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Palmito Picado"
+  },
+  {
+    "code": "1011500503200",
+    "name": "ALCACHOFRA KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Alcachofra"
+  },
+  {
+    "code": "1011500503500",
+    "name": "ERVILHA EM CONSERVA KG",
+    "qty": 3.06,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Ervilha Em Conserva"
+  },
+  {
+    "code": "1011500504000",
+    "name": "MILHO EM CONSERVA KG",
+    "qty": 0.649,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Especiarias",
+    "niceName": "Milho Em Conserva"
+  },
+  {
+    "code": "1011501400500",
+    "name": "MOLHO ALCAPARRA KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Molhos",
+    "subgroup": "Molhos",
+    "niceName": "Molho Alcaparra"
+  },
+  {
+    "code": "1011501401000",
+    "name": "MOLHO PESTO MANJERICAO KG",
+    "qty": 0.865,
+    "un": "KG",
+    "group": "Molhos",
+    "subgroup": "Molhos",
+    "niceName": "Molho Pesto Manjericao"
+  },
+  {
+    "code": "1011501401500",
+    "name": "MOLHO PESTO AZEITONA KG",
+    "qty": 0.8,
+    "un": "KG",
+    "group": "Molhos",
+    "subgroup": "Molhos",
+    "niceName": "Molho Pesto Azeitona"
+  },
+  {
+    "code": "1011501407100",
+    "name": "GELEIA DE PIMENTA KG",
+    "qty": 1.427,
+    "un": "KG",
+    "group": "Molhos",
+    "subgroup": "Molhos",
+    "niceName": "Geleia De Pimenta"
+  },
+  {
+    "code": "1011501407300",
+    "name": "MOLHO FUNGHI KG",
+    "qty": 0.4,
+    "un": "KG",
+    "group": "Molhos",
+    "subgroup": "Molhos",
+    "niceName": "Molho Funghi"
+  },
+  {
+    "code": "1011501407400",
+    "name": "MOLHO QUATRO QUEIJOS KG",
+    "qty": 2.4,
+    "un": "KG",
+    "group": "Molhos",
+    "subgroup": "Molhos",
+    "niceName": "Molho Quatro Queijos"
+  },
+  {
+    "code": "1011501407700",
+    "name": "MOLHO PIMENTA RM KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Molhos",
+    "subgroup": "Molhos",
+    "niceName": "Molho Pimenta Rm"
+  },
+  {
+    "code": "1011501500100",
+    "name": "MOLHO PIZZA TRAD KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Molhos",
+    "subgroup": "Molhos",
+    "niceName": "Molho Pizza Trad"
+  },
+  {
+    "code": "1011501500200",
+    "name": "TOMATE PELADO KG",
+    "qty": 40.996,
+    "un": "KG",
+    "group": "Molhos",
+    "subgroup": "Molhos",
+    "niceName": "Tomate Pelado"
+  },
+  {
+    "code": "1011501500300",
+    "name": "MOLHO SUGO KG",
+    "qty": 8,
+    "un": "KG",
+    "group": "Molhos",
+    "subgroup": "Molhos",
+    "niceName": "Molho Sugo"
+  },
+  {
+    "code": "1011501600400",
+    "name": "DEMI GLACE LOJA KG",
+    "qty": 1.7,
+    "un": "KG",
+    "group": "Molhos",
+    "subgroup": "Molhos",
+    "niceName": "Demi Glace Loja"
+  },
+  {
+    "code": "1011501600500",
+    "name": "FONDUTA DE LIMAO C/ 150GR",
+    "qty": 2,
+    "un": "UN",
+    "group": "Molhos",
+    "subgroup": "Molhos",
+    "niceName": "Fonduta De Limao C/"
+  },
+  {
+    "code": "1011501601200",
+    "name": "MOLHO DE MEL E MOSTARDA RM C/100GR",
+    "qty": 0,
+    "un": "UN",
+    "group": "Molhos",
+    "subgroup": "Molhos",
+    "niceName": "Molho De Mel E Mostarda Rm C/100gr"
+  },
+  {
+    "code": "1011502000100",
+    "name": "CASTANHA XEREM KG",
+    "qty": 0.5,
+    "un": "KG",
+    "group": "Secos",
+    "subgroup": "Castanhas",
+    "niceName": "Castanha Xerem"
+  },
+  {
+    "code": "1012001000200",
+    "name": "CREAM CHEESE KG",
+    "qty": 3.421,
+    "un": "KG",
+    "group": "Queijos",
+    "subgroup": "Frescos",
+    "niceName": "Cream Cheese"
+  },
+  {
+    "code": "1012001000500",
+    "name": "CREME DE LEITE KG",
+    "qty": 4.56,
+    "un": "KG",
+    "group": "Queijos",
+    "subgroup": "Frescos",
+    "niceName": "Creme De Leite"
+  },
+  {
+    "code": "1012001500200",
+    "name": "QUEIJO BURRATA UN",
+    "qty": 5,
+    "un": "UN",
+    "group": "Queijos",
+    "subgroup": "Frescos",
+    "niceName": "Queijo Burrata"
+  },
+  {
+    "code": "1012001501500",
+    "name": "QUEIJO GORGONZOLA KG",
+    "qty": 1.49,
+    "un": "KG",
+    "group": "Queijos",
+    "subgroup": "Frescos",
+    "niceName": "Queijo Gorgonzola"
+  },
+  {
+    "code": "1012001502000",
+    "name": "QUEIJO MUSSARELA KG",
+    "qty": 46.591,
+    "un": "KG",
+    "group": "Queijos",
+    "subgroup": "Frescos",
+    "niceName": "Queijo Mussarela"
+  },
+  {
+    "code": "1012001502100",
+    "name": "QUEIJO MUSSARELA SEM LACTOSE KG",
+    "qty": 0.75,
+    "un": "KG",
+    "group": "Queijos",
+    "subgroup": "Frescos",
+    "niceName": "Queijo Mussarela Sem Lactose"
+  },
+  {
+    "code": "1012001502500",
+    "name": "QUEIJO MUSSARELA BUFALA BOLA KG",
+    "qty": 1.305,
+    "un": "KG",
+    "group": "Queijos",
+    "subgroup": "Frescos",
+    "niceName": "Queijo Mussarela Bufala Bola"
+  },
+  {
+    "code": "1012001503500",
+    "name": "QUEIJO PARMESAO PROCESSADO KG",
+    "qty": 3.683,
+    "un": "KG",
+    "group": "Queijos",
+    "subgroup": "Frescos",
+    "niceName": "Queijo Parmesao Processado"
+  },
+  {
+    "code": "1012001504000",
+    "name": "QUEIJO PROVOLONE KG",
+    "qty": 3.379,
+    "un": "KG",
+    "group": "Queijos",
+    "subgroup": "Frescos",
+    "niceName": "Queijo Provolone"
+  },
+  {
+    "code": "1012001504600",
+    "name": "QUEIJO STRACCIATELLA KG",
+    "qty": 0.382,
+    "un": "KG",
+    "group": "Queijos",
+    "subgroup": "Frescos",
+    "niceName": "Queijo Stracciatella"
+  },
+  {
+    "code": "1012001505000",
+    "name": "REQUEIJÃO CREMOSO KG",
+    "qty": 70.5,
+    "un": "KG",
+    "group": "Queijos",
+    "subgroup": "Frescos",
+    "niceName": "RequeijãO Cremoso"
+  },
+  {
+    "code": "1012002000100",
+    "name": "MANTEIGA SEM SAL KG",
+    "qty": 0.6,
+    "un": "KG",
+    "group": "Laticínios",
+    "subgroup": "Manteigas",
+    "niceName": "Manteiga Sem Sal"
+  },
+  {
+    "code": "1012002500500",
+    "name": "LOMBO CANADENSE KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Laticínios",
+    "subgroup": "Manteigas",
+    "niceName": "Lombo Canadense"
+  },
+  {
+    "code": "1012002501000",
+    "name": "PEITO PERU KG",
+    "qty": 2.932,
+    "un": "KG",
+    "group": "Laticínios",
+    "subgroup": "Manteigas",
+    "niceName": "Peito Peru"
+  },
+  {
+    "code": "1012003000100",
+    "name": "GELO EM CUBO KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Insumos",
+    "subgroup": "Gelo",
+    "niceName": "Gelo Em Cubo"
+  },
+  {
+    "code": "1012500100100",
+    "name": "ALECRIM KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Hortifruti",
+    "niceName": "Alecrim"
+  },
+  {
+    "code": "1012500103000",
+    "name": "HORTELA KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Hortifruti",
+    "niceName": "Hortela"
+  },
+  {
+    "code": "1012500103500",
+    "name": "MANJERICAO KG",
+    "qty": 0.264,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Hortifruti",
+    "niceName": "Manjericao"
+  },
+  {
+    "code": "1012500104000",
+    "name": "RUCULA KG",
+    "qty": 0.903,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Hortifruti",
+    "niceName": "Rucula"
+  },
+  {
+    "code": "1012500104500",
+    "name": "SALSA KG",
+    "qty": 0.5,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Hortifruti",
+    "niceName": "Salsa"
+  },
+  {
+    "code": "1012500105100",
+    "name": "SALSINHA KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Hortifruti",
+    "niceName": "Salsinha"
+  },
+  {
+    "code": "1012500105302",
+    "name": "MIX DE BROTOS MICROVERDES",
+    "qty": 0,
+    "un": "UN",
+    "group": "FLV",
+    "subgroup": "Hortifruti",
+    "niceName": "Mix De Brotos Microverdes"
+  },
+  {
+    "code": "1012500500500",
+    "name": "BATATA INGLESA KG",
+    "qty": 11,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Hortifruti",
+    "niceName": "Batata Inglesa"
+  },
+  {
+    "code": "1012500501500",
+    "name": "BERINJELA KG",
+    "qty": 1.044,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Hortifruti",
+    "niceName": "Berinjela"
+  },
+  {
+    "code": "1012500502000",
+    "name": "CEBOLA BRANCA KG",
+    "qty": 24.048,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Hortifruti",
+    "niceName": "Cebola Branca"
+  },
+  {
+    "code": "1012500502600",
+    "name": "GENGIBRE KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Hortifruti",
+    "niceName": "Gengibre"
+  },
+  {
+    "code": "1012500503000",
+    "name": "CENOURA KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Hortifruti",
+    "niceName": "Cenoura"
+  },
+  {
+    "code": "1012500504000",
+    "name": "PIMENTAO VERDE KG",
+    "qty": 0.207,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Hortifruti",
+    "niceName": "Pimentao Verde"
+  },
+  {
+    "code": "1012500505500",
+    "name": "TOMATE CEREJA KG",
+    "qty": 0.78,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Hortifruti",
+    "niceName": "Tomate Cereja"
+  },
+  {
+    "code": "1012500506500",
+    "name": "TOMATE SALADA KG",
+    "qty": 2.116,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Hortifruti",
+    "niceName": "Tomate Salada"
+  },
+  {
+    "code": "1012500507500",
+    "name": "ALHO DESCASCADO KG",
+    "qty": 3,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Hortifruti",
+    "niceName": "Alho Descascado"
+  },
+  {
+    "code": "1012501000500",
+    "name": "BROCOLIS CONGELADO KG",
+    "qty": 3.11,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Congelados",
+    "niceName": "Brocolis Congelado"
+  },
+  {
+    "code": "1012501001000",
+    "name": "BATATA PALITO KG",
+    "qty": 3.25,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Congelados",
+    "niceName": "Batata Palito"
+  },
+  {
+    "code": "1012501001500",
+    "name": "CREME DE ABOBORA",
+    "qty": 0.944,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Congelados",
+    "niceName": "Creme De Abobora"
+  },
+  {
+    "code": "1012501001600",
+    "name": "BERINGELA PROCESSADA KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Congelados",
+    "niceName": "Beringela Processada"
+  },
+  {
+    "code": "1012501500100",
+    "name": "BANANA KG",
+    "qty": 7.022,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Congelados",
+    "niceName": "Banana"
+  },
+  {
+    "code": "1012501500200",
+    "name": "ACEROLA KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Congelados",
+    "niceName": "Acerola"
+  },
+  {
+    "code": "1012501500500",
+    "name": "ABACAXI KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Congelados",
+    "niceName": "Abacaxi"
+  },
+  {
+    "code": "1012501501000",
+    "name": "MORANGO NATURAL KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Congelados",
+    "niceName": "Morango Natural"
+  },
+  {
+    "code": "1012501501500",
+    "name": "LARANJA KG",
+    "qty": 340,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Congelados",
+    "niceName": "Laranja"
+  },
+  {
+    "code": "1012501501600",
+    "name": "LARANJA BAHIA KG",
+    "qty": 1,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Congelados",
+    "niceName": "Laranja Bahia"
+  },
+  {
+    "code": "1012501502000",
+    "name": "LIMAO TAITI KG",
+    "qty": 14,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Congelados",
+    "niceName": "Limao Taiti"
+  },
+  {
+    "code": "1012501502100",
+    "name": "LIMAO SICILIANO KG",
+    "qty": 4,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Congelados",
+    "niceName": "Limao Siciliano"
+  },
+  {
+    "code": "1012501503200",
+    "name": "UVA KG",
+    "qty": 0.2,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Congelados",
+    "niceName": "Uva"
+  },
+  {
+    "code": "1012501503300",
+    "name": "KIWI KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Congelados",
+    "niceName": "Kiwi"
+  },
+  {
+    "code": "1012501503600",
+    "name": "CAJA KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Congelados",
+    "niceName": "Caja"
+  },
+  {
+    "code": "1012502000100",
+    "name": "MORANGO CONGELADO KG",
+    "qty": 2,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Frutas",
+    "niceName": "Morango Congelado"
+  },
+  {
+    "code": "1012502500100",
+    "name": "POLPA ACEROLA KG",
+    "qty": 2,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Frutas",
+    "niceName": "Polpa Acerola"
+  },
+  {
+    "code": "1012502500500",
+    "name": "POLPA GRAVIOLA KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Frutas",
+    "niceName": "Polpa Graviola"
+  },
+  {
+    "code": "1012502501000",
+    "name": "POLPA CAJA KG",
+    "qty": 8,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Frutas",
+    "niceName": "Polpa Caja"
+  },
+  {
+    "code": "1012502501500",
+    "name": "POLPA ABACAXI KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Frutas",
+    "niceName": "Polpa Abacaxi"
+  },
+  {
+    "code": "1012502502000",
+    "name": "POLPA UVA KG",
+    "qty": 5,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Frutas",
+    "niceName": "Polpa Uva"
+  },
+  {
+    "code": "1012502502500",
+    "name": "POLPA GOIABA KG",
+    "qty": 1,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Frutas",
+    "niceName": "Polpa Goiaba"
+  },
+  {
+    "code": "1012502503000",
+    "name": "POLPA MARACUJA KG",
+    "qty": 4,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Frutas",
+    "niceName": "Polpa Maracuja"
+  },
+  {
+    "code": "1012502503500",
+    "name": "POLPA CAJU KG",
+    "qty": 1,
+    "un": "KG",
+    "group": "FLV",
+    "subgroup": "Frutas",
+    "niceName": "Polpa Caju"
+  },
+  {
+    "code": "1012503000100",
+    "name": "OVO A GRANEL KG",
+    "qty": 16.928,
+    "un": "KG",
+    "group": "Insumos",
+    "subgroup": "Ovos",
+    "niceName": "Ovo A Granel"
+  },
+  {
+    "code": "1013000100500",
+    "name": "ARROZ BRANCO KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Cozinha Quente",
+    "subgroup": "Acompanhamentos",
+    "niceName": "Arroz Branco"
+  },
+  {
+    "code": "1013000100600",
+    "name": "RISOTO PRONTO KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Cozinha Quente",
+    "subgroup": "Acompanhamentos",
+    "niceName": "Risoto Pronto"
+  },
+  {
+    "code": "1013000500100",
+    "name": "FARINHA PANCO KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Cozinha Quente",
+    "subgroup": "Acompanhamentos",
+    "niceName": "Farinha Panco"
+  },
+  {
+    "code": "1013000502000",
+    "name": "FUBA KG",
+    "qty": 35.1,
+    "un": "KG",
+    "group": "Cozinha Quente",
+    "subgroup": "Acompanhamentos",
+    "niceName": "Fuba"
+  },
+  {
+    "code": "1013000600700",
+    "name": "FARINHA DE TRIGO TIPO 1 INTEGRAL FINA KG",
+    "qty": 1,
+    "un": "KG",
+    "group": "Cozinha Quente",
+    "subgroup": "Acompanhamentos",
+    "niceName": "Farinha De Trigo Tipo 1 Integral Fina"
+  },
+  {
+    "code": "1013001000100",
+    "name": "LASANHA CARNE C/ 500GR UN",
+    "qty": 7,
+    "un": "UN",
+    "group": "Cozinha Quente",
+    "subgroup": "Pratos Prontos",
+    "niceName": "Lasanha Carne"
+  },
+  {
+    "code": "1013001001001",
+    "name": "GNOCHI C/250GR",
+    "qty": 4,
+    "un": "UN",
+    "group": "Cozinha Quente",
+    "subgroup": "Pratos Prontos",
+    "niceName": "Gnochi C/250gr"
+  },
+  {
+    "code": "1013001001800",
+    "name": "RAVIOLI DE CAMARAO C/ 180GR",
+    "qty": 2,
+    "un": "UN",
+    "group": "Cozinha Quente",
+    "subgroup": "Pratos Prontos",
+    "niceName": "Ravioli De Camarao C/"
+  },
+  {
+    "code": "1013001004000",
+    "name": "SPAGHETTI 100GR",
+    "qty": 387,
+    "un": "UN",
+    "group": "Cozinha Quente",
+    "subgroup": "Pratos Prontos",
+    "niceName": "Spaghetti"
+  },
+  {
+    "code": "1013001004100",
+    "name": "FETTUCCINE 100GR",
+    "qty": 8,
+    "un": "UN",
+    "group": "Cozinha Quente",
+    "subgroup": "Pratos Prontos",
+    "niceName": "Fettuccine"
+  },
+  {
+    "code": "1013001004200",
+    "name": "PENNE 100GR",
+    "qty": 4,
+    "un": "UN",
+    "group": "Cozinha Quente",
+    "subgroup": "Pratos Prontos",
+    "niceName": "Penne"
+  },
+  {
+    "code": "1013001004500",
+    "name": "TAGLIATELLI DE NERO C/ 180GR",
+    "qty": 5,
+    "un": "UN",
+    "group": "Cozinha Quente",
+    "subgroup": "Pratos Prontos",
+    "niceName": "Tagliatelli De Nero C/"
+  },
+  {
+    "code": "1013001500100",
+    "name": "ESPAGUETE KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Cozinha Quente",
+    "subgroup": "Pratos Prontos",
+    "niceName": "Espaguete"
+  },
+  {
+    "code": "1013001501500",
+    "name": "PENNE KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Cozinha Quente",
+    "subgroup": "Pratos Prontos",
+    "niceName": "Penne"
+  },
+  {
+    "code": "1013002000100",
+    "name": "ACUCAR DE CONFEITEIRO KG",
+    "qty": 1,
+    "un": "KG",
+    "group": "Confeitaria",
+    "subgroup": "Açúcares",
+    "niceName": "Acucar De Confeiteiro"
+  },
+  {
+    "code": "1013002000501",
+    "name": "ACUCAR REFINADO KG",
+    "qty": 22,
+    "un": "KG",
+    "group": "Confeitaria",
+    "subgroup": "Açúcares",
+    "niceName": "Acucar Refinado"
+  },
+  {
+    "code": "1013002500100",
+    "name": "AZEITE OLIVA VIRGEM LT",
+    "qty": 1,
+    "un": "LT",
+    "group": "Confeitaria",
+    "subgroup": "Açúcares",
+    "niceName": "Azeite Oliva Virgem Lt"
+  },
+  {
+    "code": "1013002500500",
+    "name": "AZEITE OLIVA EXTRA VIRGEM LT",
+    "qty": 0,
+    "un": "LT",
+    "group": "Confeitaria",
+    "subgroup": "Açúcares",
+    "niceName": "Azeite Oliva Extra Virgem Lt"
+  },
+  {
+    "code": "1013002501000",
+    "name": "AZEITE TRUFADO KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Confeitaria",
+    "subgroup": "Açúcares",
+    "niceName": "Azeite Trufado"
+  },
+  {
+    "code": "1013003000100",
+    "name": "GORDURA VEGETAL KG",
+    "qty": 14,
+    "un": "KG",
+    "group": "Insumos",
+    "subgroup": "Gorduras",
+    "niceName": "Gordura Vegetal"
+  },
+  {
+    "code": "1013004500100",
+    "name": "CATCHUP SACHET ",
+    "qty": 314,
+    "un": "UN",
+    "group": "Molhos",
+    "subgroup": "Sachês",
+    "niceName": "Catchup Sachet"
+  },
+  {
+    "code": "1013004500500",
+    "name": "MAIONESE SACHET ",
+    "qty": 672,
+    "un": "UN",
+    "group": "Molhos",
+    "subgroup": "Sachês",
+    "niceName": "Maionese Sachet"
+  },
+  {
+    "code": "1013004501000",
+    "name": "MOSTARDA SACHET ",
+    "qty": 168,
+    "un": "UN",
+    "group": "Molhos",
+    "subgroup": "Sachês",
+    "niceName": "Mostarda Sachet"
+  },
+  {
+    "code": "1013004502000",
+    "name": "ACUCAR SACHET",
+    "qty": 0,
+    "un": "UN",
+    "group": "Molhos",
+    "subgroup": "Sachês",
+    "niceName": "Acucar Sachet"
+  },
+  {
+    "code": "1013500100300",
+    "name": "PAO CROCK KG",
+    "qty": 1,
+    "un": "KG",
+    "group": "Padaria",
+    "subgroup": "Pães",
+    "niceName": "Pao Crock"
+  },
+  {
+    "code": "1013500100402",
+    "name": "PAO ITALIANO KG",
+    "qty": 2.1,
+    "un": "KG",
+    "group": "Padaria",
+    "subgroup": "Pães",
+    "niceName": "Pao Italiano"
+  },
+  {
+    "code": "1013500100900",
+    "name": "FOCACCIA C/ 150GR UN",
+    "qty": 0,
+    "un": "UN",
+    "group": "Padaria",
+    "subgroup": "Pães",
+    "niceName": "Focaccia"
+  },
+  {
+    "code": "1013500300300",
+    "name": "GRISSINI CROISSANT C/ 100GR",
+    "qty": 2,
+    "un": "UN",
+    "group": "Padaria",
+    "subgroup": "Pães",
+    "niceName": "Grissini Croissant C/"
+  },
+  {
+    "code": "1013501000500",
+    "name": "NEGRESCO TRITURADO KG",
+    "qty": 0.3,
+    "un": "KG",
+    "group": "Padaria",
+    "subgroup": "Biscoitos",
+    "niceName": "Negresco Triturado"
+  },
+  {
+    "code": "1013700100111",
+    "name": "CROQUETE TARTUFO C/ 5UN",
+    "qty": 2,
+    "un": "PC",
+    "group": "Salgados",
+    "subgroup": "Croquetes",
+    "niceName": "Croquete Tartufo"
+  },
+  {
+    "code": "1013700100112",
+    "name": "CROQUETE CARANGUEJO C/ 5UN",
+    "qty": 0,
+    "un": "PC",
+    "group": "Salgados",
+    "subgroup": "Croquetes",
+    "niceName": "Croquete Caranguejo"
+  },
+  {
+    "code": "1013700100211",
+    "name": "ARANCINI DE CAMARAO C/ 5UN",
+    "qty": 8,
+    "un": "UN",
+    "group": "Salgados",
+    "subgroup": "Croquetes",
+    "niceName": "Arancini De Camarao"
+  },
+  {
+    "code": "1013700100212",
+    "name": "ARANCINE FILE C/ 5UN",
+    "qty": 7,
+    "un": "UN",
+    "group": "Salgados",
+    "subgroup": "Croquetes",
+    "niceName": "Arancine File"
+  },
+  {
+    "code": "1013700100400",
+    "name": "CAMARAO C/ RABINHO C/ 10 UNID",
+    "qty": 1,
+    "un": "UN",
+    "group": "Salgados",
+    "subgroup": "Croquetes",
+    "niceName": "Camaraoid"
+  },
+  {
+    "code": "1013700100410",
+    "name": "GAMBERONI KG",
+    "qty": 3,
+    "un": "KG",
+    "group": "Salgados",
+    "subgroup": "Croquetes",
+    "niceName": "Gamberoni"
+  },
+  {
+    "code": "1013700100500",
+    "name": "MIX DO MAR C/200GR",
+    "qty": 0,
+    "un": "UN",
+    "group": "Salgados",
+    "subgroup": "Croquetes",
+    "niceName": "Mix Do Mar C/200gr"
+  },
+  {
+    "code": "1013700200100",
+    "name": "MIX COGUMELO KG",
+    "qty": 0.76,
+    "un": "KG",
+    "group": "Salgados",
+    "subgroup": "Croquetes",
+    "niceName": "Mix Cogumelo"
+  },
+  {
+    "code": "1013700200201",
+    "name": "BISQUE DE CAMARAO C/100GR UN",
+    "qty": 11,
+    "un": "UN",
+    "group": "Salgados",
+    "subgroup": "Croquetes",
+    "niceName": "Bisque De Camarao"
+  },
+  {
+    "code": "1013700200300",
+    "name": "MOLHO TRUFADO C/ 150GR",
+    "qty": 5,
+    "un": "UN",
+    "group": "Salgados",
+    "subgroup": "Croquetes",
+    "niceName": "Molho Trufado C/"
+  },
+  {
+    "code": "1013700200311",
+    "name": "MOLHO MOQUECA C/50GR UN",
+    "qty": 6,
+    "un": "UN",
+    "group": "Salgados",
+    "subgroup": "Croquetes",
+    "niceName": "Molho Moqueca"
+  },
+  {
+    "code": "1014000100101",
+    "name": "CACHACA DOSE",
+    "qty": 0,
+    "un": "DS",
+    "group": "Bebidas",
+    "subgroup": "Destilados",
+    "niceName": "Cachaca Dose"
+  },
+  {
+    "code": "1014000520100",
+    "name": "XAROPE DE MORANGO LITRO",
+    "qty": 0,
+    "un": "LT",
+    "group": "Bebidas",
+    "subgroup": "Destilados",
+    "niceName": "Xarope De Morango Litro"
+  },
+  {
+    "code": "1014000520300",
+    "name": "XAROPE DE CRANBERRY LITRO",
+    "qty": 2.9,
+    "un": "LT",
+    "group": "Bebidas",
+    "subgroup": "Destilados",
+    "niceName": "Xarope De Cranberry Litro"
+  },
+  {
+    "code": "1014000520400",
+    "name": "XAROPE DE MACA VERDE S/ACUCAR LT",
+    "qty": 0,
+    "un": "LT",
+    "group": "Bebidas",
+    "subgroup": "Destilados",
+    "niceName": "Xarope De Maca Verde S/Acucar Lt"
+  },
+  {
+    "code": "1014000520500",
+    "name": "XAROPE DE LIMAO LT",
+    "qty": 0,
+    "un": "LT",
+    "group": "Bebidas",
+    "subgroup": "Destilados",
+    "niceName": "Xarope De Limao Lt"
+  },
+  {
+    "code": "1014000520700",
+    "name": "XAROPE ROSA LT",
+    "qty": 2.4,
+    "un": "LT",
+    "group": "Bebidas",
+    "subgroup": "Destilados",
+    "niceName": "Xarope Rosa Lt"
+  },
+  {
+    "code": "1014000520800",
+    "name": "XAROPE DE GENGIBRE LT",
+    "qty": 0,
+    "un": "LT",
+    "group": "Bebidas",
+    "subgroup": "Destilados",
+    "niceName": "Xarope De Gengibre Lt"
+  },
+  {
+    "code": "1014000520900",
+    "name": "XAROPE TORANJA MONIN LITRO",
+    "qty": 0,
+    "un": "UN",
+    "group": "Bebidas",
+    "subgroup": "Destilados",
+    "niceName": "Xarope Toranja Monin Litro"
+  },
+  {
+    "code": "1014000521000",
+    "name": "XAROPE KIWI MONIN LITRO",
+    "qty": 0,
+    "un": "LT",
+    "group": "Bebidas",
+    "subgroup": "Destilados",
+    "niceName": "Xarope Kiwi Monin Litro"
+  },
+  {
+    "code": "1014000521200",
+    "name": "XAROPE MOJITO MIX MONIN LITRO",
+    "qty": 0,
+    "un": "LT",
+    "group": "Bebidas",
+    "subgroup": "Destilados",
+    "niceName": "Xarope Mojito Mix Monin Litro"
+  },
+  {
+    "code": "1014000521400",
+    "name": "XAROPE LARANJA SANGUIN LT",
+    "qty": 0,
+    "un": "LT",
+    "group": "Bebidas",
+    "subgroup": "Destilados",
+    "niceName": "Xarope Laranja Sanguin Lt"
+  },
+  {
+    "code": "1014001000100",
+    "name": "CAFE EM PO KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Bebidas",
+    "subgroup": "Café",
+    "niceName": "Cafe Em Po"
+  },
+  {
+    "code": "3010500102500",
+    "name": "PAPEL TOALHA CLIENTE",
+    "qty": 7,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Papel Toalha Cliente"
+  },
+  {
+    "code": "3010500114001",
+    "name": "SACOLA BRANCA 40X50 KG",
+    "qty": 5,
+    "un": "KG",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Sacola Branca 40x50"
+  },
+  {
+    "code": "3010500117000",
+    "name": "PAPEL HIGIENICO FUNCIONARIO RL 8X200",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Papel Higienico Funcionario Rl 8x200"
+  },
+  {
+    "code": "3010500117700",
+    "name": "PAPEL TOALHA INTERFOLHADO",
+    "qty": 13,
+    "un": "FD",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Papel Toalha Interfolhado"
+  },
+  {
+    "code": "3010500120000",
+    "name": "LAMINA BANDEJA REIS MAGOS UNID",
+    "qty": 48,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Lamina Bandeja Reis Magos Unid"
+  },
+  {
+    "code": "3010500500100",
+    "name": "EMB ALUMINIO D8 184X278",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Emb Aluminio D8 184x278"
+  },
+  {
+    "code": "3010500510000",
+    "name": "EMB SELADA REIS MAGOS 1100ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Emb Selada Reis Magos 1100ml"
+  },
+  {
+    "code": "3010500510500",
+    "name": "EMB PIZZA 25 PEQ",
+    "qty": 172,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Emb Pizza 25 Peq"
+  },
+  {
+    "code": "3010500511000",
+    "name": "EMB PIZZA 30 MED",
+    "qty": 73,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Emb Pizza 30 Med"
+  },
+  {
+    "code": "3010500511500",
+    "name": "EMB PIZZA 35 GDE",
+    "qty": 789,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Emb Pizza 35 Gde"
+  },
+  {
+    "code": "3010500512000",
+    "name": "EMB PIZZA 40 GIG",
+    "qty": 205,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Emb Pizza 40 Gig"
+  },
+  {
+    "code": "3010500521500",
+    "name": "PAPEL MANTEIGA 50X70",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Papel Manteiga 50x70"
+  },
+  {
+    "code": "3010500530403",
+    "name": "AMPOLA CIRCULO 4ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Ampola Circulo 4ml"
+  },
+  {
+    "code": "3011501100332",
+    "name": "COXA C SOBRES COXA DE FRANGO KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Coxa C Sobres Coxa De Frango"
+  },
+  {
+    "code": "3011501100333",
+    "name": "LINGUICA DE FRANGO KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Linguica De Frango"
+  },
+  {
+    "code": "3011501100338",
+    "name": "FEIJAO CARIOCA KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Feijao Carioca"
+  },
+  {
+    "code": "3011501100339",
+    "name": "FEIJAO PRETO KG",
+    "qty": 0,
+    "un": "KG",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Feijao Preto"
+  },
+  {
+    "code": "3011501100340",
+    "name": "FLOCOS DE MILHO KG",
+    "qty": 16,
+    "un": "KG",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Flocos De Milho"
+  },
+  {
+    "code": "9150100100100",
+    "name": "AGUA SEM GAS  STERBOM PREM 300ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Agua Sem Gas  Sterbom Prem 300ml"
+  },
+  {
+    "code": "9150100100500",
+    "name": "AGUA COM GAS STERBOM PREM 300ML",
+    "qty": 59,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Agua Com Gas Sterbom Prem 300ml"
+  },
+  {
+    "code": "9150100100600",
+    "name": "AGUA COM GAS PET 500 GF",
+    "qty": 49,
+    "un": "GF",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Agua Com Gas Pet 500 Gf"
+  },
+  {
+    "code": "9150100100700",
+    "name": "AGUA SEM GAS PET 500 GF",
+    "qty": 9,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Agua Sem Gas Pet 500 Gf"
+  },
+  {
+    "code": "9150500100500",
+    "name": "AGUA TONICA LATA",
+    "qty": 9,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Agua Tonica Lata"
+  },
+  {
+    "code": "9150500101000",
+    "name": "GUARANA LATA",
+    "qty": 155,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Guarana Lata"
+  },
+  {
+    "code": "9150500101100",
+    "name": "GUARANA ZERO LATA",
+    "qty": 37,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Guarana Zero Lata"
+  },
+  {
+    "code": "9150500101200",
+    "name": "PEPSI LATA",
+    "qty": 99,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Pepsi Lata"
+  },
+  {
+    "code": "9150500104200",
+    "name": "SUKITA UVA LATA",
+    "qty": 8,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Sukita Uva Lata"
+  },
+  {
+    "code": "9150500104900",
+    "name": "SUKITA LARANJA LATA",
+    "qty": 31,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Sukita Laranja Lata"
+  },
+  {
+    "code": "9150500105000",
+    "name": "PEPSI BLACK LATA",
+    "qty": 34,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Pepsi Black Lata"
+  },
+  {
+    "code": "9150500105500",
+    "name": "SODA LATA",
+    "qty": 56,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Soda Lata"
+  },
+  {
+    "code": "9150501501000",
+    "name": "GUARANA 1LT",
+    "qty": 5,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Guarana 1lt"
+  },
+  {
+    "code": "9150501501500",
+    "name": "PEPSI 1LT",
+    "qty": 43,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Pepsi 1lt"
+  },
+  {
+    "code": "9150501502000",
+    "name": "PEPSI BLACK 1LT",
+    "qty": 3,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Pepsi Black 1lt"
+  },
+  {
+    "code": "9150501510000",
+    "name": "GUARANA ZERO 1LT",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Guarana Zero 1lt"
+  },
+  {
+    "code": "9150502001000",
+    "name": "GUARANA 2LT",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Guarana 2lt"
+  },
+  {
+    "code": "9150502001100",
+    "name": "PEPSI 2L",
+    "qty": 6,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Pepsi 2l"
+  },
+  {
+    "code": "9150502001200",
+    "name": "PEPSI BLACK 2LT",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Pepsi Black 2lt"
+  },
+  {
+    "code": "9151001001000",
+    "name": "AGUA COCO COPO 290ML",
+    "qty": 16,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Agua Coco Copo 290ml"
+  },
+  {
+    "code": "9152000502600",
+    "name": "CERV STELLA ARTOIS LONG NECK GF",
+    "qty": 10,
+    "un": "GF",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Cerv Stella Artois Long Neck Gf"
+  },
+  {
+    "code": "9152000503100",
+    "name": "CERV BUDWIESER LONG NECK",
+    "qty": 0,
+    "un": "GF",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Cerv Budwieser Long Neck"
+  },
+  {
+    "code": "9152000503200",
+    "name": "CERV BUDWEISER ZERO LONG NECK 330ML",
+    "qty": 7,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Cerv Budweiser Zero Long Neck 330ml"
+  },
+  {
+    "code": "9152000506700",
+    "name": "CERV SPATEN 355ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Cerv Spaten 355ml"
+  },
+  {
+    "code": "9152000506900",
+    "name": "CERV STELLA GOLDEN",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Cerv Stella Golden"
+  },
+  {
+    "code": "9152000507010",
+    "name": "CERV CORONA LONG NECK",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Cerv Corona Long Neck"
+  },
+  {
+    "code": "9152001501100",
+    "name": "CHOPP BRAHMA 300ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Chopp Brahma 300ml"
+  },
+  {
+    "code": "9152500500100",
+    "name": "COG DOMECQ DOSE",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Cog Domecq Dose"
+  },
+  {
+    "code": "9152501000200",
+    "name": "MARTINI ROSSO DOSE",
+    "qty": 1,
+    "un": "DS",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Martini Rosso Dose"
+  },
+  {
+    "code": "9152501000500",
+    "name": "CAMPARI DOSE",
+    "qty": 3,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Campari Dose"
+  },
+  {
+    "code": "9152501001000",
+    "name": "RUM BACARDI LIMAO DOSE",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Rum Bacardi Limao Dose"
+  },
+  {
+    "code": "9152501002100",
+    "name": "APERITIVO APEROL DE ERVAS 1919 DOSE",
+    "qty": 1,
+    "un": "DS",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Aperitivo Aperol De Ervas 1919 Dose"
+  },
+  {
+    "code": "9152501200100",
+    "name": "GIN APTK LONDON DRY N.1",
+    "qty": 0,
+    "un": "DS",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Gin Aptk London Dry N.1"
+  },
+  {
+    "code": "9152501200300",
+    "name": "GIN BEEFEATER DOSE",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Gin Beefeater Dose"
+  },
+  {
+    "code": "9152501200400",
+    "name": "TANQUERAY GIN LONDON DRY LITRO",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Tanqueray Gin London Dry Litro"
+  },
+  {
+    "code": "9152501200500",
+    "name": "GIN GORDONS LITRO",
+    "qty": 1,
+    "un": "LT",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Gin Gordons Litro"
+  },
+  {
+    "code": "9152501500100",
+    "name": "LICOR CONTREAU 30ML DOSE",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Licor Contreau 30ml Dose"
+  },
+  {
+    "code": "9152501501500",
+    "name": "LICOR 43 DOSE",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Licor 43 Dose"
+  },
+  {
+    "code": "9152501503200",
+    "name": "LICOR LIMONCELLO GF 700ML",
+    "qty": 1,
+    "un": "GF",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Licor Limoncello Gf 700ml"
+  },
+  {
+    "code": "9152501503300",
+    "name": "LICOR STOCK PEACH LITRO",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Licor Stock Peach Litro"
+  },
+  {
+    "code": "9152502000500",
+    "name": "WH JOHNNIE WALKER BLACK DOSE",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Wh Johnnie Walker Black Dose"
+  },
+  {
+    "code": "9152502001000",
+    "name": "WH JOHNNIE WALKER RED DOSE",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Wh Johnnie Walker Red Dose"
+  },
+  {
+    "code": "9152502001100",
+    "name": "WH JOHNIE BLONDE DOSE",
+    "qty": 0,
+    "un": "DS",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Wh Johnie Blonde Dose"
+  },
+  {
+    "code": "9152502001200",
+    "name": "WH BALLANTINES 12 ANOS DOSE",
+    "qty": 0,
+    "un": "DS",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Wh Ballantines 12 Anos Dose"
+  },
+  {
+    "code": "9152502001600",
+    "name": "WH BUCHANANS 12 ANOS DOSE",
+    "qty": 0,
+    "un": "DS",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Wh Buchanans 12 Anos Dose"
+  },
+  {
+    "code": "9152502002000",
+    "name": "WH CHIVAS DOSE",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Wh Chivas Dose"
+  },
+  {
+    "code": "9152502002500",
+    "name": "WH OLD PAR DOSE",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Wh Old Par Dose"
+  },
+  {
+    "code": "9152502003500",
+    "name": "WH JACK DANIELS 8 ANOS DOSE",
+    "qty": 0,
+    "un": "DS",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Wh Jack Daniels 8 Anos Dose"
+  },
+  {
+    "code": "9152502003600",
+    "name": "WHISKY JAMESON LITRO",
+    "qty": 2,
+    "un": "LT",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Whisky Jameson Litro"
+  },
+  {
+    "code": "9152502500100",
+    "name": "VODKA SMIRNOFF DOSE",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vodka Smirnoff Dose"
+  },
+  {
+    "code": "9152502500200",
+    "name": "VODKA ABSOLUT DOSE",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vodka Absolut Dose"
+  },
+  {
+    "code": "9152502500300",
+    "name": "VODKA 1 L KETEL ONE LITRO",
+    "qty": 1,
+    "un": "LT",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vodka 1 L Ketel One Litro"
+  },
+  {
+    "code": "9152502600002",
+    "name": "RUM BITTER ANGOSTURA ORANGE LITRO",
+    "qty": 0,
+    "un": "LT",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Rum Bitter Angostura Orange Litro"
+  },
+  {
+    "code": "9152502700000",
+    "name": "TEQUILA DON JULIO BLANCO LITRO",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Tequila Don Julio Blanco Litro"
+  },
+  {
+    "code": "9153000101200",
+    "name": "VH BCO LES MOUGETTOES CHARDONNAY 750ML",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Bco Les Mougettoes Chardonnay 750ml"
+  },
+  {
+    "code": "9153000101900",
+    "name": "VH BCO DON LUCIANO 750ML",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Bco Don Luciano 750ml"
+  },
+  {
+    "code": "9153000103101",
+    "name": "VH BCO ALEIXO GARCIA BRANCO 250ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Bco Aleixo Garcia Branco 250ml"
+  },
+  {
+    "code": "9153000103102",
+    "name": "VH BCO ART CELEBRATE BRUT 750ML",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Bco Art Celebrate Brut 750ml"
+  },
+  {
+    "code": "9153000103103",
+    "name": "VH BCO ART CELEBRATE MOSCATEL 750ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Bco Art Celebrate Moscatel 750ml"
+  },
+  {
+    "code": "9153000103104",
+    "name": "VH BCO BANFI CENTINE BCO 750ML",
+    "qty": 3,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Bco Banfi Centine Bco 750ml"
+  },
+  {
+    "code": "9153000103105",
+    "name": "VH BCO CASA ROMERO EL EMISARIO RESERVA SAUVIGNON B",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Bco Casa Romero El Emisario Reserva Sauvignon B"
+  },
+  {
+    "code": "9153000103108",
+    "name": "VH BCO PENEDO BORGES CEPAS SAUVIGNON BLANC",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Bco Penedo Borges Cepas Sauvignon Blanc"
+  },
+  {
+    "code": "9153000103109",
+    "name": "VH BCO RAPOSINHA BRANCO",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Bco Raposinha Branco"
+  },
+  {
+    "code": "9153000103111",
+    "name": "VH BCO SENSI COLLEZIONE TREBBIANO IGT TOSCANA BCO",
+    "qty": 3,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Bco Sensi Collezione Trebbiano Igt Toscana Bco"
+  },
+  {
+    "code": "9153000103112",
+    "name": "VH BCO TENUTA PROSECCO DOC BRUT 750ML",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Bco Tenuta Prosecco Doc Brut 750ml"
+  },
+  {
+    "code": "9153000103114",
+    "name": "VH ROS A MARE ROSE 750ML",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Ros A Mare Rose 750ml"
+  },
+  {
+    "code": "9153000103119",
+    "name": "VH BCO VERDE OBRA PRIMA CORACAO DOC BRANCO 750ML",
+    "qty": 3,
+    "un": "GF",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Bco Verde Obra Prima Coracao Doc Branco 750ml"
+  },
+  {
+    "code": "9153000103120",
+    "name": "VH BCO QUINTA DO PORTAL COLHEITA",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Bco Quinta Do Portal Colheita"
+  },
+  {
+    "code": "9153000103121",
+    "name": "VH BCO MUROS DE VINHA",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Bco Muros De Vinha"
+  },
+  {
+    "code": "9153000206600",
+    "name": "VH TTO A MARE PRIMITIVO 750ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto A Mare Primitivo 750ml"
+  },
+  {
+    "code": "9153000206900",
+    "name": "VH TTO FANTINI MONTEPULCIANO 750ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Fantini Montepulciano 750ml"
+  },
+  {
+    "code": "9153000207800",
+    "name": "VH TTO CASTELO BANFI CENTINE ROSSO 750ML",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Castelo Banfi Centine Rosso 750ml"
+  },
+  {
+    "code": "9153000209700",
+    "name": "VH TTO QUINTA DO PORTAL COLHEITA",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Quinta Do Portal Colheita"
+  },
+  {
+    "code": "9153000210100",
+    "name": "VH TTO TENUTA AMARONE DELLA",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Tenuta Amarone Della"
+  },
+  {
+    "code": "9153000211100",
+    "name": "VH TTO DON LUCIANO TEMPRANILLO 750",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Don Luciano Tempranillo 750"
+  },
+  {
+    "code": "9153000211300",
+    "name": "VH TTO CAVIC MALBEC 750ML",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Cavic Malbec 750ml"
+  },
+  {
+    "code": "9153000215004",
+    "name": "VH TTO PENEDO BORGES CEPAS MALBEC",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Penedo Borges Cepas Malbec"
+  },
+  {
+    "code": "9153000215005",
+    "name": "VH TTO BELLAVISTA CARMENERE 750ML",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Bellavista Carmenere 750ml"
+  },
+  {
+    "code": "9153000215006",
+    "name": "VH TTO BELLAVISTA CABERNET SAUVIGNON  750",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Bellavista Cabernet Sauvignon  750"
+  },
+  {
+    "code": "9153000215100",
+    "name": "VH TTO 1932 NEGROAMARO SALENTO I.G.T 750ml",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto 1932 Negroamaro Salento I.G.T 750ml"
+  },
+  {
+    "code": "9153000215101",
+    "name": "VH TTO ADEGA GRANDE RESERVA TTO SCO 750ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Adega Grande Reserva Tto Sco 750ml"
+  },
+  {
+    "code": "9153000215103",
+    "name": "VH TTO AUTUMN 4 ESTACIONES MALBEC TT 750ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Autumn 4 Estaciones Malbec Tt 750ml"
+  },
+  {
+    "code": "9153000215104",
+    "name": "VH TTO BANFI CENTINE 375ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Banfi Centine 375ml"
+  },
+  {
+    "code": "9153000215105",
+    "name": "VH TTO BODEGA PRIVADA MALBEC 750ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Bodega Privada Malbec 750ml"
+  },
+  {
+    "code": "9153000215107",
+    "name": "VH TTO CASA ROMERO EL EMISARIO RESERVA CARMENERE",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Casa Romero El Emisario Reserva Carmenere"
+  },
+  {
+    "code": "9153000215109",
+    "name": "VH TTO CAVIC CAB SAUVIGNON VARIETAL 750ML",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Cavic Cab Sauvignon Varietal 750ml"
+  },
+  {
+    "code": "9153000215110",
+    "name": "VH TTO ENCLOS DU WINE HUNTER VIK RED BLEND",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Enclos Du Wine Hunter Vik Red Blend"
+  },
+  {
+    "code": "9153000215111",
+    "name": "VH TTO FANTINI MONTEPULCIANO 1500ML",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Fantini Montepulciano 1500ml"
+  },
+  {
+    "code": "9153000215113",
+    "name": "VH TTO ITA CHIANTI CLASSICO DOCG FORZIERE SENSI 75",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Ita Chianti Classico Docg Forziere Sensi 75"
+  },
+  {
+    "code": "9153000215114",
+    "name": "VH TTO ITA CHIANTI DOC G RESERVA BARBANERA TTO 750",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Ita Chianti Doc G Reserva Barbanera Tto 750"
+  },
+  {
+    "code": "9153000215115",
+    "name": "VH TTO ITA TERRE SICILIANE ROOSO IGT DA UVE LEGG A",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Ita Terre Siciliane Rooso Igt Da Uve Legg A"
+  },
+  {
+    "code": "9153000215116",
+    "name": "VH TTO ITA TOSO MONFERRATO DOLCETTO DOC 1500ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Ita Toso Monferrato Dolcetto Doc 1500ml"
+  },
+  {
+    "code": "9153000215117",
+    "name": "VH TTO ITA TOSO PIEMONTE BARBERA DOC 1500ML",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Ita Toso Piemonte Barbera Doc 1500ml"
+  },
+  {
+    "code": "9153000215118",
+    "name": "VH TTO LIDIO CARRARO FACES DO BRASIL MERLOT 187ML",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Lidio Carraro Faces Do Brasil Merlot 187ml"
+  },
+  {
+    "code": "9153000215121",
+    "name": "VH TTO LIDIO CARRARO FACES BRASIL ROSE PINOT NO187",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Lidio Carraro Faces Brasil Rose Pinot No187"
+  },
+  {
+    "code": "9153000215124",
+    "name": "VH TTO LINDAFLOR MALBEC 750ML",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Lindaflor Malbec 750ml"
+  },
+  {
+    "code": "9153000215125",
+    "name": "VH TTO MAISON BOUEY OH LA VACHE MERLOT CABERNET IG",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Maison Bouey Oh La Vache Merlot Cabernet Ig"
+  },
+  {
+    "code": "9153000215126",
+    "name": "VH TTO MALACARA BONARDA 750ML",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Malacara Bonarda 750ml"
+  },
+  {
+    "code": "9153000215128",
+    "name": "VH TTO PELLERITI WINEMAKER MALBEC SERIES TT 750ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Pelleriti Winemaker Malbec Series Tt 750ml"
+  },
+  {
+    "code": "9153000215129",
+    "name": "VH TTO PENEDO BORGES CEPAS CABERNET FRANC",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Penedo Borges Cepas Cabernet Franc"
+  },
+  {
+    "code": "9153000215130",
+    "name": "VH TTO PENEDO BORGES PRIMA GRAN MALBEC",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Penedo Borges Prima Gran Malbec"
+  },
+  {
+    "code": "9153000215131",
+    "name": "VH TTO PENEDO BORGES PRISMA GRAN CABERNET SAUVIGNO",
+    "qty": 3,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Penedo Borges Prisma Gran Cabernet Sauvigno"
+  },
+  {
+    "code": "9153000215132",
+    "name": "VH TTO PETIT MAYNNE PINOT NOIR 750ML",
+    "qty": 3,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Petit Maynne Pinot Noir 750ml"
+  },
+  {
+    "code": "9153000215134",
+    "name": "VH TTO QUINTA DO PORTAL PORTO ALEGRE TAWNY",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Quinta Do Portal Porto Alegre Tawny"
+  },
+  {
+    "code": "9153000215136",
+    "name": "VH TTO RIPASSO DELLA VALPOLICELLA DOC SUPERIORE SE",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Ripasso Della Valpolicella Doc Superiore Se"
+  },
+  {
+    "code": "9153000215137",
+    "name": "VH TTO SANTA CRUZ DE LOS ANDES CABERNET SAUVIGNON",
+    "qty": 6,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Santa Cruz De Los Andes Cabernet Sauvignon"
+  },
+  {
+    "code": "9153000215138",
+    "name": "VH TTO SANTA CRUZ DE LOS ANDES CARMENERE",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Santa Cruz De Los Andes Carmenere"
+  },
+  {
+    "code": "9153000215140",
+    "name": "VH TTO SECRET ANGEL RESERVA SYRAH 2020",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Secret Angel Reserva Syrah 2020"
+  },
+  {
+    "code": "9153000215142",
+    "name": "VH TTO TENUTA PINOT NERO 2020",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Tenuta Pinot Nero 2020"
+  },
+  {
+    "code": "9153000215143",
+    "name": "VH TTO TENUTA PROSECCO DOC BRUT 200ML",
+    "qty": 3,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Tenuta Prosecco Doc Brut 200ml"
+  },
+  {
+    "code": "9153000215144",
+    "name": "VH TTO TENUTA VALPOLICELLA DOC 2020",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Tenuta Valpolicella Doc 2020"
+  },
+  {
+    "code": "9153000215145",
+    "name": "VH TTO TERRA ROSSA PRIMIT DI MANDURIA 1500ML",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Terra Rossa Primit Di Manduria 1500ml"
+  },
+  {
+    "code": "9153000215146",
+    "name": "VH TTO TOSO BARBARESCO DOCG 750ML",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Toso Barbaresco Docg 750ml"
+  },
+  {
+    "code": "9153000215147",
+    "name": "VH TTO TOSO BAROLO DOCG 750ML",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Toso Barolo Docg 750ml"
+  },
+  {
+    "code": "9153000215149",
+    "name": "VH TTO TRULI PRIMITIVO DI MANDURIA 2017 750ML",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Truli Primitivo Di Manduria 2017 750ml"
+  },
+  {
+    "code": "9153000215150",
+    "name": "VH TTO URBAIN V COTES DU RHONE AOC 2020 750ML",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Urbain V Cotes Du Rhone Aoc 2020 750ml"
+  },
+  {
+    "code": "9153000215152",
+    "name": "VH TTO VH ITA TOSO MONFERRATO DOLCETTO DOC 750ML",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Vh Ita Toso Monferrato Dolcetto Doc 750ml"
+  },
+  {
+    "code": "9153000215153",
+    "name": "VH BCO ITA TOSO PIEMONT CHARDONNAY DOC 750ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Bco Ita Toso Piemont Chardonnay Doc 750ml"
+  },
+  {
+    "code": "9153000215154",
+    "name": "VH BCO ITA TOSO PIEMONTE CORTESE DOC 750ML",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Bco Ita Toso Piemonte Cortese Doc 750ml"
+  },
+  {
+    "code": "9153000215156",
+    "name": "VH TTO VH ITALIANO PIEMONTE BARBERA DOC 750ML",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Vh Italiano Piemonte Barbera Doc 750ml"
+  },
+  {
+    "code": "9153000215157",
+    "name": "VH TTO VH ITALIANO ROSSO DI MONTALCINO DOCG BOSCOS",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Vh Italiano Rosso Di Montalcino Docg Boscos"
+  },
+  {
+    "code": "9153000215158",
+    "name": "VH TTO VIN SANTO DEL CHIANTI DOC SENSI 500ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Vin Santo Del Chianti Doc Sensi 500ml"
+  },
+  {
+    "code": "9153000215161",
+    "name": "VH TTO VINA AMALIA SINGLE VINEYARD RESERVA CORTE 2",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Vina Amalia Single Vineyard Reserva Corte 2"
+  },
+  {
+    "code": "9153000215163",
+    "name": "VH TTO VULCANICI CABERNET SAUVIGNON VENETO 750ML",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Vulcanici Cabernet Sauvignon Veneto 750ml"
+  },
+  {
+    "code": "9153000215164",
+    "name": "VH TTO VULCANICI MERLOT VENETO 750ML",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Vulcanici Merlot Veneto 750ml"
+  },
+  {
+    "code": "9153000215165",
+    "name": "VH TTO VULCANICI MONTEPULCIANO D ABRUZZO DOC 750ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Vulcanici Montepulciano D Abruzzo Doc 750ml"
+  },
+  {
+    "code": "9153000215167",
+    "name": "VH TTO VULCANICI ROSATO PUGLIA 750ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Vulcanici Rosato Puglia 750ml"
+  },
+  {
+    "code": "9153000215168",
+    "name": "VH TTO VULCANICI SANGIOVESE PUGLIA 750ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Vulcanici Sangiovese Puglia 750ml"
+  },
+  {
+    "code": "9153000215169",
+    "name": "VH TTO WINTER 4 ESTACIONES CABERNET SAUVIGNON TT 7",
+    "qty": 4,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Winter 4 Estaciones Cabernet Sauvignon Tt 7"
+  },
+  {
+    "code": "9153000215170",
+    "name": "ALEIXO GARCIA TINTO 750ML",
+    "qty": 3,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Aleixo Garcia Tinto 750ml"
+  },
+  {
+    "code": "9153000215172",
+    "name": "VH TTO BODEGA PRIVADA CARBENET SAUV 750ML",
+    "qty": 2,
+    "un": "GF",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Bodega Privada Carbenet Sauv 750ml"
+  },
+  {
+    "code": "9153000215173",
+    "name": "VH TTO PENEDO BORGES CEPAS CABERNET SAUV",
+    "qty": 3,
+    "un": "GF",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Penedo Borges Cepas Cabernet Sauv"
+  },
+  {
+    "code": "9153000215176",
+    "name": "VH TTO SECRET ANGEL RESERVA CABERNET SAUVIG 750ML",
+    "qty": 0,
+    "un": "GF",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Secret Angel Reserva Cabernet Sauvig 750ml"
+  },
+  {
+    "code": "9153000215177",
+    "name": "VH TTO SUPER TOSCANO BOLGHERI SABIAGO",
+    "qty": 1,
+    "un": "GF",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Tto Super Toscano Bolgheri Sabiago"
+  },
+  {
+    "code": "9153000300100",
+    "name": "VH ESP LAMBRUSCO BRANCO GF",
+    "qty": 0,
+    "un": "GF",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Esp Lambrusco Branco Gf"
+  },
+  {
+    "code": "9153000300200",
+    "name": "VH ESP LAMBRUSCO TINTO GF",
+    "qty": 0,
+    "un": "GF",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Esp Lambrusco Tinto Gf"
+  },
+  {
+    "code": "9153000300700",
+    "name": "VH BCO ESPUMANTE AMITIE MOSCATEL",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Bco Espumante Amitie Moscatel"
+  },
+  {
+    "code": "9153000301601",
+    "name": "VH BCO PENEDO BORGES PRISMA GRAN CHARDONNAY",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Bco Penedo Borges Prisma Gran Chardonnay"
+  },
+  {
+    "code": "9153000301602",
+    "name": "VH CHAMP PIPER HEIDSIECK CHAMPAGNE CUVEE BRUT 750M",
+    "qty": 2,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Champ Piper Heidsieck Champagne Cuvee Brut 750m"
+  },
+  {
+    "code": "9153000301603",
+    "name": "VH ESP BRUT ROSE VULCANICI 750ML",
+    "qty": 1,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Esp Brut Rose Vulcanici 750ml"
+  },
+  {
+    "code": "9153000301604",
+    "name": "VH ESP TOSO GRAN DESSERT DOLCE 750ML",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Vh Esp Toso Gran Dessert Dolce 750ml"
+  },
+  {
+    "code": "9153000301700",
+    "name": "ESPUMANTE  BRUT LITRO",
+    "qty": 0,
+    "un": "LT",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Espumante  Brut Litro"
+  },
+  {
+    "code": "9153500507303",
+    "name": "PORTOFINO",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Portofino"
+  },
+  {
+    "code": "9153500507310",
+    "name": "VIOLETA DRINK",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Violeta Drink"
+  },
+  {
+    "code": "9153500507311",
+    "name": "CAPIM MACIO",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Capim Macio"
+  },
+  {
+    "code": "9153500507312",
+    "name": "REIS MAGOS COCKTAILS",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Reis Magos Cocktails"
+  },
+  {
+    "code": "9154000600600",
+    "name": "CF NESTLE EXPRESSO",
+    "qty": 100,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Cf Nestle Expresso"
+  },
+  {
+    "code": "9154001100200",
+    "name": "CF NESTLE CAFE COM LEITE",
+    "qty": 0,
+    "un": "UN",
+    "group": "Outros",
+    "subgroup": "—",
+    "niceName": "Cf Nestle Cafe Com Leite"
+  },
+  {
+    "code": "1010102002501",
+    "name": "PANCETTA PCT C/ 50GR UN",
+    "qty": 3,
+    "un": "UN",
+    "group": "Proteínas",
+    "subgroup": "Frios e Embutidos",
+    "niceName": "Pancetta Pct"
+  }
+]

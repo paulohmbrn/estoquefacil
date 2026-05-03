@@ -1,0 +1,557 @@
+// Estoque Fácil — schema Prisma
+// Convenções:
+//  - IDs cuid()
+//  - Timestamps em camelCase (createdAt/updatedAt)
+//  - zmartbiId = chave canônica do ZmartBI (CDFILIAL, CDGRUPPROD, etc.)
+//  - Produtos sincronizados são scopados por loja (catálogo replicado conforme decisão MVP)
+//  - Apenas CDARVPROD com 13 chars entram aqui (filtro aplicado pelo worker de sync)
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// Auth.js (next-auth v5) Prisma adapter standard models
+// ============================================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+
+  accounts Account[]
+  sessions Session[]
+
+  funcionario         Funcionario?
+  usuarioLojas        UsuarioLoja[]
+  contagensCriadas    Contagem[]    @relation("ContagemCriadaPor")
+  recebimentosCriadas Recebimento[] @relation("RecebimentoCriadaPor")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================================
+// Domínio: Lojas, Funcionários, Acesso
+// ============================================================
+
+model Loja {
+  id           String          @id @default(cuid())
+  // ZmartBI
+  zmartbiId    String          @unique // CDFILIAL — "0001", "0003", "0023"...
+  nrOrg        Int // NRORG (1148 para Reis Magos)
+  cdEmpresa    String // CDEMPRESA — "01"
+  nome         String // NMFILIAL
+  // Operacional
+  apelido      String? // ex: "Capim Macio" para o switcher
+  endereco     String?
+  ativo        Boolean         @default(true)
+  // Relacionamentos
+  funcionarios Funcionario[]
+  produtos     Produto[]
+  contagens    Contagem[]
+  listas       ListaContagem[]
+  etiquetas    Etiqueta[]
+  usuarioLojas UsuarioLoja[]
+
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  recebimentos          Recebimento[]
+  produtoFornecedorMaps ProdutoFornecedorMap[]
+  notaFiscalImportadas  NotaFiscalImportada[]
+  sefazSyncs            SefazSync[]
+
+  cnpj                   String?
+  inscricaoEstadual      String?
+  ufFiscal               String?
+  certificadoPath        String?
+  certificadoSenhaEnc    String?
+  certificadoNome        String?
+  certificadoValidoAte   DateTime?
+  certificadoUploadedAt  DateTime?
+  ultimoNsuSefaz         String?  @default("0")
+
+  @@index([ativo])
+}
+
+// Acesso de usuário (via Google) a múltiplas lojas, com papel por loja.
+// Decisão: Gestor pode ser de várias lojas; Operador é vinculado a 1 loja específica.
+model UsuarioLoja {
+  id        String       @id @default(cuid())
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  loja      Loja         @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+  lojaId    String
+  papel     PapelUsuario @default(OPERADOR)
+  ativo     Boolean      @default(true)
+  createdAt DateTime     @default(now())
+
+  @@unique([userId, lojaId])
+  @@index([userId])
+  @@index([lojaId])
+}
+
+enum PapelUsuario {
+  GESTOR
+  OPERADOR
+}
+
+// Funcionário "operacional" — pode ou não ter login próprio.
+// Permissão SEM_LOGIN: aparece no seletor "Quem fará a contagem" mas nunca autentica.
+model Funcionario {
+  id        String    @id @default(cuid())
+  nome      String
+  email     String?   @unique
+  telefone  String?
+  cargo     String?
+  permissao Permissao @default(SEM_LOGIN)
+  ativo     Boolean   @default(true)
+
+  loja   Loja   @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+  lojaId String
+
+  // Liga ao User (next-auth) quando permissao != SEM_LOGIN.
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId String? @unique
+
+  contagens    Contagem[]    @relation("ContagemResponsavel")
+  recebimentos Recebimento[] @relation("RecebimentoResponsavel")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lojaId, ativo])
+}
+
+enum Permissao {
+  SEM_LOGIN
+  COM_LOGIN
+  GESTOR
+}
+
+// ============================================================
+// Catálogo (sincronizado do ZmartBI)
+// ============================================================
+
+model Grupo {
+  id        String     @id @default(cuid())
+  zmartbiId String     @unique // CDGRUPPROD
+  nome      String // NMGRUPPROD
+  icone     String? // editado localmente
+  cor       String? // editado localmente
+  subgrupos Subgrupo[]
+  produtos  Produto[]
+  syncedAt  DateTime   @default(now())
+}
+
+model Subgrupo {
+  id        String    @id @default(cuid())
+  zmartbiId String    @unique // CDSUBGRPROD
+  nome      String // NMSUBGRPROD
+  grupo     Grupo     @relation(fields: [grupoId], references: [id], onDelete: Cascade)
+  grupoId   String
+  produtos  Produto[]
+  syncedAt  DateTime  @default(now())
+
+  @@index([grupoId])
+}
+
+// Catálogo replicado por loja: cada (lojaId, cdarvprod) é único.
+// Apenas CDARVPROD com 13 chars (SKU contável) entra aqui.
+model Produto {
+  id           String    @id @default(cuid())
+  // ZmartBI
+  cdarvprod    String // 13 chars — chave do export
+  cdProduto    String // CDPRODUTO (10 chars)
+  nome         String // NMPRODUTO
+  unidade      String // KG/UN/PC/GF/CX/LT/...
+  tipoProduto  String // TIPO_PRODUTO
+  vrPrecoVenda Decimal   @default(0) @db.Decimal(14, 4)
+  status       String    @default("S") // S/N — STATUS do ZmartBI
+  compoeCmv    Boolean   @default(true) // COMPOE_CMV
+  dtCadastro   DateTime // DT_CADASTRO (DD/MM/AAAA -> Date)
+  dtAlteracao  DateTime // DT_ALTERACAO -> usar como signal de delta no sync
+  // Relacionamentos
+  loja         Loja      @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+  lojaId       String
+  grupo        Grupo?    @relation(fields: [grupoId], references: [id], onDelete: SetNull)
+  grupoId      String?
+  subgrupo     Subgrupo? @relation(fields: [subgrupoId], references: [id], onDelete: SetNull)
+  subgrupoId   String?
+
+  meta             ProdutoMeta?
+  lancamentos      Lancamento[]
+  etiquetas        Etiqueta[]
+  produtosListas   ProdutoLista[]
+  recebimentoItens RecebimentoItem[]
+  fornecedorMaps   ProdutoFornecedorMap[]
+
+  ativo    Boolean  @default(true)
+  syncedAt DateTime @default(now())
+
+  @@unique([lojaId, cdarvprod])
+  @@index([lojaId, grupoId])
+  @@index([lojaId, ativo])
+  @@index([cdarvprod])
+}
+
+// Metadados editáveis localmente (não conflita com sync).
+model ProdutoMeta {
+  id                String   @id @default(cuid())
+  produto           Produto  @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  produtoId         String   @unique
+  fotoUrl           String?
+  validadeResfriado Int? // dias
+  validadeCongelado Int? // dias
+  validadeAmbiente  Int? // dias
+  metodos           String[] @default([]) // ["congelado","resfriado","ambiente"]
+  observacoes       String?
+  updatedAt         DateTime @updatedAt
+}
+
+// ============================================================
+// Listas de contagem
+// ============================================================
+
+model ListaContagem {
+  id        String         @id @default(cuid())
+  nome      String
+  icone     String?
+  tags      String[]       @default([])
+  loja      Loja           @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+  lojaId    String
+  produtos  ProdutoLista[]
+  qrToken   String         @unique
+  contagens Contagem[]
+  ativo     Boolean        @default(true)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([lojaId, ativo])
+}
+
+model ProdutoLista {
+  produto   Produto       @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  produtoId String
+  lista     ListaContagem @relation(fields: [listaId], references: [id], onDelete: Cascade)
+  listaId   String
+  ordem     Int           @default(0)
+
+  @@id([produtoId, listaId])
+  @@index([listaId, ordem])
+}
+
+// ============================================================
+// Contagem
+// ============================================================
+
+model Contagem {
+  id            String         @id @default(cuid())
+  loja          Loja           @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+  lojaId        String
+  responsavel   Funcionario    @relation("ContagemResponsavel", fields: [responsavelId], references: [id])
+  responsavelId String
+  // Quem disparou pelo app (User do next-auth — pode ser != responsavel)
+  criadaPor     User?          @relation("ContagemCriadaPor", fields: [criadaPorId], references: [id], onDelete: SetNull)
+  criadaPorId   String?
+  lista         ListaContagem? @relation(fields: [listaId], references: [id], onDelete: SetNull)
+  listaId       String?
+  // Data efetiva da contagem (sem hora) — vai para DTLANCESTQ no export
+  dataContagem  DateTime       @db.Date
+  status        StatusContagem @default(EM_ANDAMENTO)
+  iniciadaEm    DateTime       @default(now())
+  finalizadaEm  DateTime?
+  exportadaEm   DateTime?
+  observacoes   String?
+
+  lancamentos Lancamento[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lojaId, dataContagem])
+  @@index([lojaId, status])
+}
+
+enum StatusContagem {
+  EM_ANDAMENTO
+  FINALIZADA
+  EXPORTADA
+  CANCELADA
+}
+
+// Lançamento agregado por (contagem, produto). Cada PATCH atualiza a quantidade.
+// Eventos individuais (cada bipe) ficam em LancamentoEvento (auditoria) — futuro.
+model Lancamento {
+  id           String   @id @default(cuid())
+  contagem     Contagem @relation(fields: [contagemId], references: [id], onDelete: Cascade)
+  contagemId   String
+  produto      Produto  @relation(fields: [produtoId], references: [id], onDelete: Restrict)
+  produtoId    String
+  quantidade   Decimal  @default(0) @db.Decimal(14, 3)
+  metodo       String?
+  observacoes  String?
+  registradoEm DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([contagemId, produtoId])
+  @@index([produtoId])
+}
+
+// ============================================================
+// Etiquetas térmicas
+// ============================================================
+
+// ============================================================
+// Auditoria de sincronização ZmartBI
+// ============================================================
+
+model SyncRun {
+  id                String     @id @default(cuid())
+  source            String     @default("zmartbi")
+  status            SyncStatus @default(RUNNING)
+  triggeredBy       String // "cron" | userId
+  triggeredByUserId String?
+
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  durationMs Int?
+
+  // Métricas
+  bytesBaixados    BigInt?
+  itensRecebidos   Int     @default(0) // total no dump
+  itensIgnorados   Int     @default(0) // fora do filtro MVP
+  itensProcessados Int     @default(0) // entraram no filtro
+
+  produtosCriados     Int @default(0)
+  produtosAtualizados Int @default(0)
+  produtosDesativados Int @default(0) // soft-delete dos não-vistos
+  gruposCriados       Int @default(0)
+  subgruposCriados    Int @default(0)
+
+  errorMessage String?
+  errorStack   String?
+
+  @@index([startedAt])
+  @@index([status])
+}
+
+enum SyncStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+  ABORTED // outro sync em andamento (lock global) ou cancelado pelo Gestor
+  LOCKED // ZmartBI retornou API_REQUEST_DUPLICATE
+}
+
+model Etiqueta {
+  id          String    @id @default(cuid())
+  produto     Produto   @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  produtoId   String
+  loja        Loja      @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+  lojaId      String
+  metodo      String // congelado/resfriado/ambiente
+  lote        String?
+  responsavel String?
+  qrPayload   String // JSON serializado
+  validadeAte DateTime?
+  impressaEm  DateTime  @default(now())
+  consumida   Boolean   @default(false)
+
+  @@index([lojaId, impressaEm])
+  @@index([produtoId])
+}
+
+// ============================================================
+// Recebimento de mercadoria
+// ============================================================
+
+model Recebimento {
+  id                  String               @id @default(cuid())
+  loja                Loja                 @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+  lojaId              String
+  responsavel         Funcionario?         @relation("RecebimentoResponsavel", fields: [responsavelId], references: [id])
+  responsavelId       String?
+  criadaPor           User?                @relation("RecebimentoCriadaPor", fields: [criadaPorId], references: [id], onDelete: SetNull)
+  criadaPorId         String?
+  dataRecebimento     DateTime             @db.Date
+  fornecedor          String?
+  numeroNf            String?
+  observacoes         String?
+  status              StatusRecebimento    @default(EM_ANDAMENTO)
+  iniciadaEm          DateTime             @default(now())
+  finalizadaEm        DateTime?
+  fotoNfUrl           String? // upload opcional da NF
+  iaProcessadoEm      DateTime? // quando IA leu a NF
+  itens               RecebimentoItem[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  notaFiscalImportada NotaFiscalImportada?
+
+  @@index([lojaId, dataRecebimento])
+  @@index([lojaId, status])
+}
+
+enum StatusRecebimento {
+  EM_ANDAMENTO
+  FINALIZADO
+  CANCELADO
+}
+
+model RecebimentoItem {
+  id            String      @id @default(cuid())
+  recebimento   Recebimento @relation(fields: [recebimentoId], references: [id], onDelete: Cascade)
+  recebimentoId String
+  produto       Produto     @relation(fields: [produtoId], references: [id], onDelete: Restrict)
+  produtoId     String
+  quantidade    Decimal     @default(0) @db.Decimal(14, 3)
+  observacoes   String?
+  // Quando vem da IA, guarda a descrição original que veio na NF — útil pra auditoria
+  // e pra reaproveitar no ProdutoFornecedorMap
+  descricaoNf   String?
+  registradoEm  DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([recebimentoId, produtoId])
+  @@index([produtoId])
+}
+
+// Mapeia descrição que vem na NF (do fornecedor) para o nosso Produto.
+// Cresce com o uso: cada vez que o usuário resolve manualmente um item da NF,
+// salvamos pra próxima NF do mesmo fornecedor já dar match automático.
+model ProdutoFornecedorMap {
+  id          String   @id @default(cuid())
+  loja        Loja     @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+  lojaId      String
+  fornecedor  String // texto livre normalizado (lowercase trim)
+  descricaoNf String // descrição como aparece na NF
+  produto     Produto  @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  produtoId   String
+  // Fator de conversão NF → estoque: quantidade no estoque = qCom_NF × fatorConversao.
+  // Default 1 (mesma unidade). Ex.: NF "24 UN" de "lata 2,5kg" → estoque KG → fator 2,5.
+  fatorConversao Decimal @default(1) @db.Decimal(18, 6)
+  vezesUsado  Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([lojaId, fornecedor, descricaoNf])
+  @@index([lojaId, fornecedor])
+}
+
+// ============================================================
+// Integração SEFAZ (DistribuicaoDFe)
+// ============================================================
+
+model NotaFiscalImportada {
+  id              String       @id @default(cuid())
+  loja            Loja         @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+  lojaId          String
+  // Identificação
+  chaveAcesso     String       @unique // 44 dígitos
+  nsu             String // NSU SEFAZ que trouxe
+  schemaTipo      String // resNFe / procNFe / resEvento / procEventoNFe
+  // Dados extraídos quando temos o XML completo
+  numeroNf        String?
+  serieNf         String?
+  modelo          String? // 55 = NFe, 65 = NFCe
+  emissorCnpj     String? // CNPJ emitente normalizado (14 dígitos)
+  emissorNome     String? // razão social
+  destCnpj        String? // CNPJ destinatário (nossa loja)
+  dataEmissao     DateTime?
+  dataAutorizacao DateTime?
+  valorTotal      Decimal?     @db.Decimal(14, 2)
+  qtdItens        Int?
+  // XML
+  xmlOriginal     String       @db.Text // XML completo armazenado
+  xmlSchema       String // ex: procNFe_v4.00.xsd
+  // Status
+  status          NfStatus     @default(PENDENTE)
+  recebimentoId   String?      @unique
+  recebimento     Recebimento? @relation(fields: [recebimentoId], references: [id], onDelete: SetNull)
+  ignoradoMotivo  String?
+
+  importadoEm  DateTime  @default(now())
+  processadoEm DateTime?
+
+  @@index([lojaId, status])
+  @@index([lojaId, importadoEm])
+  @@index([emissorCnpj])
+}
+
+enum NfStatus {
+  PENDENTE // baixada, aguardando recebimento físico
+  RECEBIDA // virou Recebimento
+  IGNORADA // marcada manualmente como não-aplicável (ex: NFe de serviço, devolução)
+  ERRO // falha ao parsear XML
+}
+
+model SefazSync {
+  id           String          @id @default(cuid())
+  loja         Loja            @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+  lojaId       String
+  triggeredBy  String // "cron" | userId
+  startedAt    DateTime        @default(now())
+  finishedAt   DateTime?
+  durationMs   Int?
+  status       SefazSyncStatus @default(RUNNING)
+  ultimoNsu    String? // NSU final processado
+  totalNfes    Int             @default(0) // novas NFes baixadas
+  totalEventos Int             @default(0) // eventos baixados (descartados)
+  totalErros   Int             @default(0)
+  errorMessage String?
+
+  @@index([lojaId, startedAt])
+  @@index([status])
+}
+
+enum SefazSyncStatus {
+  RUNNING
+  SUCCESS
+  PARTIAL // alguma NFe deu erro mas o sync rodou
+  FAILED
+  NO_CERT // loja sem certificado configurado
+}

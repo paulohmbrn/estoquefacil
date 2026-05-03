@@ -1,0 +1,277 @@
+/* ==========================================================================
+   Reis Magos — Colors & Type
+   Foundational CSS variables + semantic type styles.
+   Import once per document:
+     <link rel="stylesheet" href="colors_and_type.css">
+   Fonts ship with this package (see /fonts) — no external load needed.
+   ========================================================================== */
+
+/* —— Brand fonts ————————————————————————————————————————————
+   Glitten        — display serif (editorial italic voice of the brand)
+   Glitten All Caps — stencil-caps variant for titles in uppercase
+   Manrope        — geometric sans for UI, body, captions
+   JetBrains Mono — monospace (kept for prices, metadata, receipts —
+                    loaded via Google Fonts in host pages that use it)
+*/
+@font-face {
+  font-family: "Glitten";
+  src: url("fonts/Glitten-Regular.otf") format("opentype");
+  font-weight: 400 900;
+  font-style: italic;
+  font-display: swap;
+}
+/* Same file, exposed as normal style — Glitten is inherently italic.
+   This lets `font-style: normal` on a child still render the brand glyphs. */
+@font-face {
+  font-family: "Glitten";
+  src: url("fonts/Glitten-Regular.otf") format("opentype");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Glitten All Caps";
+  src: url("fonts/GLITTEN_ALL_CAPS.ttf") format("truetype");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face { font-family: "Manrope"; src: url("fonts/manrope-thin.otf") format("opentype");      font-weight: 200; font-style: normal; font-display: swap; }
+@font-face { font-family: "Manrope"; src: url("fonts/manrope-light.otf") format("opentype");     font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: "Manrope"; src: url("fonts/manrope-regular.otf") format("opentype");   font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Manrope"; src: url("fonts/manrope-medium.otf") format("opentype");    font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Manrope"; src: url("fonts/manrope-semibold.otf") format("opentype");  font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Manrope"; src: url("fonts/manrope-bold.otf") format("opentype");      font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Manrope"; src: url("fonts/manrope-extrabold.otf") format("opentype"); font-weight: 800; font-style: normal; font-display: swap; }
+
+:root {
+  /* —— Brand core ——————————————————————————————————— */
+  --rm-green:       #004125;   /* PRIMARY · Verde Reis Magos */
+  --rm-green-2:     #002e19;
+  --rm-green-br:    #1a6b40;
+  --rm-red:         #aa0000;   /* SECONDARY · Vermelho Reis Magos */
+  --rm-red-2:       #7a0000;
+  --rm-gold:        #b8902e;   /* Dourado mostarda */
+  --rm-basil:       #2d5a3a;
+
+  /* —— Paper / neutrals ————————————————————————————— */
+  --rm-paper:       #efe4c9;
+  --rm-paper-2:     #e4d6b5;
+  --rm-cream:       #f6ecd3;
+  --rm-ink:         #0a1a10;
+  --rm-ink-2:       #14261a;
+  --rm-ink-3:       #2d3a30;
+  --rm-mid:         #5a6659;
+  --rm-silt:        #b8b09a;
+  --rm-white:       #ffffff;
+
+  /* —— Rules & lines —————————————————————————————— */
+  --rm-rule:          rgba(10, 26, 16, .16);
+  --rm-rule-strong:   rgba(10, 26, 16, .36);
+  --rm-rule-dashed:   1px dashed var(--rm-rule-strong);
+
+  /* —— Semantic foreground ————————————————————————— */
+  --fg-1:           var(--rm-ink);
+  --fg-2:           var(--rm-ink-2);
+  --fg-3:           var(--rm-mid);
+  --fg-accent:      var(--rm-green);
+  --fg-alert:       var(--rm-red);
+  --fg-gold:        var(--rm-gold);
+
+  /* —— Semantic background ————————————————————————— */
+  --bg-0:           var(--rm-paper);
+  --bg-1:           var(--rm-cream);
+  --bg-2:           var(--rm-paper-2);
+  --bg-ink:         var(--rm-ink);
+  --bg-green:       var(--rm-green);
+  --bg-red:         var(--rm-red);
+
+  /* —— Fonts ——————————————————————————————————————————
+     Glitten is the brand display serif. Manrope is the brand UI sans.
+     JetBrains Mono stays as the metadata / receipts / price-prefix font;
+     load it in your host page via Google Fonts if you use .rm-mono.
+  */
+  --font-display:     "Glitten", "Playfair Display", Georgia, serif;
+  --font-display-caps:"Glitten All Caps", "Glitten", Georgia, serif;
+  --font-body:        "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:        "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* —— Scale ———————————————————————————————————————— */
+  --fs-display:     88px;
+  --fs-h1:          56px;
+  --fs-h2:          36px;
+  --fs-h3:          28px;
+  --fs-h4:          22px;
+  --fs-body:        17px;
+  --fs-body-sm:     15px;
+  --fs-caption:     13px;
+  --fs-eyebrow:     12px;
+  --fs-micro:       10px;
+
+  /* —— Spacing ————————————————————————————————————— */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px; --sp-9: 96px;
+
+  /* —— Radii ———————————————————————————————————————— */
+  --r-0: 0px; --r-1: 2px; --r-2: 4px; --r-pill: 999px;
+
+  /* —— Borders —————————————————————————————————————— */
+  --bd-hair:      1px solid var(--rm-rule);
+  --bd-strong:    1px solid var(--rm-rule-strong);
+  --bd-ink:       1.5px solid var(--rm-ink);
+  --bd-top-thick: 6px solid var(--rm-ink);
+
+  /* —— Shadows —————————————————————————————————————— */
+  --sh-none:  none;
+  --sh-card:  0 1px 0 rgba(10,26,16,.04);
+  --sh-lift:  0 18px 40px -16px rgba(22,17,16,.35);
+  --sh-focus: 0 0 0 3px rgba(0, 65, 37, .18);
+
+  /* —— Motion ——————————————————————————————————————— */
+  --ease-warm: cubic-bezier(.2,.7,.2,1);
+  --dur-fast:  120ms;
+  --dur-base:  180ms;
+  --dur-slow:  320ms;
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg-0);
+  color: var(--fg-1);
+  font-family: var(--font-body);
+  font-size: var(--fs-body-sm);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ==========================================================================
+   Semantic type
+   ========================================================================== */
+
+.rm-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: italic;
+  font-size: var(--fs-display);
+  line-height: .98;
+  letter-spacing: -.015em;
+  color: var(--fg-1);
+}
+.rm-display em { font-style: italic; color: var(--rm-green); }
+
+.rm-h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: italic;
+  font-size: var(--fs-h1);
+  line-height: 1.02;
+  letter-spacing: -.01em;
+  margin: 0;
+}
+
+.rm-h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: italic;
+  font-size: var(--fs-h2);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.rm-h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: italic;
+  font-size: var(--fs-h3);
+  line-height: 1.15;
+  margin: 0;
+}
+
+.rm-h4 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: italic;
+  font-size: var(--fs-h4);
+  line-height: 1.2;
+  margin: 0;
+}
+
+/* Stencil caps variant — for titles set in ALL CAPS. */
+.rm-caps {
+  font-family: var(--font-display-caps);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  line-height: 1.02;
+}
+
+.rm-eyebrow {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--fs-eyebrow);
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--fg-accent);
+}
+
+.rm-body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--fg-2);
+}
+
+.rm-caption, .rm-small {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--fs-caption);
+  line-height: 1.55;
+  color: var(--fg-3);
+}
+
+.rm-meta {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+}
+
+.rm-price {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 40px;
+  color: var(--fg-1);
+  letter-spacing: -.005em;
+}
+.rm-price .cur {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--rm-green);
+  vertical-align: top;
+  margin-right: 4px;
+  letter-spacing: .04em;
+}
+
+.rm-headline-accent em { font-style: italic; color: var(--rm-green); }
+
+/* Utility */
+.rm-serif { font-family: var(--font-display); }
+.rm-caps-family { font-family: var(--font-display-caps); }
+.rm-sans  { font-family: var(--font-body); }
+.rm-mono  { font-family: var(--font-mono); font-weight: 500; letter-spacing: .02em; }
+
+a.rm-link {
+  color: var(--fg-accent);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  transition: color var(--dur-base) var(--ease-warm);
+}
+a.rm-link:hover { color: var(--rm-red); }

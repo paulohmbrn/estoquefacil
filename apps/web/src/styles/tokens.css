@@ -1,0 +1,122 @@
+/* Reis Magos design tokens — espelha @estoque/ui/tokens.ts.
+   Carregado por src/app/globals.css antes do Tailwind. */
+
+:root {
+  /* Brand */
+  --rm-green:    #004125;
+  --rm-green-2:  #002e19;
+  --rm-green-br: #1a6b40;
+  --rm-red:      #aa0000;
+  --rm-red-2:    #7a0000;
+  --rm-gold:     #b8902e;
+  --rm-basil:    #2d5a3a;
+
+  /* Paper / neutrals */
+  --rm-paper:   #efe4c9;
+  --rm-paper-2: #e4d6b5;
+  --rm-cream:   #f6ecd3;
+  --rm-ink:     #0a1a10;
+  --rm-ink-2:   #14261a;
+  --rm-ink-3:   #2d3a30;
+  --rm-mid:     #5a6659;
+  --rm-silt:    #b8b09a;
+  --rm-white:   #ffffff;
+
+  /* Rules */
+  --rm-rule:        rgba(10, 26, 16, .16);
+  --rm-rule-strong: rgba(10, 26, 16, .36);
+  --rm-rule-dashed: 1px dashed var(--rm-rule-strong);
+
+  /* Semantic */
+  --fg-1: var(--rm-ink);
+  --fg-2: var(--rm-ink-2);
+  --fg-3: var(--rm-mid);
+  --fg-accent: var(--rm-green);
+  --fg-alert:  var(--rm-red);
+  --fg-gold:   var(--rm-gold);
+
+  --bg-0: var(--rm-paper);
+  --bg-1: var(--rm-cream);
+  --bg-2: var(--rm-paper-2);
+  --bg-ink:   var(--rm-ink);
+  --bg-green: var(--rm-green);
+  --bg-red:   var(--rm-red);
+
+  /* Fonts */
+  --font-display:      'Glitten', 'Playfair Display', Georgia, serif;
+  --font-display-caps: '"Glitten All Caps"', 'Glitten', Georgia, serif;
+  --font-body:         'Manrope', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:         '"JetBrains Mono"', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Scale */
+  --fs-display:  88px;
+  --fs-h1:       56px;
+  --fs-h2:       36px;
+  --fs-h3:       28px;
+  --fs-h4:       22px;
+  --fs-body:     17px;
+  --fs-body-sm:  15px;
+  --fs-caption:  13px;
+  --fs-eyebrow:  12px;
+  --fs-micro:    10px;
+
+  /* Spacing / Radius / Shadows / Motion */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px; --sp-9: 96px;
+  --r-0: 0px; --r-1: 2px; --r-2: 4px; --r-pill: 999px;
+  --bd-hair:      1px solid var(--rm-rule);
+  --bd-strong:    1px solid var(--rm-rule-strong);
+  --bd-ink:       1.5px solid var(--rm-ink);
+  --sh-card:  0 1px 0 rgba(10,26,16,.04);
+  --sh-lift:  0 18px 40px -16px rgba(22,17,16,.35);
+  --sh-focus: 0 0 0 3px rgba(0, 65, 37, .18);
+  --ease-warm: cubic-bezier(.2,.7,.2,1);
+  --dur-fast:  120ms;
+  --dur-base:  180ms;
+  --dur-slow:  320ms;
+}
+
+/* Semantic type classes — alinhado com identidade RMOS (sans bold, sem itálico).
+   Glitten/serif fica disponível via .rm-serif para casos específicos. */
+.rm-display {
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-style: normal;
+  font-size: var(--fs-display);
+  line-height: 1.05;
+  letter-spacing: -.025em;
+  color: var(--fg-1);
+}
+.rm-display em { font-style: normal; font-weight: 800; color: var(--rm-green); }
+
+.rm-h1 { font-family: var(--font-body); font-style: normal; font-weight: 700; font-size: var(--fs-h1); line-height: 1.1;  letter-spacing: -.022em; margin: 0; }
+.rm-h2 { font-family: var(--font-body); font-style: normal; font-weight: 700; font-size: var(--fs-h2); line-height: 1.15; letter-spacing: -.018em; margin: 0; }
+.rm-h3 { font-family: var(--font-body); font-style: normal; font-weight: 700; font-size: var(--fs-h3); line-height: 1.2;  letter-spacing: -.014em; margin: 0; }
+.rm-h4 { font-family: var(--font-body); font-style: normal; font-weight: 700; font-size: var(--fs-h4); line-height: 1.25; letter-spacing: -.01em;  margin: 0; }
+
+/* `em` é usado em todo o app só como destaque visual de palavras-chave em
+   headings/labels — não-itálico, herda peso, verde RM por default. */
+em {
+  font-style: normal;
+  color: var(--rm-green);
+}
+
+.rm-caps      { font-family: var(--font-body); font-weight: 800; text-transform: uppercase; letter-spacing: .02em; line-height: 1.02; }
+.rm-eyebrow   { font-family: var(--font-body); font-weight: 600; font-size: var(--fs-eyebrow); letter-spacing: .22em; text-transform: uppercase; color: var(--fg-accent); }
+.rm-body      { font-family: var(--font-body); font-weight: 400; font-size: var(--fs-body); line-height: 1.6; color: var(--fg-2); }
+.rm-caption,
+.rm-small     { font-family: var(--font-body); font-weight: 400; font-size: var(--fs-caption); line-height: 1.55; color: var(--fg-3); }
+.rm-meta      { font-family: var(--font-body); font-weight: 500; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--fg-2); }
+
+.rm-serif       { font-family: var(--font-display); }
+.rm-caps-family { font-family: var(--font-display-caps); }
+.rm-sans        { font-family: var(--font-body); }
+.rm-mono        { font-family: var(--font-mono); font-weight: 500; letter-spacing: .02em; }
+
+a.rm-link {
+  color: var(--fg-accent);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  transition: color var(--dur-base) var(--ease-warm);
+}
+a.rm-link:hover { color: var(--rm-red); }

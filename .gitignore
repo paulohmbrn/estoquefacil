@@ -1,0 +1,50 @@
+node_modules/
+dist/
+build/
+.next/
+.turbo/
+out/
+coverage/
+
+# Env (todas as variantes — nunca commitar credenciais)
+.env
+.env.*
+!.env.example
+
+# Prisma
+packages/db/generated/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+
+# Local fixtures (large)
+docs/zmartbi-dump-*.json
+docs/Estoque Facil.zip
+/tmp/zmart_*.json
+
+# Certificados digitais e dados fiscais sensíveis
+*.pfx
+*.p12
+secrets/
+docs/Prints/xmls/
+docs/Prints/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Next standalone (gerado em build)
+.next/standalone/
+.next/static/

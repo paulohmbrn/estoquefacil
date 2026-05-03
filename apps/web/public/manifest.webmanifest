@@ -1,0 +1,56 @@
+{
+  "name": "Estoque Fácil — Reis Magos",
+  "short_name": "Estoque Fácil",
+  "description": "Contagem e controle de estoque das operações Famiglia Reis Magos / Madre Pane.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#efe4c9",
+  "theme_color": "#004125",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Iniciar contagem",
+      "short_name": "Contar",
+      "description": "Abre o hub de contagem",
+      "url": "/contagem",
+      "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Imprimir etiquetas",
+      "short_name": "Etiquetas",
+      "description": "Gera PDF de etiquetas térmicas",
+      "url": "/etiquetas",
+      "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "estoque-facil",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Estoque Fácil — sistema multi-loja de contagem e controle de estoque (Famiglia Reis Magos / Madre Pane)",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean && rm -rf node_modules .turbo",
+    "db:up": "docker compose -f docker/docker-compose.dev.yml up -d",
+    "db:down": "docker compose -f docker/docker-compose.dev.yml down",
+    "db:logs": "docker compose -f docker/docker-compose.dev.yml logs -f",
+    "db:reset": "docker compose -f docker/docker-compose.dev.yml down -v && pnpm db:up",
+    "db:migrate": "pnpm --filter @estoque/db migrate:dev",
+    "db:generate": "pnpm --filter @estoque/db generate",
+    "db:seed": "pnpm --filter @estoque/db seed",
+    "db:studio": "pnpm --filter @estoque/db studio"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "prettier": "^3.4.2",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.3"
+  }
+}

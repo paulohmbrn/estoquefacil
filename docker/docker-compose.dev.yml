@@ -1,0 +1,42 @@
+# Estoque Fácil — stack de desenvolvimento local
+# Postgres + Redis dedicados (NÃO compartilha com postgres-master/swarm).
+# Portas não-padrão para evitar conflito com outros serviços locais.
+
+services:
+  postgres-estoque:
+    image: postgres:16-alpine
+    container_name: estoque-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: estoque_facil
+      POSTGRES_USER: estoque
+      POSTGRES_PASSWORD: estoque_dev
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5532:5432"
+    volumes:
+      - postgres-estoque-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U estoque -d estoque_facil"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis-estoque:
+    image: redis:7-alpine
+    container_name: estoque-redis-dev
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--save", "60", "1"]
+    ports:
+      - "6479:6379"
+    volumes:
+      - redis-estoque-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres-estoque-data:
+  redis-estoque-data:

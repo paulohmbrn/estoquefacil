@@ -1,0 +1,32 @@
+@import '../styles/fonts.css';
+@import '../styles/tokens.css';
+@import '../styles/app.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base */
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-0);
+  color: var(--fg-1);
+  font-family: var(--font-body);
+  font-size: var(--fs-body-sm);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+
+/* Helpers para o shell */
+.ef-grain {
+  background-color: var(--rm-paper);
+  background-image:
+    radial-gradient(rgba(10, 26, 16, 0.04) 1px, transparent 1px),
+    radial-gradient(rgba(10, 26, 16, 0.03) 1px, transparent 1px);
+  background-size: 22px 22px, 14px 14px;
+  background-position: 0 0, 7px 7px;
+}

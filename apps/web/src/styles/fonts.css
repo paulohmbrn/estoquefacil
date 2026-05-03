@@ -1,0 +1,35 @@
+/* Reis Magos brand fonts — servidos a partir de /public/fonts.
+   IMPORTANT: keep src URLs absolute (/fonts/...) so they resolve from any route. */
+
+@font-face {
+  font-family: 'Glitten';
+  src: url('/fonts/Glitten-Regular.otf') format('opentype');
+  font-weight: 400 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Same file exposed with normal style — Glitten é inerentemente itálico. */
+@font-face {
+  font-family: 'Glitten';
+  src: url('/fonts/Glitten-Regular.otf') format('opentype');
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Glitten All Caps';
+  src: url('/fonts/GLITTEN_ALL_CAPS.ttf') format('truetype');
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face { font-family: 'Manrope'; src: url('/fonts/manrope-thin.otf') format('opentype');      font-weight: 200; font-display: swap; }
+@font-face { font-family: 'Manrope'; src: url('/fonts/manrope-light.otf') format('opentype');     font-weight: 300; font-display: swap; }
+@font-face { font-family: 'Manrope'; src: url('/fonts/manrope-regular.otf') format('opentype');   font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Manrope'; src: url('/fonts/manrope-medium.otf') format('opentype');    font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Manrope'; src: url('/fonts/manrope-semibold.otf') format('opentype');  font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Manrope'; src: url('/fonts/manrope-bold.otf') format('opentype');      font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Manrope'; src: url('/fonts/manrope-extrabold.otf') format('opentype'); font-weight: 800; font-display: swap; }

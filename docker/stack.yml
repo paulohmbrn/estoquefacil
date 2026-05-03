@@ -1,0 +1,169 @@
+# Estoque Fácil — Docker Swarm production stack
+# Deploy: docker stack deploy estoque -c docker/stack.yml --resolve-image=never
+#
+# Pré-requisitos:
+#  - Network externa `network_public` existir e Traefik conectado
+#  - Imagens estoque-web:latest e estoque-api:latest buildadas localmente (no manager)
+#  - DNS de estoque.reismagos.com.br apontando para o IP do swarm
+#  - Variáveis de ambiente exportadas no shell ou via secrets:
+#       AUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
+#       POSTGRES_PASSWORD, ZMARTBI_TOKEN
+
+version: '3.8'
+
+services:
+  estoque-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: estoque_facil
+      POSTGRES_USER: estoque
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD obrigatório}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - estoque-postgres-data:/var/lib/postgresql/data
+    networks:
+      - internal
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.role == manager]
+
+  estoque-redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--save", "60", "1"]
+    volumes:
+      - estoque-redis-data:/data
+    networks:
+      - internal
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.role == manager]
+
+  estoque-pgbackup:
+    image: prodrigestivill/postgres-backup-local:16
+    environment:
+      POSTGRES_HOST: estoque-postgres
+      POSTGRES_DB: estoque_facil
+      POSTGRES_USER: estoque
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_EXTRA_OPTS: "--clean --if-exists"
+      SCHEDULE: "@daily"
+      BACKUP_KEEP_DAYS: "14"
+      BACKUP_KEEP_WEEKS: "8"
+      BACKUP_KEEP_MONTHS: "6"
+      TZ: America/Sao_Paulo
+    volumes:
+      - estoque-pgbackup-data:/backups
+    networks:
+      - internal
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.role == manager]
+
+  estoque-worker:
+    image: estoque-worker:latest
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://estoque:${POSTGRES_PASSWORD}@estoque-postgres:5432/estoque_facil?schema=public
+      REDIS_URL: redis://estoque-redis:6379
+      ZMARTBI_BASE_URL: https://api-zmartbi.teknisa.com
+      ZMARTBI_TOKEN: ${ZMARTBI_TOKEN}
+      ZMARTBI_SYNC_CRON: "15 6 * * *"
+      ZMARTBI_TEMP_DIR: /tmp
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      CERT_DIR: /secrets
+    volumes:
+      - estoque-secrets:/secrets
+    networks:
+      - internal
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.role == manager]
+
+  estoque-api:
+    image: estoque-api:latest
+    environment:
+      NODE_ENV: production
+      API_PORT: 3001
+      DATABASE_URL: postgresql://estoque:${POSTGRES_PASSWORD}@estoque-postgres:5432/estoque_facil?schema=public
+      REDIS_URL: redis://estoque-redis:6379
+      ZMARTBI_BASE_URL: https://api-zmartbi.teknisa.com
+      ZMARTBI_TOKEN: ${ZMARTBI_TOKEN}
+      ALLOWED_EMAIL_DOMAIN: reismagos.com.br
+    networks:
+      - internal
+      - network_public
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=network_public"
+        - "traefik.http.routers.estoque-api-http.entrypoints=web"
+        - "traefik.http.routers.estoque-api-http.middlewares=redirect-https@file"
+        - "traefik.http.routers.estoque-api-http.rule=Host(`api-estoque.reismagos.com.br`)"
+        - "traefik.http.routers.estoque-api.entrypoints=websecure"
+        - "traefik.http.routers.estoque-api.rule=Host(`api-estoque.reismagos.com.br`)"
+        - "traefik.http.routers.estoque-api.tls=true"
+        - "traefik.http.routers.estoque-api.tls.certresolver=letsencrypt"
+        - "traefik.http.services.estoque-api.loadbalancer.server.port=3001"
+
+  estoque-web:
+    image: estoque-web:latest
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://estoque:${POSTGRES_PASSWORD}@estoque-postgres:5432/estoque_facil?schema=public
+      REDIS_URL: redis://estoque-redis:6379
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_URL: https://estoque.reismagos.com.br
+      AUTH_TRUST_HOST: "true"
+      ALLOWED_EMAIL_DOMAIN: reismagos.com.br
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      NEXT_PUBLIC_API_URL: https://api-estoque.reismagos.com.br
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      CERT_DIR: /secrets
+    volumes:
+      - estoque-secrets:/secrets
+    networks:
+      - internal
+      - network_public
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=network_public"
+        - "traefik.http.routers.estoque-web-http.entrypoints=web"
+        - "traefik.http.routers.estoque-web-http.middlewares=redirect-https@file"
+        - "traefik.http.routers.estoque-web-http.rule=Host(`estoque.reismagos.com.br`)"
+        - "traefik.http.routers.estoque-web.entrypoints=websecure"
+        - "traefik.http.routers.estoque-web.rule=Host(`estoque.reismagos.com.br`)"
+        - "traefik.http.routers.estoque-web.tls=true"
+        - "traefik.http.routers.estoque-web.tls.certresolver=letsencrypt"
+        - "traefik.http.services.estoque-web.loadbalancer.server.port=3000"
+
+volumes:
+  estoque-postgres-data:
+  estoque-redis-data:
+  estoque-pgbackup-data:
+  estoque-secrets:
+
+networks:
+  internal:
+    driver: overlay
+  network_public:
+    external: true
