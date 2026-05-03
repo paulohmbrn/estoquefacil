@@ -64,17 +64,22 @@ async function ensureSchedule(): Promise<void> {
   );
   logger.info({ cron: env.ZMARTBI_SYNC_CRON, tz: 'America/Sao_Paulo' }, '[worker] cron zmartbi agendado');
 
-  // SEFAZ — 8x/dia (a cada 3h, começando 00h SP)
+  // SEFAZ — a cada 60 min (alinhado com rate limit oficial ~1/h por CNPJ).
+  // Remove agendamentos antigos (sefaz-sync-3h e sefaz-sync-30m) pra evitar duplicidade.
+  for (const id of ['sefaz-sync-3h', 'sefaz-sync-30m']) {
+    try { await sefazQueue.removeJobScheduler(id); } catch { /* não existia */ }
+  }
+  const SEFAZ_CRON = '0 * * * *';
   await sefazQueue.upsertJobScheduler(
-    'sefaz-sync-3h',
-    { pattern: '0 0,3,6,9,12,15,18,21 * * *', tz: 'America/Sao_Paulo' },
+    'sefaz-sync-1h',
+    { pattern: SEFAZ_CRON, tz: 'America/Sao_Paulo' },
     {
       name: 'sefaz-sync-cron',
       data: { kind: 'cron' as const },
-      opts: { removeOnComplete: { count: 50 }, removeOnFail: { count: 50 } },
+      opts: { removeOnComplete: { count: 200 }, removeOnFail: { count: 200 } },
     },
   );
-  logger.info({ cron: '0 0,3,6,9,12,15,18,21 * * *', tz: 'America/Sao_Paulo' }, '[worker] cron sefaz agendado (8x/dia)');
+  logger.info({ cron: SEFAZ_CRON, tz: 'America/Sao_Paulo' }, '[worker] cron sefaz agendado (a cada 60 min)');
 }
 
 await ensureSchedule();
