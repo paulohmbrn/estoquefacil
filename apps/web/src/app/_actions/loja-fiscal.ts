@@ -164,6 +164,38 @@ export async function uploadCertificado(
   }
 }
 
+/** Salva a URL do Argox Bridge (agente local) da loja. URL aceita http(s)://host:porta. */
+const argoxSchema = z.object({
+  lojaId: z.string().min(1),
+  argoxBridgeUrl: z
+    .string()
+    .trim()
+    .optional()
+    .nullable()
+    .transform((v) => (v ? v.replace(/\/+$/, '') : null))
+    .refine(
+      (v) => !v || /^https?:\/\/[^\s/]+(:\d+)?(\/.*)?$/i.test(v),
+      'URL inválida — use o formato http://host:porta',
+    ),
+});
+
+export async function updateArgoxBridge(input: z.infer<typeof argoxSchema>): Promise<ActionResult<{ url: string | null }>> {
+  try {
+    const parsed = argoxSchema.safeParse(input);
+    if (!parsed.success) return { ok: false, error: parsed.error.issues[0]!.message };
+    await requireGestor({ lojaId: parsed.data.lojaId });
+    const result = await prisma.loja.update({
+      where: { id: parsed.data.lojaId },
+      data: { argoxBridgeUrl: parsed.data.argoxBridgeUrl },
+      select: { argoxBridgeUrl: true },
+    });
+    revalidatePath('/cadastros/lojas');
+    return { ok: true, data: { url: result.argoxBridgeUrl } };
+  } catch (err) {
+    return { ok: false, error: (err as Error).message };
+  }
+}
+
 export async function removerCertificado(lojaId: string): Promise<ActionResult> {
   try {
     await requireGestor({ lojaId });

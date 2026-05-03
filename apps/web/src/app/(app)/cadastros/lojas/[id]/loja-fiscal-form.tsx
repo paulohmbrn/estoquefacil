@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { updateLojaFiscal, uploadCertificado, removerCertificado } from '@/app/_actions/loja-fiscal';
+import { updateLojaFiscal, uploadCertificado, removerCertificado, updateArgoxBridge } from '@/app/_actions/loja-fiscal';
 
 interface LojaProps {
   id: string;
@@ -17,6 +17,7 @@ interface LojaProps {
   certNome: string | null;
   certValidoAte: string | null;
   certUploadedAt: string | null;
+  argoxBridgeUrl: string | null;
 }
 
 const dt = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo' });
@@ -179,7 +180,116 @@ export function LojaFiscalForm({ loja }: { loja: LojaProps }) {
         )}
       </div>
 
+      <hr className="border-dashed border-strong" />
+
+      <ArgoxBridgeBlock loja={loja} setErro={setErro} />
+
       {erro && <p className="text-rm-red text-[13px]">{erro}</p>}
+    </div>
+  );
+}
+
+function ArgoxBridgeBlock({
+  loja,
+  setErro,
+}: {
+  loja: LojaProps;
+  setErro: (e: string | null) => void;
+}) {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [url, setUrl] = useState(loja.argoxBridgeUrl ?? '');
+  const [salvo, setSalvo] = useState<string | null>(null);
+  const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'ok' | 'fail'>('idle');
+  const [testMsg, setTestMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!salvo) return;
+    const t = setTimeout(() => setSalvo(null), 3000);
+    return () => clearTimeout(t);
+  }, [salvo]);
+
+  function salvar(): void {
+    setErro(null); setSalvo(null);
+    start(async () => {
+      const r = await updateArgoxBridge({ lojaId: loja.id, argoxBridgeUrl: url || null });
+      if (r.ok) {
+        setSalvo('Salvo.');
+        router.refresh();
+      } else {
+        setErro(r.error);
+      }
+    });
+  }
+
+  async function testar(): Promise<void> {
+    setErro(null); setTestStatus('testing'); setTestMsg(null);
+    if (!url) {
+      setTestStatus('fail');
+      setTestMsg('Cadastre a URL do agente primeiro.');
+      return;
+    }
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 5000);
+      const res = await fetch(`${url.replace(/\/+$/, '')}/health`, {
+        signal: ctrl.signal,
+        cache: 'no-store',
+      });
+      clearTimeout(t);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const j = await res.json().catch(() => ({}));
+      setTestStatus('ok');
+      setTestMsg(`Agente OK · impressora ${j.printer ?? '(?)'}`);
+    } catch (err) {
+      const msg = (err as Error).message;
+      setTestStatus('fail');
+      setTestMsg(
+        msg.includes('Failed to fetch') || msg.includes('aborted')
+          ? 'Não consegui falar com o agente. Verifique se está rodando, se a URL está correta, e se você está na mesma rede.'
+          : `Falhou: ${msg}`,
+      );
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="rm-eyebrow">Impressora Argox (rede local)</h3>
+          <p className="text-[12px] text-rm-mid mt-1">
+            URL do agente local que recebe o ZPL e repassa pra impressora térmica via TCP 9100.
+            Use <span className="rm-mono">http://localhost:9101</span> se o agente roda no mesmo PC do app,
+            ou <span className="rm-mono">http://192.168.x.x:9101</span> de outro PC da LAN.
+          </p>
+        </div>
+        {loja.argoxBridgeUrl && <Badge variant="green">Configurado</Badge>}
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-2">
+        <Input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="http://localhost:9101"
+          className="flex-1"
+        />
+        <Button type="button" variant="ghost" onClick={() => void testar()} disabled={pending || testStatus === 'testing'}>
+          {testStatus === 'testing' ? 'Testando…' : 'Testar conexão'}
+        </Button>
+        <Button type="button" variant="primary" onClick={salvar} disabled={pending}>
+          {pending ? 'Salvando…' : 'Salvar URL'}
+        </Button>
+      </div>
+      {testMsg && (
+        <p className={`text-[12px] ${testStatus === 'ok' ? 'text-rm-green' : 'text-rm-red'}`}>
+          {testMsg}
+        </p>
+      )}
+      {salvo && (
+        <div className="flex justify-end">
+          <SavedBadge label={salvo} />
+        </div>
+      )}
     </div>
   );
 }

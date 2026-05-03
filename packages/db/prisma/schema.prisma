@@ -114,6 +114,9 @@ model Loja {
   certificadoValidoAte   DateTime?
   certificadoUploadedAt  DateTime?
   ultimoNsuSefaz         String?  @default("0")
+  // Argox bridge — URL do agente local que recebe ZPL e repassa pra impressora térmica.
+  // Ex.: "http://localhost:9101" (agente no mesmo PC do app) ou "http://192.168.x.x:9101".
+  argoxBridgeUrl         String?
 
   @@index([ativo])
 }

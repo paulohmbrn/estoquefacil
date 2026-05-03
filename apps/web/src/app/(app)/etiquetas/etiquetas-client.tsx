@@ -20,6 +20,7 @@ export type GrupoOpt = { id: string; nome: string; total: number };
 interface Props {
   produtos: ProdutoEtiqueta[];
   grupos: GrupoOpt[];
+  argoxBridgeUrl: string | null;
 }
 
 type Selection = Record<
@@ -27,7 +28,7 @@ type Selection = Record<
   { qtd: number; metodo: 'CONGELADO' | 'RESFRIADO' | 'AMBIENTE' }
 >;
 
-export function EtiquetasClient({ produtos, grupos }: Props) {
+export function EtiquetasClient({ produtos, grupos, argoxBridgeUrl }: Props) {
   const [grupoId, setGrupoId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [sel, setSel] = useState<Selection>({});
@@ -63,17 +64,20 @@ export function EtiquetasClient({ produtos, grupos }: Props) {
     });
   }
 
-  function gerarPdf(formato: 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60') {
+  function gerarPdf(formato: 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60' | 'ARGOX_NETWORK') {
     if (itensSelecionados.length === 0) return;
     setErro(null);
     setShowFormatoPicker(false);
+    const enviarPraImpressora = formato === 'ARGOX_NETWORK';
+    const formatoBackend = enviarPraImpressora ? 'ARGOX_100X60' : formato;
+
     startTransition(async () => {
       try {
         const res = await fetch('/api/etiquetas/lote', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            formato,
+            formato: formatoBackend,
             itens: itensSelecionados.map(([produtoId, s]) => ({
               produtoId,
               qtd: s.qtd,
@@ -85,6 +89,23 @@ export function EtiquetasClient({ produtos, grupos }: Props) {
           const j = await res.json().catch(() => ({}));
           throw new Error(j.error ?? `Erro ${res.status}`);
         }
+
+        if (enviarPraImpressora) {
+          if (!argoxBridgeUrl) throw new Error('URL do agente Argox não cadastrada');
+          const zpl = await res.text();
+          const printRes = await fetch(`${argoxBridgeUrl.replace(/\/+$/, '')}/print`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+            body: zpl,
+          });
+          if (!printRes.ok) {
+            const txt = await printRes.text().catch(() => '');
+            throw new Error(`Agente respondeu ${printRes.status}: ${txt || 'erro'}`);
+          }
+          alert(`✓ ${itensSelecionados.length} item(s) — ${totalEtiquetas} etiqueta(s) enviadas pra impressora.`);
+          return;
+        }
+
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -95,7 +116,12 @@ export function EtiquetasClient({ produtos, grupos }: Props) {
         a.remove();
         URL.revokeObjectURL(url);
       } catch (e) {
-        setErro((e as Error).message);
+        const msg = (e as Error).message;
+        setErro(
+          msg.includes('Failed to fetch') && enviarPraImpressora
+            ? 'Não consegui falar com o agente Argox. Verifique se ele está rodando e acessível pela rede.'
+            : msg,
+        );
       }
     });
   }
@@ -271,6 +297,7 @@ export function EtiquetasClient({ produtos, grupos }: Props) {
         <FormatoPicker
           totalEtiquetas={totalEtiquetas}
           pending={pending}
+          argoxBridgeUrl={argoxBridgeUrl}
           onClose={() => setShowFormatoPicker(false)}
           onPick={gerarPdf}
         />
@@ -279,19 +306,23 @@ export function EtiquetasClient({ produtos, grupos }: Props) {
   );
 }
 
+type FormatoId = 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60' | 'ARGOX_NETWORK';
+
 function FormatoPicker({
   totalEtiquetas,
   pending,
+  argoxBridgeUrl,
   onClose,
   onPick,
 }: {
   totalEtiquetas: number;
   pending: boolean;
+  argoxBridgeUrl: string | null;
   onClose: () => void;
-  onPick: (formato: 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60') => void;
+  onPick: (formato: FormatoId) => void;
 }) {
   const opcoes: Array<{
-    id: 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60';
+    id: FormatoId;
     titulo: string;
     sub: string;
     badge: string;
@@ -299,7 +330,10 @@ function FormatoPicker({
     { id: 'TERMICA_60', titulo: 'Térmica 60×60mm', sub: 'Elgin L42 Pro · 1 etiqueta/página', badge: 'Padrão' },
     { id: 'TERMICA_40', titulo: 'Térmica 40×40mm', sub: 'Elgin L42 Pro · 1 etiqueta/página', badge: 'Compacta' },
     { id: 'A4_PIMACO', titulo: 'A4 — PIMACO A4360', sub: '21 etiquetas/folha · 63,5 × 38,1mm cada', badge: 'Folha avulsa' },
-    { id: 'ARGOX_100X60', titulo: 'Argox OS-214 Plus 100×60mm', sub: 'Arquivo .zpl · envia direto pra impressora (modo ZPL)', badge: 'ZPL' },
+    ...(argoxBridgeUrl
+      ? [{ id: 'ARGOX_NETWORK' as const, titulo: 'Argox 100×60mm — Imprimir agora', sub: `Envia direto pra impressora via ${argoxBridgeUrl}`, badge: 'Recomendado' }]
+      : []),
+    { id: 'ARGOX_100X60', titulo: 'Argox 100×60mm — Baixar .zpl', sub: argoxBridgeUrl ? 'Fallback (sem agente)' : 'Cadastre o agente em Cadastros → Lojas pra imprimir direto', badge: 'ZPL' },
   ];
   return (
     <div

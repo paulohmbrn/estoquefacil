@@ -19,7 +19,7 @@ export default async function EtiquetasPage() {
     );
   }
 
-  const [produtos, grupos] = await Promise.all([
+  const [produtos, grupos, lojaInfo] = await Promise.all([
     prisma.produto.findMany({
       where: { lojaId, ativo: true },
       orderBy: { nome: 'asc' },
@@ -41,6 +41,7 @@ export default async function EtiquetasPage() {
         _count: { select: { produtos: { where: { lojaId, ativo: true } } } },
       },
     }),
+    prisma.loja.findUnique({ where: { id: lojaId }, select: { argoxBridgeUrl: true } }),
   ]);
 
   const produtosClient: ProdutoEtiqueta[] = produtos.map((p) => ({
@@ -87,7 +88,7 @@ export default async function EtiquetasPage() {
           Nenhum produto sincronizado ainda — rode o sync em <Link href="/sincronizacao" className="rm-link">sincronização</Link>.
         </Card>
       ) : (
-        <EtiquetasClient produtos={produtosClient} grupos={gruposClient} />
+        <EtiquetasClient produtos={produtosClient} grupos={gruposClient} argoxBridgeUrl={lojaInfo?.argoxBridgeUrl ?? null} />
       )}
     </div>
   );
