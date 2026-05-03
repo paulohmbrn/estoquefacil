@@ -101,7 +101,7 @@ export async function uploadCertificado(
       nome = cn?.value ?? '';
       validoAte = cert.validity.notAfter;
       if (validoAte.getTime() < Date.now()) {
-        return { ok: false, error: `Certificado vencido em ${validoAte.toLocaleDateString('pt-BR')}` };
+        return { ok: false, error: `Certificado vencido em ${validoAte.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}` };
       }
       cnpjCert = extractCnpjFromCert(cert, nome);
     } catch (err) {

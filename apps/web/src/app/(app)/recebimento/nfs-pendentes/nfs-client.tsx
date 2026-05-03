@@ -20,7 +20,7 @@ export type NfPendente = {
 
 export type FuncionarioOpt = { id: string; nome: string };
 
-const dtData = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' });
+const dtData = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeZone: 'America/Sao_Paulo' });
 
 export function NfsClient({ nfs, funcionarios }: { nfs: NfPendente[]; funcionarios: FuncionarioOpt[] }) {
   const router = useRouter();

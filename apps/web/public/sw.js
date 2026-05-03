@@ -9,7 +9,7 @@
      * Rotas de API/auth/scan     → passa direto (sem cache, sempre online).
 */
 
-const VERSION = 'estoque-v30-preparar-sem-funcs';
+const VERSION = 'estoque-v31-tz-brt';
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 

@@ -29,7 +29,7 @@ type RowState = {
   qtdEstoque: string;
 };
 
-const dtData = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' });
+const dtData = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeZone: 'America/Sao_Paulo' });
 const fmtBrl = (n: number) =>
   n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const fmtQty = (n: number) =>

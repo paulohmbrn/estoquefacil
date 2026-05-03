@@ -8,6 +8,7 @@ import { prisma } from '@/lib/db';
 import { getLojaAtivaId } from '@/app/_actions/loja-ativa';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { fmtDataExtenso } from '@/lib/datetime';
 import { BootstrapPicker, type LojaBootstrap } from './_components/bootstrap-gestor';
 
 export default async function HomePage() {
@@ -78,9 +79,7 @@ export default async function HomePage() {
             Olá, <em>{nomeCurto}.</em>
           </h1>
           <p className="rm-caption text-rm-mid mt-2">
-            {new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })
-              .format(new Date())
-              .replace(/^./, (c) => c.toUpperCase())}
+            {fmtDataExtenso.format(new Date()).replace(/^./, (c) => c.toUpperCase())}
           </p>
         </div>
         {lojaAtiva && (

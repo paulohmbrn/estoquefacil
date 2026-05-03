@@ -74,7 +74,7 @@ export function LojaFiscalForm({ loja }: { loja: LojaProps }) {
         });
         if (r.ok && r.data) {
           const aviso = r.data.avisoCnpj ? ` ⚠ ${r.data.avisoCnpj}` : '';
-          setOkCert(`Certificado "${r.data.nome}" salvo (válido até ${new Date(r.data.validoAte).toLocaleDateString('pt-BR')}).${aviso}`);
+          setOkCert(`Certificado "${r.data.nome}" salvo (válido até ${new Date(r.data.validoAte).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}).${aviso}`);
           router.refresh();
         } else if (!r.ok) {
           if (r.requireConfirmCnpjBase) {
@@ -154,7 +154,7 @@ export function LojaFiscalForm({ loja }: { loja: LojaProps }) {
             <p className="font-medium">{loja.certNome}</p>
             {loja.certValidoAte && (
               <p className="text-[11px] text-rm-mid mt-1">
-                Válido até {new Date(loja.certValidoAte).toLocaleDateString('pt-BR')}
+                Válido até {new Date(loja.certValidoAte).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
                 {loja.certUploadedAt && ` · enviado em ${dt.format(new Date(loja.certUploadedAt))}`}
               </p>
             )}

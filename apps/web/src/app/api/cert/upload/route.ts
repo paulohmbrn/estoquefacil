@@ -76,7 +76,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       validoAte = cert.validity.notAfter;
       if (validoAte.getTime() < Date.now()) {
         return NextResponse.json(
-          { ok: false, error: `Certificado vencido em ${validoAte.toLocaleDateString('pt-BR')}` },
+          { ok: false, error: `Certificado vencido em ${validoAte.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}` },
           { status: 400 },
         );
       }
