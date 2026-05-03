@@ -215,7 +215,7 @@ export async function runZmartbiSync(trigger: SyncTrigger): Promise<SyncOutcome>
         recebidos += 1;
         if (
           !FILIAIS_MVP_SET.has(value.CDFILIAL) ||
-          !isCdarvprodContavel(value.CDARVPROD) ||
+          !isCdarvprodContavel(value.CDARVPROD, value.CDFILIAL) ||
           value.STATUS !== 'S'
         ) {
           ignorados += 1;

@@ -17,23 +17,34 @@ export type CdFilialMvp = (typeof FILIAIS_MVP)[number];
 
 export const FILIAIS_MVP_SET: ReadonlySet<string> = new Set(FILIAIS_MVP);
 
-// Prefixos de CDARVPROD que são contáveis no MVP.
+// Prefixos de CDARVPROD que são contáveis no MVP (em todas as lojas).
 // 1*     = MATERIA PRIMA / ALIMENTOS
 // 30105* = USO CONSUMO
 // 915*   = BEBIDAS
 export const PREFIXOS_CDARVPROD_MVP = ['1', '30105', '915'] as const;
 
+// Prefixos extras por loja — filiais específicas têm tipos de produto que não
+// existem nas outras (ex.: panificação Madre Pane usa 90306*).
+//   0023 = MADRE PANE - LAGOA NOVA
+export const PREFIXOS_CDARVPROD_EXTRAS_POR_FILIAL: Readonly<Record<string, readonly string[]>> = {
+  '0023': ['90306'],
+};
+
 // Apenas SKUs (CDARVPROD com 13 chars) entram em contagem.
 // CDARVPROD com 11 chars são agrupadores (categoria/nome lógico) e devem ser ignorados.
 export const CDARVPROD_LEN_SKU = 13;
 
-// SKU de estoque ZmartBI: 13 chars + prefixo MVP + termina em "00".
+// SKU de estoque ZmartBI: 13 chars + prefixo MVP (ou extra da loja) + termina em "00".
 // Os outros sufixos representam preparações/receitas que NÃO são contadas fisicamente
 // (consumo é deduzido via ficha técnica do SKU base terminado em 00).
-export function isCdarvprodContavel(cdarvprod: string): boolean {
+//
+// `cdfilial` opcional: quando passado, soma os prefixos extras daquela filial.
+export function isCdarvprodContavel(cdarvprod: string, cdfilial?: string): boolean {
   if (cdarvprod.length !== CDARVPROD_LEN_SKU) return false;
   if (!cdarvprod.endsWith('00')) return false;
-  return PREFIXOS_CDARVPROD_MVP.some((p) => cdarvprod.startsWith(p));
+  const extras = cdfilial ? PREFIXOS_CDARVPROD_EXTRAS_POR_FILIAL[cdfilial] ?? [] : [];
+  if (PREFIXOS_CDARVPROD_MVP.some((p) => cdarvprod.startsWith(p))) return true;
+  return extras.some((p) => cdarvprod.startsWith(p));
 }
 
 // ZmartBI
