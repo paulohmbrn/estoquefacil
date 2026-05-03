@@ -9,6 +9,7 @@ import { getLojaAtivaId } from '@/app/_actions/loja-ativa';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { fmtDataExtenso } from '@/lib/datetime';
+import { calcularEstoqueAtual, statusReposicao } from '@/lib/estoque-atual';
 import { BootstrapPicker, type LojaBootstrap } from './_components/bootstrap-gestor';
 
 export default async function HomePage() {
@@ -130,6 +131,7 @@ async function DashboardCards({ lojaId }: { lojaId: string }) {
   const em48h = new Date(Date.now() + 48 * 60 * 60 * 1000);
   const [
     contagensHoje, finalizadasHoje, ultimoSync, totalProdutos, ultimaExportada, validades48h,
+    controladosRaw,
   ] = await Promise.all([
     prisma.contagem.count({ where: { lojaId, dataContagem: hojeUtcMidnight } }),
     prisma.contagem.count({
@@ -152,7 +154,30 @@ async function DashboardCards({ lojaId }: { lojaId: string }) {
       take: 10,
       include: { produto: { select: { nome: true, cdarvprod: true } } },
     }),
+    prisma.produto.findMany({
+      where: { lojaId, ativo: true, meta: { controlado: true } },
+      select: { id: true, meta: { select: { estoqueMinimo: true } } },
+    }),
   ]);
+
+  // Calcula quantos controlados estão a repor / em atenção
+  const totalControlados = controladosRaw.length;
+  let controladosRepor = 0;
+  let controladosAtencao = 0;
+  if (totalControlados > 0) {
+    const estoqueMap = await calcularEstoqueAtual({
+      lojaId,
+      produtoIds: controladosRaw.map((p) => p.id),
+    });
+    for (const p of controladosRaw) {
+      const e = estoqueMap.get(p.id);
+      if (!e) continue;
+      const min = p.meta?.estoqueMinimo ? Number(p.meta.estoqueMinimo) : 0;
+      const s = statusReposicao(e.estoqueAtual, min, e.ultimaContagemEm, e.recebidoDesdeContagem);
+      if (s === 'repor') controladosRepor += 1;
+      else if (s === 'atencao') controladosAtencao += 1;
+    }
+  }
 
   const dt = new Intl.DateTimeFormat('pt-BR', {
     dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo',
@@ -229,6 +254,42 @@ async function DashboardCards({ lojaId }: { lojaId: string }) {
           </p>
         </CardContent>
       </Card>
+
+      {totalControlados > 0 && (
+        <Card className={controladosRepor > 0 ? 'border-l-4 border-rm-red bg-[#fdf3f2]' : controladosAtencao > 0 ? 'border-l-4 border-rm-gold bg-[#fdf7e3]' : ''}>
+          <CardHeader>
+            <CardTitle>Controle de estoque</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {controladosRepor > 0 ? (
+              <div>
+                <p className="rm-eyebrow text-rm-red">A repor agora</p>
+                <p className="rm-h2 mt-1 text-rm-red">{controladosRepor}</p>
+              </div>
+            ) : controladosAtencao > 0 ? (
+              <div>
+                <p className="rm-eyebrow text-rm-gold">Em atenção</p>
+                <p className="rm-h2 mt-1 text-rm-gold">{controladosAtencao}</p>
+              </div>
+            ) : (
+              <div>
+                <p className="rm-eyebrow text-rm-green">Tudo OK</p>
+                <p className="rm-h4 mt-1">Nenhum produto abaixo do mínimo</p>
+              </div>
+            )}
+            <p className="text-[12px] text-rm-mid">
+              {totalControlados} produto{totalControlados === 1 ? '' : 's'} sob controle
+              {controladosRepor + controladosAtencao > 0 && ` · ${controladosAtencao} em atenção`}
+            </p>
+            <Link
+              href={controladosRepor > 0 ? '/controlados?status=repor' : '/controlados'}
+              className="text-[11px] tracking-[.18em] uppercase font-semibold text-rm-green hover:underline inline-block"
+            >
+              Ver lista →
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="lg:col-span-2">
         <CardHeader>

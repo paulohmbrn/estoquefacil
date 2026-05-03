@@ -17,6 +17,7 @@ interface SearchParams {
   q?: string;
   grupo?: string;
   page?: string;
+  controlado?: string; // "1" filtra apenas controlados
 }
 
 export default async function ProdutosPage({
@@ -28,6 +29,7 @@ export default async function ProdutosPage({
   const params = await searchParams;
   const q = params.q?.trim() ?? '';
   const grupoId = params.grupo ?? null;
+  const apenasControlados = params.controlado === '1';
   const page = Math.max(1, Number(params.page ?? 1));
   const skip = (page - 1) * PAGE_SIZE;
 
@@ -35,6 +37,7 @@ export default async function ProdutosPage({
     lojaId,
     ativo: true,
     ...(grupoId ? { grupoId } : {}),
+    ...(apenasControlados ? { meta: { controlado: true } } : {}),
     ...(q
       ? {
           OR: [
@@ -46,7 +49,7 @@ export default async function ProdutosPage({
       : {}),
   };
 
-  const [grupos, produtos, total] = await Promise.all([
+  const [grupos, produtos, total, totalControlados] = await Promise.all([
     prisma.grupo.findMany({
       where: { produtos: { some: { lojaId, ativo: true } } },
       orderBy: { nome: 'asc' },
@@ -60,9 +63,11 @@ export default async function ProdutosPage({
       include: {
         grupo: { select: { nome: true } },
         subgrupo: { select: { nome: true } },
+        meta: { select: { controlado: true, estoqueMinimo: true } },
       },
     }),
     prisma.produto.count({ where }),
+    prisma.produto.count({ where: { lojaId, ativo: true, meta: { controlado: true } } }),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -93,13 +98,25 @@ export default async function ProdutosPage({
         <div className="lg:grid lg:grid-cols-[260px_1fr] lg:gap-8">
           {/* Filtros — desktop sidebar / mobile select */}
           <aside className="hidden lg:block space-y-3">
-            <p className="rm-meta text-rm-mid">Filtrar por grupo</p>
+            <p className="rm-meta text-rm-mid">Tipo</p>
             <div className="flex flex-col gap-1">
-              <FilterLink active={!grupoId} q={q}>
+              <FilterLink active={!apenasControlados && !grupoId} q={q}>
+                Todos
+              </FilterLink>
+              <FilterLink active={apenasControlados} q={q} controlado grupoId={grupoId}>
+                <span className="flex items-center justify-between gap-2 w-full">
+                  <span>Controlados</span>
+                  <span className="text-rm-mid text-[11px] shrink-0">{totalControlados}</span>
+                </span>
+              </FilterLink>
+            </div>
+            <p className="rm-meta text-rm-mid pt-2">Filtrar por grupo</p>
+            <div className="flex flex-col gap-1">
+              <FilterLink active={!grupoId} q={q} controlado={apenasControlados}>
                 Todos · {total}
               </FilterLink>
               {grupos.map((g) => (
-                <FilterLink key={g.id} active={grupoId === g.id} q={q} grupoId={g.id}>
+                <FilterLink key={g.id} active={grupoId === g.id} q={q} grupoId={g.id} controlado={apenasControlados}>
                   <span className="flex items-center justify-between gap-2 w-full">
                     <span className="truncate">{g.nome}</span>
                     <span className="text-rm-mid text-[11px] shrink-0">{g._count.produtos}</span>
@@ -159,7 +176,12 @@ export default async function ProdutosPage({
                           {p.subgrupo?.nome ?? ''}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-center"><Badge variant="neutral">{p.unidade}</Badge></td>
+                      <td className="px-4 py-3 text-center">
+                        <Badge variant="neutral">{p.unidade}</Badge>
+                        {p.meta?.controlado && (
+                          <Badge variant="green" className="ml-1" title={`Mínimo ${p.meta?.estoqueMinimo ?? '?'} ${p.unidade}`}>Ctrl</Badge>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-rm-mid text-[11px] uppercase tracking-[.12em]">{p.tipoProduto}</td>
                     </tr>
                   ))}
@@ -183,7 +205,10 @@ export default async function ProdutosPage({
                           <p className="text-[11px] text-rm-mid mt-1 truncate">{p.grupo.nome}</p>
                         )}
                       </div>
-                      <Badge variant="neutral" className="shrink-0">{p.unidade}</Badge>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <Badge variant="neutral">{p.unidade}</Badge>
+                        {p.meta?.controlado && <Badge variant="green">Ctrl</Badge>}
+                      </div>
                     </div>
                   </Link>
                 </li>
@@ -202,16 +227,19 @@ function FilterLink({
   active,
   q,
   grupoId,
+  controlado,
   children,
 }: {
   active: boolean;
   q: string;
-  grupoId?: string;
+  grupoId?: string | null;
+  controlado?: boolean;
   children: React.ReactNode;
 }) {
   const params = new URLSearchParams();
   if (q) params.set('q', q);
   if (grupoId) params.set('grupo', grupoId);
+  if (controlado) params.set('controlado', '1');
   const href = `/cadastros/produtos${params.toString() ? `?${params}` : ''}`;
   return (
     <Link

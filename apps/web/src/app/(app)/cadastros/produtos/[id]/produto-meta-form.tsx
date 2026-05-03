@@ -10,6 +10,7 @@ type Metodo = 'congelado' | 'resfriado' | 'ambiente';
 
 export interface ProdutoMetaFormProps {
   produtoId: string;
+  unidade: string;
   initial: {
     fotoUrl: string;
     validadeResfriado: number | null;
@@ -17,12 +18,15 @@ export interface ProdutoMetaFormProps {
     validadeAmbiente: number | null;
     metodos: Metodo[];
     observacoes: string;
+    controlado: boolean;
+    estoqueMinimo: number | null;
   };
 }
 
-export function ProdutoMetaForm({ produtoId, initial }: ProdutoMetaFormProps) {
+export function ProdutoMetaForm({ produtoId, unidade, initial }: ProdutoMetaFormProps) {
   const [pending, startTransition] = useTransition();
   const [metodos, setMetodos] = useState<Set<Metodo>>(new Set(initial.metodos));
+  const [controlado, setControlado] = useState(initial.controlado);
   const [okMsg, setOkMsg] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const router = useRouter();
@@ -51,6 +55,8 @@ export function ProdutoMetaForm({ produtoId, initial }: ProdutoMetaFormProps) {
           validadeAmbiente: parseNumeric(fd.get('validadeAmbiente')),
           metodos: [...metodos],
           observacoes: (fd.get('observacoes') as string) || null,
+          controlado,
+          estoqueMinimo: parseDecimal(fd.get('estoqueMinimo')),
         };
         startTransition(async () => {
           const r = await upsertProdutoMeta(payload);
@@ -114,6 +120,38 @@ export function ProdutoMetaForm({ produtoId, initial }: ProdutoMetaFormProps) {
         />
       </Field>
 
+      {/* Controle de estoque */}
+      <fieldset className="bg-[#fafaf7] border border-hairline rounded-xs p-3 space-y-3">
+        <legend className="block text-[11px] font-semibold uppercase tracking-[.18em] text-rm-mid px-1">
+          Controle de estoque
+        </legend>
+        <label className="flex items-center gap-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={controlado}
+            onChange={(e) => setControlado(e.target.checked)}
+          />
+          <span className="text-[13px]">
+            <strong>Produto controlado</strong> — gera alerta de reposição quando o estoque cai abaixo do mínimo.
+          </span>
+        </label>
+        {controlado && (
+          <Field label={`Estoque mínimo (${unidade})`}>
+            <Input
+              name="estoqueMinimo"
+              type="number"
+              inputMode="decimal"
+              step="0.001"
+              min={0}
+              max={999999}
+              defaultValue={initial.estoqueMinimo ?? ''}
+              placeholder={`ex: 5 (em ${unidade})`}
+              required
+            />
+          </Field>
+        )}
+      </fieldset>
+
       {okMsg && <p className="text-rm-green text-[12px]">{okMsg}</p>}
       {erro && <p className="text-rm-red text-[12px]">{erro}</p>}
 
@@ -129,6 +167,12 @@ export function ProdutoMetaForm({ produtoId, initial }: ProdutoMetaFormProps) {
 function parseNumeric(v: FormDataEntryValue | null): number | null {
   if (v === null || v === '') return null;
   const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function parseDecimal(v: FormDataEntryValue | null): number | null {
+  if (v === null || v === '') return null;
+  const n = Number(String(v).replace(',', '.'));
   return Number.isFinite(n) ? n : null;
 }
 

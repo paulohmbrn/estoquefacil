@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { Prisma } from '@estoque/db';
 import { prisma } from '@/lib/db';
 import { requireGestor } from '@/lib/permissions';
 
@@ -15,6 +16,11 @@ const upsertSchema = z.object({
   validadeAmbiente: z.coerce.number().int().min(0).max(365).optional().nullable(),
   metodos: z.array(metodoEnum).default([]),
   observacoes: z.string().max(500).optional().nullable(),
+  controlado: z.coerce.boolean().optional(),
+  estoqueMinimo: z
+    .union([z.coerce.number().min(0).max(999999), z.literal('').transform(() => null), z.null()])
+    .optional()
+    .nullable(),
 });
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -38,6 +44,14 @@ export async function upsertProdutoMeta(input: z.infer<typeof upsertSchema>): Pr
     if (!produto) return { ok: false, error: 'Produto não encontrado' };
     await requireGestor({ lojaId: produto.lojaId });
 
+    const controlado = Boolean(data.controlado);
+    const minNumero = typeof data.estoqueMinimo === 'number' ? data.estoqueMinimo : null;
+    // Se é controlado, exige mínimo > 0; senão, zera o mínimo.
+    if (controlado && (minNumero == null || minNumero <= 0)) {
+      return { ok: false, error: 'Defina um estoque mínimo > 0 quando o produto é controlado.' };
+    }
+    const estoqueMinimo = controlado && minNumero != null ? new Prisma.Decimal(minNumero) : null;
+
     await prisma.produtoMeta.upsert({
       where: { produtoId: data.produtoId },
       create: {
@@ -48,6 +62,8 @@ export async function upsertProdutoMeta(input: z.infer<typeof upsertSchema>): Pr
         validadeAmbiente: nz(data.validadeAmbiente),
         metodos: data.metodos,
         observacoes: nz(data.observacoes),
+        controlado,
+        estoqueMinimo,
       },
       update: {
         fotoUrl: nz(data.fotoUrl),
@@ -56,11 +72,14 @@ export async function upsertProdutoMeta(input: z.infer<typeof upsertSchema>): Pr
         validadeAmbiente: nz(data.validadeAmbiente),
         metodos: data.metodos,
         observacoes: nz(data.observacoes),
+        controlado,
+        estoqueMinimo,
       },
     });
 
     revalidatePath('/cadastros/produtos');
     revalidatePath(`/cadastros/produtos/${data.produtoId}`);
+    revalidatePath('/controlados');
     return { ok: true };
   } catch (err) {
     return { ok: false, error: (err as Error).message };

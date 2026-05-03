@@ -256,7 +256,13 @@ model ProdutoMeta {
   validadeAmbiente  Int? // dias
   metodos           String[] @default([]) // ["congelado","resfriado","ambiente"]
   observacoes       String?
+  // Produto controlado para reposição: quando true, aparece em /controlados
+  // e gera alerta no dashboard quando o estoque atual cai abaixo do mínimo.
+  controlado        Boolean  @default(false)
+  estoqueMinimo     Decimal? @db.Decimal(14, 3) // na unidade do produto (KG/UN/LT/...)
   updatedAt         DateTime @updatedAt
+
+  @@index([controlado])
 }
 
 // ============================================================

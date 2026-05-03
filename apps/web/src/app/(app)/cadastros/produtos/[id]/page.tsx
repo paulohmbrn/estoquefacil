@@ -57,6 +57,7 @@ export default async function ProdutoDetalhePage({ params }: { params: Promise<{
               <p className="rm-eyebrow text-rm-mid mb-3">Metadados editáveis (não vêm do ZmartBI)</p>
               <ProdutoMetaForm
                 produtoId={produto.id}
+                unidade={produto.unidade}
                 initial={{
                   fotoUrl: produto.meta?.fotoUrl ?? '',
                   validadeResfriado: produto.meta?.validadeResfriado ?? null,
@@ -64,6 +65,8 @@ export default async function ProdutoDetalhePage({ params }: { params: Promise<{
                   validadeAmbiente: produto.meta?.validadeAmbiente ?? null,
                   metodos: (produto.meta?.metodos ?? []) as ('congelado' | 'resfriado' | 'ambiente')[],
                   observacoes: produto.meta?.observacoes ?? '',
+                  controlado: produto.meta?.controlado ?? false,
+                  estoqueMinimo: produto.meta?.estoqueMinimo ? Number(produto.meta.estoqueMinimo) : null,
                 }}
               />
             </div>
