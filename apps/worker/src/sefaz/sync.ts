@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { prisma, Prisma, type SefazSyncStatus } from '@estoque/db';
 import { decryptString } from '@estoque/shared';
 import { logger } from '../logger.js';
-import { consultarDistribuicaoDFe, parseNfeXml } from './distribuicao.js';
+import { consultarDistribuicaoDFe, parseNfeXml, parseResNfeXml } from './distribuicao.js';
 
 export interface SefazSyncOutcome {
   syncRunId: string;
@@ -176,24 +176,26 @@ export async function runSefazSyncForLoja(
             });
             totalNfes += 1;
           } else if (isResNfe) {
-            // Apenas resumo — guarda placeholder se ainda não temos a NFe completa
-            // chaveAcesso vem em <resNFe><chNFe>
-            const m = doc.xml.match(/<chNFe>(\d{44})<\/chNFe>/);
-            if (!m) continue;
-            const chave = m[1]!;
+            // Resumo: tem chave + fornecedor + dhEmi + vNF. Sem itens (procNFe vem depois).
+            const res = parseResNfeXml(doc.xml);
+            if (!res) continue;
             const existing = await prisma.notaFiscalImportada.findUnique({
-              where: { chaveAcesso: chave },
+              where: { chaveAcesso: res.chaveAcesso },
               select: { id: true },
             });
             if (existing) continue;
             await prisma.notaFiscalImportada.create({
               data: {
                 lojaId,
-                chaveAcesso: chave,
+                chaveAcesso: res.chaveAcesso,
                 nsu: doc.nsu,
                 schemaTipo: 'resNFe',
                 xmlSchema: doc.schema,
                 xmlOriginal: doc.xml,
+                emissorCnpj: res.emissorCnpj,
+                emissorNome: res.emissorNome,
+                dataEmissao: res.dataEmissao,
+                valorTotal: new Prisma.Decimal(res.valorTotal),
                 status: 'PENDENTE',
               },
             });

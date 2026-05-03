@@ -231,6 +231,31 @@ export function parseNfeXml(xml: string): { meta: NfeMeta; itens: NfeItem[] } {
   return { meta, itens };
 }
 
+/** Parse do XML <resNFe> (resumo de NFe) — não tem itens, só metadados básicos.
+ *  Útil porque a SEFAZ entrega resNFe quando o destinatário ainda não baixou
+ *  o procNFe completo. Mesmo sem itens, dá pra mostrar fornecedor/valor na lista. */
+export function parseResNfeXml(xml: string): {
+  chaveAcesso: string;
+  emissorCnpj: string;
+  emissorNome: string;
+  dataEmissao: Date | null;
+  valorTotal: number;
+} | null {
+  const chave = xml.match(/<chNFe>(\d{44})<\/chNFe>/)?.[1];
+  if (!chave) return null;
+  const cnpj = xml.match(/<CNPJ>(\d{14})<\/CNPJ>/)?.[1] ?? '';
+  const nome = xml.match(/<xNome>([^<]+)<\/xNome>/)?.[1] ?? '';
+  const dhEmi = xml.match(/<dhEmi>([^<]+)<\/dhEmi>/)?.[1];
+  const vNF = xml.match(/<vNF>([^<]+)<\/vNF>/)?.[1];
+  return {
+    chaveAcesso: chave,
+    emissorCnpj: cnpj,
+    emissorNome: nome,
+    dataEmissao: dhEmi ? parseSefazDate(dhEmi) : null,
+    valorTotal: vNF ? Number(vNF.replace(',', '.')) : 0,
+  };
+}
+
 function parseSefazDate(s: string): Date | null {
   if (!s) return null;
   // SEFAZ usa ISO 8601 com timezone (ex 2026-04-30T10:15:00-03:00)
