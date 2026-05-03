@@ -5,16 +5,14 @@ import { cn } from '@/lib/utils';
 
 export function BrandMark({ size = 30, className }: { size?: number; className?: string }) {
   return (
-    <div
-      className={cn(
-        'grid place-items-center bg-rm-green text-rm-cream rounded-sm',
-        'font-sans font-bold leading-none tracking-tight',
-        className,
-      )}
-      style={{ width: size, height: size, fontSize: size * 0.6 }}
-    >
-      EF
-    </div>
+    <img
+      src="/icon.svg"
+      alt="Estoque Fácil"
+      width={size}
+      height={size}
+      className={cn('rounded-sm shrink-0', className)}
+      style={{ width: size, height: size }}
+    />
   );
 }
 
