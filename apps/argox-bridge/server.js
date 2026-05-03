@@ -51,24 +51,31 @@ function log(...args) {
 }
 
 // --- Envio TCP pra impressora ---
+// Argox tipicamente NÃO fecha o socket do lado dela após receber ZPL;
+// então não esperamos 'end'. Damos write+end e resolvemos quando o write
+// completou (ou após 'close' que vem rápido).
 function sendToPrinter(zpl) {
   return new Promise((resolve, reject) => {
+    const bytes = Buffer.byteLength(zpl, 'utf8');
     const socket = net.createConnection({ host: PRINTER_HOST, port: PRINTER_PORT });
-    socket.setTimeout(10000);
+    socket.setTimeout(5000); // 5s — se travar mais que isso, algo está errado
+    let resolved = false;
+    const done = (err) => {
+      if (resolved) return;
+      resolved = true;
+      try { socket.destroy(); } catch { /* ignore */ }
+      if (err) reject(err); else resolve({ bytes });
+    };
     socket.on('connect', () => {
       socket.write(zpl, 'utf8', (err) => {
-        if (err) { reject(err); return; }
-        socket.end();
+        if (err) return done(err);
+        // Garante que o buffer foi entregue ao kernel; a impressora processa async.
+        socket.end(() => done(null));
       });
     });
-    socket.on('end', () => resolve({ bytes: Buffer.byteLength(zpl, 'utf8') }));
-    socket.on('error', (err) => {
-      reject(new Error(`TCP ${PRINTER_HOST}:${PRINTER_PORT} — ${err.message}`));
-    });
-    socket.on('timeout', () => {
-      socket.destroy();
-      reject(new Error(`Timeout ao conectar em ${PRINTER_HOST}:${PRINTER_PORT}`));
-    });
+    socket.on('close', () => done(null));
+    socket.on('error', (err) => done(new Error(`TCP ${PRINTER_HOST}:${PRINTER_PORT} — ${err.message}`)));
+    socket.on('timeout', () => done(new Error(`Timeout (5s) em ${PRINTER_HOST}:${PRINTER_PORT}`)));
   });
 }
 
@@ -93,6 +100,27 @@ const server = http.createServer(async (req, res) => {
         printer: `${PRINTER_HOST}:${PRINTER_PORT}`,
         version: VERSION,
       }));
+      return;
+    }
+
+    if (req.url === '/test-print' && (req.method === 'POST' || req.method === 'GET')) {
+      // ZPL mínimo: 1 etiqueta 60x40mm com texto "TESTE OK".
+      // Use isso pra confirmar se a impressora está interpretando ZPL corretamente.
+      const zplTeste = [
+        '^XA',
+        '^CI28',
+        '^PW480',
+        '^LL320',
+        '^LH0,0',
+        '^FO40,40^A0N,80,80^FDTESTE OK^FS',
+        '^FO40,140^A0N,40,40^FDArgox Bridge^FS',
+        '^FO40,200^A0N,30,30^FD' + new Date().toISOString().slice(0, 19) + '^FS',
+        '^XZ',
+      ].join('\n');
+      log(`/test-print — enviando ZPL mínimo (${Buffer.byteLength(zplTeste, 'utf8')} bytes)`);
+      const r = await sendToPrinter(zplTeste);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: true, bytes: r.bytes, message: 'Se nada saiu na impressora, ela NÃO está em modo PPLZ/AUTO' }));
       return;
     }
 
