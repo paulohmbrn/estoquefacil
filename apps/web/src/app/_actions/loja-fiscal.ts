@@ -164,6 +164,55 @@ export async function uploadCertificado(
   }
 }
 
+/** Gera (ou retorna o existente) token do agente Argox da loja. Token tem 64 chars hex. */
+export async function ensureArgoxBridgeToken(lojaId: string): Promise<ActionResult<{ token: string }>> {
+  try {
+    await requireGestor({ lojaId });
+    const loja = await prisma.loja.findUnique({ where: { id: lojaId }, select: { argoxBridgeToken: true } });
+    if (!loja) return { ok: false, error: 'Loja não encontrada' };
+    if (loja.argoxBridgeToken) return { ok: true, data: { token: loja.argoxBridgeToken } };
+    const { randomBytes } = await import('node:crypto');
+    const token = randomBytes(32).toString('hex');
+    await prisma.loja.update({ where: { id: lojaId }, data: { argoxBridgeToken: token } });
+    revalidatePath('/cadastros/lojas');
+    return { ok: true, data: { token } };
+  } catch (err) {
+    return { ok: false, error: (err as Error).message };
+  }
+}
+
+/** Revoga o token atual e gera um novo (invalida agentes conectados). */
+export async function rotateArgoxBridgeToken(lojaId: string): Promise<ActionResult<{ token: string }>> {
+  try {
+    await requireGestor({ lojaId });
+    const { randomBytes } = await import('node:crypto');
+    const token = randomBytes(32).toString('hex');
+    await prisma.loja.update({ where: { id: lojaId }, data: { argoxBridgeToken: token } });
+    revalidatePath('/cadastros/lojas');
+    return { ok: true, data: { token } };
+  } catch (err) {
+    return { ok: false, error: (err as Error).message };
+  }
+}
+
+/** Consulta status de conexão WS do agente da loja (chama apps/api). */
+export async function getArgoxBridgeStatus(lojaId: string): Promise<ActionResult<{ connected: boolean; connectedAt: string | null }>> {
+  try {
+    await requireGestor({ lojaId });
+    const url = process.env.INTERNAL_API_URL ?? 'http://estoque-api:3001';
+    const internalToken = process.env.INTERNAL_API_TOKEN ?? '';
+    const res = await fetch(`${url}/argox/status?lojaId=${encodeURIComponent(lojaId)}`, {
+      headers: { 'X-Internal-Token': internalToken },
+      cache: 'no-store',
+    });
+    if (!res.ok) return { ok: false, error: `api respondeu ${res.status}` };
+    const j = await res.json() as { connected: boolean; connectedAt: string | null };
+    return { ok: true, data: j };
+  } catch (err) {
+    return { ok: false, error: (err as Error).message };
+  }
+}
+
 /** Salva a URL do Argox Bridge (agente local) da loja. URL aceita http(s)://host:porta. */
 const argoxSchema = z.object({
   lojaId: z.string().min(1),

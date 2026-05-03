@@ -5,7 +5,15 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { updateLojaFiscal, uploadCertificado, removerCertificado, updateArgoxBridge } from '@/app/_actions/loja-fiscal';
+import {
+  updateLojaFiscal,
+  uploadCertificado,
+  removerCertificado,
+  updateArgoxBridge,
+  ensureArgoxBridgeToken,
+  rotateArgoxBridgeToken,
+  getArgoxBridgeStatus,
+} from '@/app/_actions/loja-fiscal';
 
 interface LojaProps {
   id: string;
@@ -18,6 +26,7 @@ interface LojaProps {
   certValidoAte: string | null;
   certUploadedAt: string | null;
   argoxBridgeUrl: string | null;
+  argoxBridgeToken: string | null;
 }
 
 const dt = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo' });
@@ -289,6 +298,125 @@ function ArgoxBridgeBlock({
         <div className="flex justify-end">
           <SavedBadge label={salvo} />
         </div>
+      )}
+
+      <ArgoxTokenSubblock loja={loja} setErro={setErro} />
+    </div>
+  );
+}
+
+/** Sub-bloco: gerencia o token do agente WS (modo cloud, recomendado pra mobile). */
+function ArgoxTokenSubblock({
+  loja,
+  setErro,
+}: {
+  loja: LojaProps;
+  setErro: (e: string | null) => void;
+}) {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [token, setToken] = useState<string | null>(loja.argoxBridgeToken);
+  const [revealed, setRevealed] = useState(false);
+  const [status, setStatus] = useState<{ connected: boolean; connectedAt: string | null } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = async (): Promise<void> => {
+      const r = await getArgoxBridgeStatus(loja.id);
+      if (!cancelled && r.ok) setStatus(r.data ?? null);
+    };
+    void refresh();
+    const t = setInterval(() => void refresh(), 8000);
+    return () => { cancelled = true; clearInterval(t); };
+  }, [loja.id]);
+
+  function gerar(): void {
+    setErro(null);
+    start(async () => {
+      const r = await ensureArgoxBridgeToken(loja.id);
+      if (r.ok && r.data) { setToken(r.data.token); setRevealed(true); router.refresh(); }
+      else if (!r.ok) setErro(r.error);
+    });
+  }
+
+  function rotacionar(): void {
+    if (!confirm('Rotacionar o token? O agente atual vai se desconectar e precisa receber o novo token no .env pra reconectar.')) return;
+    setErro(null);
+    start(async () => {
+      const r = await rotateArgoxBridgeToken(loja.id);
+      if (r.ok && r.data) { setToken(r.data.token); setRevealed(true); router.refresh(); }
+      else if (!r.ok) setErro(r.error);
+    });
+  }
+
+  return (
+    <div className="mt-4 pt-4 border-t border-dashed border-strong space-y-3">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="rm-eyebrow text-rm-mid">Conexão WebSocket (modo cloud)</p>
+          <p className="text-[12px] text-rm-mid mt-1">
+            Token único que o agente usa pra abrir conexão persistente com{' '}
+            <span className="rm-mono">estoque.reismagos.com.br/argox</span>. Nesse modo qualquer dispositivo logado
+            (mobile, tablet, PC) imprime — sem precisar estar na mesma rede da impressora.
+          </p>
+        </div>
+        {status && (
+          status.connected
+            ? <Badge variant="green">Agente online</Badge>
+            : <Badge variant="gold">Offline</Badge>
+        )}
+      </div>
+
+      {token ? (
+        <div className="bg-[#fafaf7] border border-hairline rounded-xs p-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <code className="flex-1 text-[11px] rm-mono break-all">
+              {revealed ? token : token.slice(0, 8) + '••••••••••••••••••••••••••••••••••••••••••••••••••••••••' + token.slice(-4)}
+            </code>
+            <button
+              type="button"
+              onClick={() => setRevealed((v) => !v)}
+              className="text-[11px] rm-link"
+            >
+              {revealed ? 'esconder' : 'ver'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { void navigator.clipboard.writeText(token); }}
+              className="text-[11px] rm-link"
+            >
+              copiar
+            </button>
+          </div>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={rotacionar}
+              disabled={pending}
+              className="text-[11px] uppercase tracking-[.16em] font-semibold text-rm-mid hover:text-rm-red"
+            >
+              Rotacionar token
+            </button>
+          </div>
+        </div>
+      ) : (
+        <Button type="button" variant="primary" onClick={gerar} disabled={pending}>
+          {pending ? 'Gerando…' : 'Gerar token do agente'}
+        </Button>
+      )}
+
+      {token && (
+        <details className="text-[11px] text-rm-mid">
+          <summary className="cursor-pointer text-rm-ink font-semibold">Como configurar no agente</summary>
+          <pre className="mt-2 bg-white border border-hairline p-2 rounded-xs overflow-x-auto text-[10px]">{`# .env do agente Argox Bridge
+PRINTER_HOST=192.168.x.x
+PRINTER_PORT=9100
+BRIDGE_TOKEN=${token}
+SERVER_WS_URL=wss://estoque.reismagos.com.br/argox/agent`}</pre>
+          <p className="mt-2">
+            Salva no <span className="rm-mono">.env</span> do agente, reinicia o serviço, e veja o status virar &quot;Online&quot; aqui em alguns segundos.
+          </p>
+        </details>
       )}
     </div>
   );

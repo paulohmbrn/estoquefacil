@@ -41,7 +41,7 @@ export default async function EtiquetasPage() {
         _count: { select: { produtos: { where: { lojaId, ativo: true } } } },
       },
     }),
-    prisma.loja.findUnique({ where: { id: lojaId }, select: { argoxBridgeUrl: true } }),
+    prisma.loja.findUnique({ where: { id: lojaId }, select: { argoxBridgeUrl: true, argoxBridgeToken: true } }),
   ]);
 
   const produtosClient: ProdutoEtiqueta[] = produtos.map((p) => ({
@@ -88,7 +88,12 @@ export default async function EtiquetasPage() {
           Nenhum produto sincronizado ainda — rode o sync em <Link href="/sincronizacao" className="rm-link">sincronização</Link>.
         </Card>
       ) : (
-        <EtiquetasClient produtos={produtosClient} grupos={gruposClient} argoxBridgeUrl={lojaInfo?.argoxBridgeUrl ?? null} />
+        <EtiquetasClient
+          produtos={produtosClient}
+          grupos={gruposClient}
+          argoxBridgeUrl={lojaInfo?.argoxBridgeUrl ?? null}
+          argoxCloudReady={Boolean(lojaInfo?.argoxBridgeToken)}
+        />
       )}
     </div>
   );

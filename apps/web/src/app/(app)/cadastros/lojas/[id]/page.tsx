@@ -25,6 +25,7 @@ export default async function EditarLojaPage({ params }: { params: Promise<{ id:
       certificadoValidoAte: true,
       certificadoUploadedAt: true,
       argoxBridgeUrl: true,
+      argoxBridgeToken: true,
     },
   });
   if (!loja) notFound();
@@ -58,6 +59,7 @@ export default async function EditarLojaPage({ params }: { params: Promise<{ id:
             certValidoAte: loja.certificadoValidoAte?.toISOString() ?? null,
             certUploadedAt: loja.certificadoUploadedAt?.toISOString() ?? null,
             argoxBridgeUrl: loja.argoxBridgeUrl,
+            argoxBridgeToken: loja.argoxBridgeToken,
           }}
         />
       </Card>

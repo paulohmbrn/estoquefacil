@@ -21,6 +21,7 @@ interface Props {
   produtos: ProdutoEtiqueta[];
   grupos: GrupoOpt[];
   argoxBridgeUrl: string | null;
+  argoxCloudReady: boolean; // tem token cadastrado (modo WS via cloud)
 }
 
 type Selection = Record<
@@ -28,7 +29,7 @@ type Selection = Record<
   { qtd: number; metodo: 'CONGELADO' | 'RESFRIADO' | 'AMBIENTE' }
 >;
 
-export function EtiquetasClient({ produtos, grupos, argoxBridgeUrl }: Props) {
+export function EtiquetasClient({ produtos, grupos, argoxBridgeUrl, argoxCloudReady }: Props) {
   const [grupoId, setGrupoId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [sel, setSel] = useState<Selection>({});
@@ -64,10 +65,34 @@ export function EtiquetasClient({ produtos, grupos, argoxBridgeUrl }: Props) {
     });
   }
 
-  function gerarPdf(formato: 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60' | 'ARGOX_NETWORK') {
+  function gerarPdf(formato: 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60' | 'ARGOX_NETWORK' | 'ARGOX_CLOUD') {
     if (itensSelecionados.length === 0) return;
     setErro(null);
     setShowFormatoPicker(false);
+
+    // Modo cloud (WebSocket via api): chama endpoint próprio que despacha pelo server
+    if (formato === 'ARGOX_CLOUD') {
+      startTransition(async () => {
+        try {
+          const res = await fetch('/api/etiquetas/imprimir-ws', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              itens: itensSelecionados.map(([produtoId, s]) => ({
+                produtoId, qtd: s.qtd, metodo: s.metodo,
+              })),
+            }),
+          });
+          const j = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(j.error ?? `Erro ${res.status}`);
+          alert(`✓ ${itensSelecionados.length} item(s) — ${totalEtiquetas} etiqueta(s) enviadas pra impressora.`);
+        } catch (e) {
+          setErro((e as Error).message);
+        }
+      });
+      return;
+    }
+
     const enviarPraImpressora = formato === 'ARGOX_NETWORK';
     const formatoBackend = enviarPraImpressora ? 'ARGOX_100X60' : formato;
 
@@ -298,6 +323,7 @@ export function EtiquetasClient({ produtos, grupos, argoxBridgeUrl }: Props) {
           totalEtiquetas={totalEtiquetas}
           pending={pending}
           argoxBridgeUrl={argoxBridgeUrl}
+          argoxCloudReady={argoxCloudReady}
           onClose={() => setShowFormatoPicker(false)}
           onPick={gerarPdf}
         />
@@ -306,18 +332,20 @@ export function EtiquetasClient({ produtos, grupos, argoxBridgeUrl }: Props) {
   );
 }
 
-type FormatoId = 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60' | 'ARGOX_NETWORK';
+type FormatoId = 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60' | 'ARGOX_NETWORK' | 'ARGOX_CLOUD';
 
 function FormatoPicker({
   totalEtiquetas,
   pending,
   argoxBridgeUrl,
+  argoxCloudReady,
   onClose,
   onPick,
 }: {
   totalEtiquetas: number;
   pending: boolean;
   argoxBridgeUrl: string | null;
+  argoxCloudReady: boolean;
   onClose: () => void;
   onPick: (formato: FormatoId) => void;
 }) {
@@ -330,10 +358,13 @@ function FormatoPicker({
     { id: 'TERMICA_60', titulo: 'Térmica 60×60mm', sub: 'Elgin L42 Pro · 1 etiqueta/página', badge: 'Padrão' },
     { id: 'TERMICA_40', titulo: 'Térmica 40×40mm', sub: 'Elgin L42 Pro · 1 etiqueta/página', badge: 'Compacta' },
     { id: 'A4_PIMACO', titulo: 'A4 — PIMACO A4360', sub: '21 etiquetas/folha · 63,5 × 38,1mm cada', badge: 'Folha avulsa' },
-    ...(argoxBridgeUrl
-      ? [{ id: 'ARGOX_NETWORK' as const, titulo: 'Argox 100×60mm — Imprimir agora', sub: `Envia direto pra impressora via ${argoxBridgeUrl}`, badge: 'Recomendado' }]
+    ...(argoxCloudReady
+      ? [{ id: 'ARGOX_CLOUD' as const, titulo: 'Argox 100×60mm — Imprimir (cloud)', sub: 'Funciona em qualquer dispositivo (mobile, tablet, PC) via WebSocket', badge: 'Recomendado' }]
       : []),
-    { id: 'ARGOX_100X60', titulo: 'Argox 100×60mm — Baixar .zpl', sub: argoxBridgeUrl ? 'Fallback (sem agente)' : 'Cadastre o agente em Cadastros → Lojas pra imprimir direto', badge: 'ZPL' },
+    ...(argoxBridgeUrl
+      ? [{ id: 'ARGOX_NETWORK' as const, titulo: 'Argox 100×60mm — Imprimir (rede local)', sub: `Direto pra ${argoxBridgeUrl} (PC mesma rede da impressora)`, badge: argoxCloudReady ? 'Local' : 'Recomendado' }]
+      : []),
+    { id: 'ARGOX_100X60', titulo: 'Argox 100×60mm — Baixar .zpl', sub: 'Fallback (envio manual)', badge: 'ZPL' },
   ];
   return (
     <div

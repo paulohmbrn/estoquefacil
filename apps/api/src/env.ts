@@ -9,6 +9,7 @@ const schema = z.object({
   ZMARTBI_TOKEN: z.string().min(1, 'ZMARTBI_TOKEN é obrigatório'),
   ALLOWED_EMAIL_DOMAIN: z.string().optional(), // legado (string única)
   ALLOWED_EMAIL_DOMAINS: z.string().optional(), // novo (lista CSV)
+  INTERNAL_API_TOKEN: z.string().min(16, 'INTERNAL_API_TOKEN >= 16 chars'),
 });
 
 const parsed = schema.safeParse(process.env);

@@ -4,6 +4,7 @@ import sensible from '@fastify/sensible';
 import { prisma } from '@estoque/db';
 import { FILIAIS_MVP } from '@estoque/shared';
 import { env } from './env.js';
+import { registerArgoxRoutes } from './argox.js';
 
 async function buildServer() {
   const app = Fastify({
@@ -21,6 +22,7 @@ async function buildServer() {
     credentials: true,
   });
   await app.register(sensible);
+  await registerArgoxRoutes(app);
 
   app.get('/health', async () => ({
     status: 'ok',

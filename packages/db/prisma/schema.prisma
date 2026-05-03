@@ -117,6 +117,9 @@ model Loja {
   // Argox bridge — URL do agente local que recebe ZPL e repassa pra impressora térmica.
   // Ex.: "http://localhost:9101" (agente no mesmo PC do app) ou "http://192.168.x.x:9101".
   argoxBridgeUrl         String?
+  // Token de autenticação do agente Argox quando se conecta via WebSocket no apps/api.
+  // Gerado server-side (random 32 bytes hex), copiado pro .env do agente.
+  argoxBridgeToken       String?  @unique
 
   @@index([ativo])
 }
