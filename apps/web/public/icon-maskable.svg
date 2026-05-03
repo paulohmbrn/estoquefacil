@@ -1,16 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Maskable icon: full bleed verde + EF centralizado num círculo seguro de 80% -->
   <rect width="512" height="512" fill="#004125"/>
-  <text
-    x="50%"
-    y="50%"
-    text-anchor="middle"
-    dominant-baseline="central"
-    font-family="Georgia, 'Playfair Display', serif"
-    font-style="italic"
-    font-weight="700"
-    font-size="220"
-    letter-spacing="-10"
-    fill="#f6ecd3"
-  >EF</text>
+
+  <!-- Clipboard -->
+  <rect x="140" y="100" width="200" height="280" rx="20" ry="20"
+        fill="none" stroke="white" stroke-width="16"/>
+  <rect x="200" y="60" width="80" height="60" rx="12" ry="12"
+        fill="none" stroke="white" stroke-width="16"/>
+
+  <!-- Checklist lines -->
+  <line x1="190" y1="180" x2="300" y2="180" stroke="white" stroke-width="16"/>
+  <line x1="190" y1="240" x2="300" y2="240" stroke="white" stroke-width="16"/>
+  <line x1="190" y1="300" x2="300" y2="300" stroke="white" stroke-width="16"/>
+
+  <!-- Check marks -->
+  <polyline points="150,180 165,195 190,160" fill="none" stroke="white" stroke-width="16"/>
+  <polyline points="150,240 165,255 190,220" fill="none" stroke="white" stroke-width="16"/>
+  <polyline points="150,300 165,315 190,280" fill="none" stroke="white" stroke-width="16"/>
+
+  <!-- Box -->
+  <polygon points="300,260 380,220 460,260 380,300"
+           fill="none" stroke="white" stroke-width="16"/>
+  <line x1="380" y1="300" x2="380" y2="380" stroke="white" stroke-width="16"/>
+  <polygon points="300,260 300,340 380,380 380,300"
+           fill="none" stroke="white" stroke-width="16"/>
 </svg>
