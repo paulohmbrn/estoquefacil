@@ -7,7 +7,8 @@ const schema = z.object({
   REDIS_URL: z.string().min(1, 'REDIS_URL é obrigatório'),
   ZMARTBI_BASE_URL: z.string().url().default('https://api-zmartbi.teknisa.com'),
   ZMARTBI_TOKEN: z.string().min(1, 'ZMARTBI_TOKEN é obrigatório'),
-  ALLOWED_EMAIL_DOMAIN: z.string().min(1).default('reismagos.com.br'),
+  ALLOWED_EMAIL_DOMAIN: z.string().optional(), // legado (string única)
+  ALLOWED_EMAIL_DOMAINS: z.string().optional(), // novo (lista CSV)
 });
 
 const parsed = schema.safeParse(process.env);

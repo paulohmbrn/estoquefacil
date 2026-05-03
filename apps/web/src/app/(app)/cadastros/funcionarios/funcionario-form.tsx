@@ -78,7 +78,7 @@ export function FuncionarioForm({ lojaId, onClose }: Props) {
           <Input
             name="email"
             type="email"
-            placeholder="nome@reismagos.com.br"
+            placeholder="nome@reismagos.com.br ou @madrepanepadaria.com.br"
             required
           />
         </Field>

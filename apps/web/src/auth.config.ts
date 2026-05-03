@@ -3,8 +3,9 @@
 
 import type { NextAuthConfig } from 'next-auth';
 import Google from 'next-auth/providers/google';
+import { resolveAllowedDomains, isEmailDomainAllowed } from '@estoque/shared/constants';
 
-const ALLOWED_DOMAIN = (process.env.ALLOWED_EMAIL_DOMAIN || 'reismagos.com.br').toLowerCase();
+const ALLOWED_DOMAINS = resolveAllowedDomains(process.env);
 
 export const authConfig = {
   pages: {
@@ -27,7 +28,7 @@ export const authConfig = {
       // Whitelist de domínio. Aplica para Google e qualquer provider futuro.
       const email = (user.email || profile?.email || '').toLowerCase();
       if (!email) return false;
-      if (!email.endsWith(`@${ALLOWED_DOMAIN}`)) {
+      if (!isEmailDomainAllowed(email, ALLOWED_DOMAINS)) {
         return `/login?error=DomainNotAllowed&email=${encodeURIComponent(email)}`;
       }
       // Validação extra: Google devolve email_verified — exigir true.

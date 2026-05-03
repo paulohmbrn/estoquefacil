@@ -58,7 +58,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             <p className="rm-eyebrow">Acesso</p>
             <h2 className="rm-h2">Entrar</h2>
             <p className="rm-caption">
-              Use sua conta Google corporativa <span className="rm-mono text-rm-ink">@reismagos.com.br</span>.
+              Use sua conta Google corporativa{' '}
+              <span className="rm-mono text-rm-ink">@reismagos.com.br</span>{' '}
+              ou <span className="rm-mono text-rm-ink">@madrepanepadaria.com.br</span>.
             </p>
           </div>
 

@@ -8,14 +8,18 @@ export const cdarvprodSchema = z
 // CDFILIAL: 4 chars numéricos
 export const cdFilialSchema = z.string().regex(/^\d{4}$/, 'CDFILIAL deve ter 4 dígitos');
 
-// E-mail dentro do domínio whitelist
-export function emailDomainSchema(allowedDomain: string): z.ZodSchema<string> {
+// E-mail dentro do(s) domínio(s) whitelist. Aceita string única (legado) ou lista.
+export function emailDomainSchema(allowed: string | readonly string[]): z.ZodSchema<string> {
+  const list = (Array.isArray(allowed) ? allowed : [allowed]).map((d) => d.toLowerCase());
   return z
     .string()
     .email()
     .refine(
-      (email) => email.toLowerCase().endsWith(`@${allowedDomain.toLowerCase()}`),
-      { message: `E-mail precisa terminar em @${allowedDomain}` },
+      (email) => {
+        const lower = email.toLowerCase();
+        return list.some((d) => lower.endsWith(`@${d}`));
+      },
+      { message: `E-mail precisa terminar em ${list.map((d) => `@${d}`).join(' ou ')}` },
     );
 }
 

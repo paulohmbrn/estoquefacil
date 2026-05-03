@@ -4,9 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireGestor, requireUser } from '@/lib/permissions';
-import { emailDomainSchema } from '@estoque/shared';
+import { emailDomainSchema, resolveAllowedDomains } from '@estoque/shared';
 
-const ALLOWED_DOMAIN = process.env.ALLOWED_EMAIL_DOMAIN || 'reismagos.com.br';
+const ALLOWED_DOMAINS = resolveAllowedDomains(process.env);
 
 const baseSchema = z.object({
   nome: z.string().min(2, 'Nome obrigatório'),
@@ -25,7 +25,7 @@ export type ActionResult = { ok: true } | { ok: false; error: string };
 function validateEmail(email: string | undefined, permissao: string): string | null {
   if (permissao === 'SEM_LOGIN') return null;
   if (!email) return 'E-mail é obrigatório quando o funcionário tem login.';
-  const r = emailDomainSchema(ALLOWED_DOMAIN).safeParse(email);
+  const r = emailDomainSchema(ALLOWED_DOMAINS).safeParse(email);
   if (!r.success) return r.error.issues[0]!.message;
   return null;
 }
