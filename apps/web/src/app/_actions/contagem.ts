@@ -201,9 +201,12 @@ export async function identificarProdutoPorScan(contagemId: string, scanned: str
     const cleaned = scanned.trim();
     let cdarvprod: string | null = null;
     let etiquetaId: string | null = null;
+    let codigoBarra: string | null = null;
     const etiquetaMatch = cleaned.match(/\/l\/e\/([A-Za-z0-9]{6,})$/);
     if (etiquetaMatch && etiquetaMatch[1]) etiquetaId = etiquetaMatch[1];
     if (!etiquetaId && /^\d{13}$/.test(cleaned)) cdarvprod = cleaned;
+    // EAN-8 ou EAN-13 ou Code-128 (qualquer numérico de 6-14 dígitos que NÃO bate com CDARVPROD MVP)
+    if (!etiquetaId && /^\d{6,14}$/.test(cleaned)) codigoBarra = cleaned;
 
     if (etiquetaId) {
       const e = await prisma.etiqueta.findFirst({
@@ -216,16 +219,28 @@ export async function identificarProdutoPorScan(contagemId: string, scanned: str
       }
     }
 
-    if (!cdarvprod) {
-      return { ok: false, error: 'QR não reconhecido. Tente digitar o CDARVPROD (13 dígitos).' };
+    // Tenta primeiro como CDARVPROD (mais comum em etiquetas internas).
+    let produto = cdarvprod
+      ? await prisma.produto.findFirst({
+          where: { lojaId, cdarvprod, ativo: true },
+          select: { id: true, cdarvprod: true, nome: true, unidade: true },
+        })
+      : null;
+
+    // Se não achou e era um número plausível de barras, tenta CD_BARRA.
+    if (!produto && codigoBarra) {
+      produto = await prisma.produto.findFirst({
+        where: { lojaId, cdBarra: codigoBarra, ativo: true },
+        select: { id: true, cdarvprod: true, nome: true, unidade: true },
+      });
     }
 
-    const produto = await prisma.produto.findFirst({
-      where: { lojaId, cdarvprod, ativo: true },
-      select: { id: true, cdarvprod: true, nome: true, unidade: true },
-    });
     if (!produto) {
-      return { ok: false, error: `Produto ${cdarvprod} não está no catálogo desta loja.` };
+      const ref = cdarvprod ?? codigoBarra ?? cleaned;
+      return {
+        ok: false,
+        error: `Código "${ref}" não está no catálogo desta loja (nem como CDARVPROD nem como código de barras).`,
+      };
     }
     const lanc = await prisma.lancamento.findUnique({
       where: { contagemId_produtoId: { contagemId, produtoId: produto.id } },

@@ -223,7 +223,7 @@ export function ContagemClient({
         <h2 className="rm-eyebrow mb-2">Contados ({lancamentos.length})</h2>
         {lancamentos.length === 0 ? (
           <Card className="p-6 text-center text-rm-mid text-[13px]">
-            Bipa um QR ou digita o código pra começar.
+            Bipa o QR da etiqueta, o código de barras do produto, ou digita o código pra começar.
           </Card>
         ) : (
           <ul className="space-y-2">
@@ -577,7 +577,7 @@ function ManualScanModal({
         >
           <Input
             inputMode="numeric"
-            placeholder="CDARVPROD (13 dígitos) ou cole a URL do QR"
+            placeholder="CDARVPROD, código de barras, ou URL do QR"
             value={v}
             onChange={(e) => setV(e.target.value)}
             autoFocus

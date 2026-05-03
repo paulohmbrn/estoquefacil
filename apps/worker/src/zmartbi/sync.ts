@@ -155,6 +155,7 @@ export async function runZmartbiSync(trigger: SyncTrigger): Promise<SyncOutcome>
           const subgrupoId = subgrupoByZmartbi.get(it.CDSUBGRPROD) ?? null;
           const data = {
             cdProduto: it.CDPRODUTO,
+            cdBarra: it.CD_BARRA?.trim() || null,
             nome: it.NMPRODUTO,
             unidade: it.UNIDADE ?? 'UN',
             tipoProduto: it.TIPO_PRODUTO,

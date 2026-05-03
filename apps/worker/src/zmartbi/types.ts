@@ -12,6 +12,7 @@ export type ZmartbiItem = {
   NMPRODUTO: string;
   CDARVPROD: string;            // 11 (agrupador) ou 13 (SKU contável)
   UNIDADE?: string;             // 100% preenchida quando CDARVPROD.length === 13
+  CD_BARRA?: string;            // EAN-13/EAN-8/Code 128 do produto (opcional)
   CD_TIPO_PRODUTO: string;
   TIPO_PRODUTO: string;
   CDGRUPPROD: string;

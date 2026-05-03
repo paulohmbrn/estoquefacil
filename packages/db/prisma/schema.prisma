@@ -213,6 +213,9 @@ model Produto {
   // ZmartBI
   cdarvprod    String // 13 chars — chave do export
   cdProduto    String // CDPRODUTO (10 chars)
+  // CD_BARRA do ZmartBI — EAN-13/EAN-8/Code 128 do produto. Pode ser null
+  // (nem todo SKU tem barras cadastrado) e pode haver duplicatas (raro).
+  cdBarra      String?
   nome         String // NMPRODUTO
   unidade      String // KG/UN/PC/GF/CX/LT/...
   tipoProduto  String // TIPO_PRODUTO
@@ -243,6 +246,7 @@ model Produto {
   @@index([lojaId, grupoId])
   @@index([lojaId, ativo])
   @@index([cdarvprod])
+  @@index([lojaId, cdBarra])
 }
 
 // Metadados editáveis localmente (não conflita com sync).
