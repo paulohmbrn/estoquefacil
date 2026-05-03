@@ -53,8 +53,9 @@ export function MobileLojaSwitcher({ lojas, ativaId, apelidoLoja }: Props) {
           onClick={() => setOpen(false)}
         >
           <div
-            className="w-full max-w-[520px] bg-white rounded-t-xs border-t-[6px] border-rm-green max-h-[80vh] overflow-auto"
-            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+            className="w-full max-w-[520px] bg-white rounded-t-xs border-t-[6px] border-rm-green max-h-[80vh] overflow-auto overscroll-contain"
+            // 88px = altura aproximada do MobileBottomNav (~56px + folga); +safe-area pra notch
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 88px)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-4 border-b border-hairline flex items-center justify-between">
