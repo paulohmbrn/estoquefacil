@@ -5,15 +5,16 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Calculator, Truck, Tag, BarChart3 } from 'lucide-react';
+import { Home, Calculator, Truck, Tag, QrCode, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const TABS = [
   { id: 'home', label: 'Início', href: '/', icon: Home },
-  { id: 'contagem', label: 'Contagem', href: '/contagem', icon: Calculator },
+  { id: 'contagem', label: 'Contar', href: '/contagem', icon: Calculator },
+  { id: 'listas', label: 'Listas', href: '/listas', icon: QrCode },
   { id: 'recebimento', label: 'Receber', href: '/recebimento', icon: Truck },
-  { id: 'etiquetas', label: 'Etiquetas', href: '/etiquetas', icon: Tag },
-  { id: 'relatorios', label: 'Relatórios', href: '/relatorios', icon: BarChart3 },
+  { id: 'etiquetas', label: 'Etiq.', href: '/etiquetas', icon: Tag },
+  { id: 'relatorios', label: 'Relat.', href: '/relatorios', icon: BarChart3 },
 ] as const;
 
 export function MobileBottomNav() {
