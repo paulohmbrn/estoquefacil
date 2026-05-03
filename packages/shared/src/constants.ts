@@ -24,26 +24,31 @@ export const FILIAIS_MVP_SET: ReadonlySet<string> = new Set(FILIAIS_MVP);
 export const PREFIXOS_CDARVPROD_MVP = ['1', '30105', '915'] as const;
 
 // Prefixos extras por loja — filiais específicas têm tipos de produto que não
-// existem nas outras (ex.: panificação Madre Pane usa 90306*).
-//   0023 = MADRE PANE - LAGOA NOVA
+// existem nas outras. Esses prefixos NÃO seguem a regra de "endsWith('00')"
+// (panificação artesanal não usa SKU-base + receitas como o resto do ZmartBI).
+//   0023 = MADRE PANE - LAGOA NOVA → todos os 903* (panificação)
 export const PREFIXOS_CDARVPROD_EXTRAS_POR_FILIAL: Readonly<Record<string, readonly string[]>> = {
-  '0023': ['90306'],
+  '0023': ['903'],
 };
 
 // Apenas SKUs (CDARVPROD com 13 chars) entram em contagem.
 // CDARVPROD com 11 chars são agrupadores (categoria/nome lógico) e devem ser ignorados.
 export const CDARVPROD_LEN_SKU = 13;
 
-// SKU de estoque ZmartBI: 13 chars + prefixo MVP (ou extra da loja) + termina em "00".
-// Os outros sufixos representam preparações/receitas que NÃO são contadas fisicamente
-// (consumo é deduzido via ficha técnica do SKU base terminado em 00).
+// SKU de estoque ZmartBI: 13 chars com regras diferentes por origem do prefixo:
+//   • prefixo MVP (1, 30105, 915) → exige terminar em "00" (SKU-base; o resto é receita)
+//   • prefixo extra da loja → SEM regra de sufixo (cada item é o SKU final)
 //
-// `cdfilial` opcional: quando passado, soma os prefixos extras daquela filial.
+// `cdfilial` opcional: quando passado, considera os prefixos extras daquela filial.
 export function isCdarvprodContavel(cdarvprod: string, cdfilial?: string): boolean {
   if (cdarvprod.length !== CDARVPROD_LEN_SKU) return false;
-  if (!cdarvprod.endsWith('00')) return false;
+  // Caminho MVP: termina em "00" + prefixo MVP
+  if (
+    cdarvprod.endsWith('00') &&
+    PREFIXOS_CDARVPROD_MVP.some((p) => cdarvprod.startsWith(p))
+  ) return true;
+  // Caminho extra por filial: prefixo extra cadastrado, sem regra de sufixo
   const extras = cdfilial ? PREFIXOS_CDARVPROD_EXTRAS_POR_FILIAL[cdfilial] ?? [] : [];
-  if (PREFIXOS_CDARVPROD_MVP.some((p) => cdarvprod.startsWith(p))) return true;
   return extras.some((p) => cdarvprod.startsWith(p));
 }
 

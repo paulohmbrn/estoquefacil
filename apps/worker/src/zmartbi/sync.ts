@@ -147,6 +147,7 @@ export async function runZmartbiSync(trigger: SyncTrigger): Promise<SyncOutcome>
 
       // Upsert produtos em transação + coleta candidatos a ProdutoMeta default
       const metaCandidates: Prisma.ProdutoMetaCreateManyInput[] = [];
+      // 60s pra transação inteira do batch (500 upserts) — default 5s estourava com >14k produtos
       await prisma.$transaction(async (tx) => {
         for (const it of items) {
           const lojaId = lojaByZmartbi.get(it.CDFILIAL);
@@ -190,7 +191,7 @@ export async function runZmartbiSync(trigger: SyncTrigger): Promise<SyncOutcome>
             });
           }
         }
-      });
+      }, { timeout: 60_000, maxWait: 10_000 });
 
       // skipDuplicates: produtos que já têm meta (editada manualmente OU já populada antes) ficam intactos
       if (metaCandidates.length > 0) {
