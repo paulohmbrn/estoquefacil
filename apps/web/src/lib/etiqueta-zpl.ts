@@ -122,7 +122,7 @@ function dupla48HalfBlock(item: EtiquetaItem, offsetX: number): string {
   const lote = `${item.cdarvprod}${item.loteSufixo ? '-' + item.loteSufixo : ''}`;
   const resp = shortStr(item.responsavel, 9);
   const W = 360;
-  // QR fica no canto inferior direito; mag=3 ≈ 8mm de lado.
+  // QR fica no canto inferior direito; mag=4 ≈ 10mm de lado.
   const qr = `LA,${item.qrPayload}`;
   return [
     // Faixa preta com o método e ID
@@ -147,8 +147,8 @@ function dupla48HalfBlock(item: EtiquetaItem, offsetX: number): string {
     `^FO${offsetX},258^A0N,14,14^FDRESP/UN^FS`,
     `^FO${offsetX},274^A0N,18,18^FD${s(resp)} · ${s(item.unidade)}^FS`,
 
-    // QR no canto inferior direito (mag=3 → ~63 dots ≈ 8mm)
-    `^FO${offsetX + W - 80},200^BQN,2,3^FD${s(qr)}^FS`,
+    // QR no canto inferior direito (mag=4 → ~84-100 dots ≈ 10-12mm)
+    `^FO${offsetX + W - 110},185^BQN,2,4^FD${s(qr)}^FS`,
   ].join('\n');
 }
 
