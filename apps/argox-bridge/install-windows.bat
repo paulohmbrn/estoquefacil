@@ -10,7 +10,6 @@ REM Rodar como Administrador.
 setlocal
 set SERVICE=ArgoxBridge
 set BRIDGE_DIR=%~dp0
-set NODE_EXE=node.exe
 set SCRIPT=%BRIDGE_DIR%server.js
 
 if not exist "%BRIDGE_DIR%nssm.exe" (
@@ -19,6 +18,20 @@ if not exist "%BRIDGE_DIR%nssm.exe" (
   exit /b 1
 )
 
+REM Resolve o caminho ABSOLUTO do node.exe — sem isso, o NSSM grava só
+REM "node.exe" e o serviço LocalSystem (que tem PATH diferente do user)
+REM nao consegue achar.
+set NODE_EXE=
+for /f "delims=" %%I in ('where node.exe 2^>nul') do (
+  if not defined NODE_EXE set NODE_EXE=%%I
+)
+if not defined NODE_EXE (
+  echo [ERRO] node.exe nao encontrado no PATH.
+  echo Instale Node.js LTS 22+ de https://nodejs.org com a opcao "Add to PATH".
+  exit /b 1
+)
+echo Node.js: %NODE_EXE%
+
 if not exist "%BRIDGE_DIR%.env" (
   echo [AVISO] .env nao encontrado. Copiando .env.example...
   copy "%BRIDGE_DIR%.env.example" "%BRIDGE_DIR%.env"
@@ -26,7 +39,7 @@ if not exist "%BRIDGE_DIR%.env" (
 )
 
 echo Instalando servico %SERVICE%...
-"%BRIDGE_DIR%nssm.exe" install %SERVICE% %NODE_EXE% "%SCRIPT%"
+"%BRIDGE_DIR%nssm.exe" install %SERVICE% "%NODE_EXE%" "%SCRIPT%"
 "%BRIDGE_DIR%nssm.exe" set %SERVICE% AppDirectory "%BRIDGE_DIR%"
 "%BRIDGE_DIR%nssm.exe" set %SERVICE% DisplayName "Argox Bridge (Estoque Facil)"
 "%BRIDGE_DIR%nssm.exe" set %SERVICE% Description "Recebe ZPL via HTTP local e repassa pra impressora Argox via TCP 9100."
