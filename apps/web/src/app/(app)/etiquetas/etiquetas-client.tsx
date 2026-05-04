@@ -65,19 +65,23 @@ export function EtiquetasClient({ produtos, grupos, argoxBridgeUrl, argoxCloudRe
     });
   }
 
-  function gerarPdf(formato: 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60' | 'ARGOX_NETWORK' | 'ARGOX_CLOUD') {
+  function gerarPdf(formato: 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60' | 'ARGOX_NETWORK' | 'ARGOX_CLOUD' | 'ZEBRA_48X40_DUPLA_CLOUD') {
     if (itensSelecionados.length === 0) return;
     setErro(null);
     setShowFormatoPicker(false);
 
     // Modo cloud (WebSocket via api): chama endpoint próprio que despacha pelo server
-    if (formato === 'ARGOX_CLOUD') {
+    if (formato === 'ARGOX_CLOUD' || formato === 'ZEBRA_48X40_DUPLA_CLOUD') {
+      const formatoBackend = formato === 'ZEBRA_48X40_DUPLA_CLOUD'
+        ? 'ZEBRA_48X40_DUPLA'
+        : 'ZEBRA_100X60_SIMPLES';
       startTransition(async () => {
         try {
           const res = await fetch('/api/etiquetas/imprimir-ws', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+              formato: formatoBackend,
               itens: itensSelecionados.map(([produtoId, s]) => ({
                 produtoId, qtd: s.qtd, metodo: s.metodo,
               })),
@@ -332,7 +336,7 @@ export function EtiquetasClient({ produtos, grupos, argoxBridgeUrl, argoxCloudRe
   );
 }
 
-type FormatoId = 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60' | 'ARGOX_NETWORK' | 'ARGOX_CLOUD';
+type FormatoId = 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60' | 'ARGOX_NETWORK' | 'ARGOX_CLOUD' | 'ZEBRA_48X40_DUPLA_CLOUD';
 
 function FormatoPicker({
   totalEtiquetas,
@@ -360,6 +364,9 @@ function FormatoPicker({
     { id: 'A4_PIMACO', titulo: 'A4 — PIMACO A4360', sub: '21 etiquetas/folha · 63,5 × 38,1mm cada', badge: 'Folha avulsa' },
     ...(argoxCloudReady
       ? [{ id: 'ARGOX_CLOUD' as const, titulo: 'Argox 100×60mm — Imprimir (cloud)', sub: 'Funciona em qualquer dispositivo (mobile, tablet, PC) via WebSocket', badge: 'Recomendado' }]
+      : []),
+    ...(argoxCloudReady
+      ? [{ id: 'ZEBRA_48X40_DUPLA_CLOUD' as const, titulo: 'Zebra 48×40mm dupla — Imprimir (cloud)', sub: 'Rolo Microline 48×40×02 (2 etiquetas idênticas por linha)', badge: 'FFB' }]
       : []),
     ...(argoxBridgeUrl
       ? [{ id: 'ARGOX_NETWORK' as const, titulo: 'Argox 100×60mm — Imprimir (rede local)', sub: `Direto pra ${argoxBridgeUrl} (PC mesma rede da impressora)`, badge: argoxCloudReady ? 'Local' : 'Recomendado' }]

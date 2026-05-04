@@ -9,7 +9,7 @@ import { Prisma } from '@estoque/db';
 import { prisma } from '@/lib/db';
 import { requireGestor, requireLojaAtiva } from '@/lib/permissions';
 import { etiquetaQrPayload, type EtiquetaItem } from '@/lib/etiqueta-pdf';
-import { generateEtiquetasZpl } from '@/lib/etiqueta-zpl';
+import { generateEtiquetasZpl, generateEtiquetasZplDuplaSmall } from '@/lib/etiqueta-zpl';
 import { randomBytes } from 'node:crypto';
 
 export const runtime = 'nodejs';
@@ -21,7 +21,12 @@ const itemSchema = z.object({
   metodo: z.enum(['CONGELADO', 'RESFRIADO', 'AMBIENTE']),
   validadeDias: z.number().int().min(0).max(365).optional(),
 });
-const bodySchema = z.object({ itens: z.array(itemSchema).min(1).max(500) });
+const bodySchema = z.object({
+  itens: z.array(itemSchema).min(1).max(500),
+  // ZEBRA_100X60_SIMPLES = 1 etiqueta por avanço (Argox/Zebra padrão).
+  // ZEBRA_48X40_DUPLA   = 2 etiquetas idênticas por avanço (rolo Microline 48×40×02).
+  formato: z.enum(['ZEBRA_100X60_SIMPLES', 'ZEBRA_48X40_DUPLA']).default('ZEBRA_100X60_SIMPLES'),
+});
 
 function shortId(): string { return randomBytes(3).toString('hex').toUpperCase(); }
 
@@ -78,7 +83,9 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
     if (items.length === 0) return NextResponse.json({ error: 'Nenhuma etiqueta válida' }, { status: 400 });
 
-    const zpl = generateEtiquetasZpl(items);
+    const zpl = parsed.data.formato === 'ZEBRA_48X40_DUPLA'
+      ? generateEtiquetasZplDuplaSmall(items)
+      : generateEtiquetasZpl(items);
 
     // Despacha pro apps/api (que tem o WS aberto com o agente da loja)
     const apiUrl = process.env.INTERNAL_API_URL ?? 'http://estoque-api:3001';

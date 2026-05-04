@@ -91,3 +91,76 @@ export function generateEtiquetaZpl(item: EtiquetaItem): string {
 export function generateEtiquetasZpl(items: EtiquetaItem[]): string {
   return items.map(generateEtiquetaZpl).join('\n');
 }
+
+// =====================================================================
+// FORMATO DUPLA 48×40mm (Microline 48×40×02) — usado na FFB ALIMENTOS
+//
+// Rolo com 2 etiquetas POR LINHA, separadas por 2mm de gap, 4mm de
+// margem lateral. Total de papel: 106×40mm = 848×320 dots @ 203dpi.
+//
+// Estratégia: cada "label" lógico é a linha inteira (106×40mm), com
+// CONTEÚDO IDÊNTICO repetido nas 2 metades (esquerda e direita) pra
+// aproveitar as duas etiquetas físicas que avançam juntas no rolo.
+//
+// Layout dentro de CADA metade (48×40mm = 384×320 dots, área útil
+// ~36×32mm = ~288×256 dots após padding):
+//   [faixa preta com método]        ← 30 dots de altura
+//   [nome do produto, 2 linhas]
+//   MANIP: dd/mm/aaaa | VAL: dd/mm/aaaa
+//   LOTE: ...                       (sem QR — não cabe em 48mm)
+// =====================================================================
+
+const DUPLA_LABEL_WIDTH = 848;       // 106mm
+const DUPLA_LABEL_HEIGHT = 320;      // 40mm
+const DUPLA_LEFT_X = 32;             // 4mm margem esquerda
+const DUPLA_RIGHT_X = 432;           // 4mm + 48mm + 2mm = 54mm
+
+function dupla48HalfBlock(item: EtiquetaItem, offsetX: number, manip: string, validade: string): string {
+  const nome = shortStr(item.produtoNome.toUpperCase(), 38);
+  const lote = `${item.cdarvprod}${item.loteSufixo ? '-' + item.loteSufixo : ''}`;
+  // Área útil dentro de uma etiqueta = ~360 dots de largura (48mm - 2*1.5mm padding)
+  const W = 360;
+  return [
+    // Faixa preta com o método
+    `^FO${offsetX},6^GB${W},34,34,B,0^FS`,
+    `^FO${offsetX + 8},12^A0N,24,24^FR^FD${s(item.metodo)}^FS`,
+    `^FO${offsetX + W - 60},14^A0N,18,18^FR^FD#${s(item.etiquetaId)}^FS`,
+
+    // Nome do produto (2 linhas)
+    `^FO${offsetX},50^A0N,26,26^FB${W},2,3,L,0^FD${s(nome)}^FS`,
+
+    // Datas (manip à esquerda, validade à direita do bloco)
+    `^FO${offsetX},140^A0N,16,16^FDMANIP^FS`,
+    `^FO${offsetX},160^A0N,24,24^FD${s(manip)}^FS`,
+    `^FO${offsetX + 180},140^A0N,16,16^FDVAL.^FS`,
+    `^FO${offsetX + 180},160^A0N,24,24^FD${s(validade)}^FS`,
+
+    // Lote (linha inferior)
+    `^FO${offsetX},230^A0N,16,16^FDLOTE^FS`,
+    `^FO${offsetX},250^A0N,20,20^FD${s(lote)}^FS`,
+
+    // Responsável + UN à direita do lote
+    `^FO${offsetX + 180},230^A0N,16,16^FDRESP/UN^FS`,
+    `^FO${offsetX + 180},250^A0N,20,20^FD${s(shortStr(item.responsavel, 10))} · ${s(item.unidade)}^FS`,
+  ].join('\n');
+}
+
+/** Gera o ZPL de UMA linha do rolo dupla 48×40mm — imprime conteúdo idêntico nas 2 metades. */
+export function generateEtiquetaZplDuplaSmall(item: EtiquetaItem): string {
+  const { manip, validade } = fmtDates(item);
+  return [
+    '^XA',
+    '^CI28',
+    `^PW${DUPLA_LABEL_WIDTH}`,
+    `^LL${DUPLA_LABEL_HEIGHT}`,
+    '^LH0,0',
+    dupla48HalfBlock(item, DUPLA_LEFT_X, manip, validade),
+    dupla48HalfBlock(item, DUPLA_RIGHT_X, manip, validade),
+    '^XZ',
+  ].join('\n');
+}
+
+/** Gera ZPL de N linhas do rolo dupla 48×40mm. */
+export function generateEtiquetasZplDuplaSmall(items: EtiquetaItem[]): string {
+  return items.map(generateEtiquetaZplDuplaSmall).join('\n');
+}
