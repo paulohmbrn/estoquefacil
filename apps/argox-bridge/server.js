@@ -1,7 +1,16 @@
-// Argox Bridge — agente local que recebe ZPL e repassa pra impressora
-// térmica via TCP raw 9100. Roda como serviço Windows na rede da loja.
+// Argox Bridge — agente local que recebe ZPL e repassa pra impressora térmica.
+// Roda como serviço Windows na rede da loja. Suporta ZEBRA (nativo) e ARGOX em
+// modo PPLZ (emulação ZPL). Funciona com qualquer impressora que entenda ZPL.
 //
-// 2 modos de receber jobs:
+// 2 modos de SAÍDA pra impressora (PRINTER_MODE):
+//   - tcp (default): socket raw TCP:9100 — pra impressora com IP na rede.
+//   - usb           : escreve ZPL num arquivo temp e manda via spooler do
+//                     Windows pra fila local compartilhada (`copy /b` em
+//                     `\\localhost\<share>`). Requer driver "Generic / Text
+//                     Only" instalado e a fila compartilhada como SMB.
+//                     Use isso quando a impressora estiver plugada via USB.
+//
+// 2 modos de RECEBER jobs:
 //   1. HTTP local (POST /print) — caso o app esteja sendo usado no mesmo
 //      PC do agente, ou outro PC da LAN aceitando mixed content.
 //   2. WebSocket persistente com o servidor cloud — caso o app esteja sendo
@@ -14,8 +23,13 @@
 //   POST /print            → body: ZPL puro ou { zpl: "..." } → impressora
 //
 // Config via .env (mesmo diretório):
+//   PRINTER_MODE=tcp                 # ou: usb
+//   # Quando PRINTER_MODE=tcp:
 //   PRINTER_HOST=192.168.1.50
 //   PRINTER_PORT=9100
+//   # Quando PRINTER_MODE=usb (Windows):
+//   PRINTER_NAME=ZEBRA               # share name SMB da fila local
+//
 //   LISTEN_PORT=9101
 //   ALLOWED_ORIGIN=https://estoque.reismagos.com.br
 //
@@ -28,7 +42,9 @@
 const http = require('node:http');
 const net = require('node:net');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
+const { spawn } = require('node:child_process');
 
 // --- Carrega .env simples ---
 function loadEnv() {
@@ -47,20 +63,35 @@ function loadEnv() {
 }
 loadEnv();
 
+const PRINTER_MODE = (process.env.PRINTER_MODE || 'tcp').toLowerCase();
 const PRINTER_HOST = process.env.PRINTER_HOST || '127.0.0.1';
 const PRINTER_PORT = Number(process.env.PRINTER_PORT || 9100);
+const PRINTER_NAME = process.env.PRINTER_NAME || '';
 const LISTEN_PORT = Number(process.env.LISTEN_PORT || 9101);
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://estoque.reismagos.com.br';
 const BRIDGE_TOKEN = process.env.BRIDGE_TOKEN || '';
 const SERVER_WS_URL = process.env.SERVER_WS_URL || '';
-const VERSION = '0.2.0';
+const VERSION = '0.3.0';
+
+if (PRINTER_MODE !== 'tcp' && PRINTER_MODE !== 'usb') {
+  console.error(`[fatal] PRINTER_MODE inválido: "${PRINTER_MODE}". Use "tcp" ou "usb".`);
+  process.exit(1);
+}
+if (PRINTER_MODE === 'usb' && !PRINTER_NAME) {
+  console.error('[fatal] PRINTER_MODE=usb exige PRINTER_NAME (share name SMB da fila local).');
+  process.exit(1);
+}
+if (PRINTER_MODE === 'usb' && process.platform !== 'win32') {
+  console.error('[fatal] PRINTER_MODE=usb só funciona no Windows.');
+  process.exit(1);
+}
 
 function log(...args) {
   console.log(`[${new Date().toISOString()}]`, ...args);
 }
 
-// --- Envio TCP pra impressora ---
-function sendToPrinter(zpl) {
+// --- Envio TCP raw pra impressora (porta 9100) ---
+function sendToPrinterTcp(zpl) {
   return new Promise((resolve, reject) => {
     const bytes = Buffer.byteLength(zpl, 'utf8');
     const socket = net.createConnection({ host: PRINTER_HOST, port: PRINTER_PORT });
@@ -84,6 +115,48 @@ function sendToPrinter(zpl) {
   });
 }
 
+// --- Envio via fila de impressão Windows (USB) ---
+// Estratégia: escreve ZPL em arquivo temp e usa `cmd /c copy /b` pra mandar
+// raw pra fila local compartilhada via UNC `\\localhost\<share>`. Funciona
+// com driver "Generic / Text Only" (que NÃO renderiza, repassa raw).
+function sendToPrinterWindowsQueue(zpl) {
+  return new Promise((resolve, reject) => {
+    const bytes = Buffer.byteLength(zpl, 'utf8');
+    const tmpFile = path.join(os.tmpdir(), `zpl-${Date.now()}-${process.pid}.zpl`);
+    try { fs.writeFileSync(tmpFile, Buffer.from(zpl, 'utf8')); }
+    catch (err) { return reject(new Error(`Falha ao escrever temp: ${err.message}`)); }
+    const cleanup = () => { try { fs.unlinkSync(tmpFile); } catch { /* ignore */ } };
+    // `\\localhost\<share>` vira `\\\\localhost\\<share>` na string JS.
+    const target = `\\\\localhost\\${PRINTER_NAME}`;
+    const child = spawn('cmd.exe', ['/c', 'copy', '/b', tmpFile, target], { windowsHide: true });
+    let stderr = '';
+    let stdout = '';
+    child.stderr.on('data', (d) => { stderr += d.toString(); });
+    child.stdout.on('data', (d) => { stdout += d.toString(); });
+    const timer = setTimeout(() => {
+      try { child.kill(); } catch { /* ignore */ }
+      cleanup();
+      reject(new Error(`Timeout (10s) ao enviar pra fila "${PRINTER_NAME}"`));
+    }, 10_000);
+    child.on('error', (err) => { clearTimeout(timer); cleanup(); reject(new Error(`spawn cmd: ${err.message}`)); });
+    child.on('close', (code) => {
+      clearTimeout(timer);
+      cleanup();
+      if (code === 0) return resolve({ bytes });
+      const tail = (stderr || stdout).trim().split(/\r?\n/).slice(-3).join(' | ');
+      reject(new Error(`copy exit ${code} (fila "${PRINTER_NAME}"): ${tail || 'sem detalhes'}`));
+    });
+  });
+}
+
+function sendToPrinter(zpl) {
+  return PRINTER_MODE === 'usb' ? sendToPrinterWindowsQueue(zpl) : sendToPrinterTcp(zpl);
+}
+
+function printerLabel() {
+  return PRINTER_MODE === 'usb' ? `USB \\\\localhost\\${PRINTER_NAME}` : `TCP ${PRINTER_HOST}:${PRINTER_PORT}`;
+}
+
 // =====================================================================
 // HTTP server local — modo "PC mesmo da impressora", legado
 // =====================================================================
@@ -100,7 +173,8 @@ const httpServer = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
         status: 'ok',
-        printer: `${PRINTER_HOST}:${PRINTER_PORT}`,
+        mode: PRINTER_MODE,
+        printer: printerLabel(),
         version: VERSION,
         ws: { configured: Boolean(SERVER_WS_URL && BRIDGE_TOKEN), connected: wsConnected, lastError: wsLastError },
       }));
@@ -156,7 +230,7 @@ const httpServer = http.createServer(async (req, res) => {
 httpServer.listen(LISTEN_PORT, () => {
   log(`Argox Bridge v${VERSION}`);
   log(`HTTP local: http://0.0.0.0:${LISTEN_PORT}`);
-  log(`Impressora: TCP ${PRINTER_HOST}:${PRINTER_PORT}`);
+  log(`Impressora: [${PRINTER_MODE.toUpperCase()}] ${printerLabel()}`);
 });
 
 // =====================================================================
