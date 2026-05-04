@@ -7,6 +7,7 @@ export const FILIAIS_MVP = [
   '0005',
   '0006',
   '0008',
+  '0013',
   '0016',
   '0017',
   '0019',
@@ -26,8 +27,10 @@ export const PREFIXOS_CDARVPROD_MVP = ['1', '30105', '915'] as const;
 // Prefixos extras por loja — filiais específicas têm tipos de produto que não
 // existem nas outras. Esses prefixos NÃO seguem a regra de "endsWith('00')"
 // (panificação artesanal não usa SKU-base + receitas como o resto do ZmartBI).
+//   0013 = FFB ALIMENTOS (fábrica) → todos os 1* e 2* (insumos e produzidos)
 //   0023 = MADRE PANE - LAGOA NOVA → todos os 903* (panificação)
 export const PREFIXOS_CDARVPROD_EXTRAS_POR_FILIAL: Readonly<Record<string, readonly string[]>> = {
+  '0013': ['1', '2'],
   '0023': ['903'],
 };
 
@@ -62,6 +65,7 @@ export const ZMARTBI_CD_EMPRESA = '01';
 export const ALLOWED_EMAIL_DOMAINS_DEFAULT: readonly string[] = [
   'reismagos.com.br',
   'madrepanepadaria.com.br',
+  'ffbalimentos.com.br',
 ];
 
 /** Mantido por retrocompat (algumas mensagens UI ainda mostram um domínio "principal"). */
