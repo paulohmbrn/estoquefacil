@@ -19,18 +19,24 @@ export default async function EtiquetasListaPage() {
     );
   }
 
-  const listas = await prisma.listaContagem.findMany({
-    where: { lojaId, ativo: true },
-    orderBy: { nome: 'asc' },
-    include: {
-      produtos: {
-        include: {
-          produto: { select: { id: true, cdarvprod: true, nome: true, unidade: true } },
+  const [listas, lojaInfo] = await Promise.all([
+    prisma.listaContagem.findMany({
+      where: { lojaId, ativo: true },
+      orderBy: { nome: 'asc' },
+      include: {
+        produtos: {
+          include: {
+            produto: { select: { id: true, cdarvprod: true, nome: true, unidade: true } },
+          },
+          orderBy: { ordem: 'asc' },
         },
-        orderBy: { ordem: 'asc' },
       },
-    },
-  });
+    }),
+    prisma.loja.findUnique({
+      where: { id: lojaId },
+      select: { argoxBridgeUrl: true, argoxBridgeToken: true },
+    }),
+  ]);
 
   const opts: ListaOption[] = listas.map((l) => ({
     id: l.id,
@@ -74,7 +80,11 @@ export default async function EtiquetasListaPage() {
           <Link href="/listas" className="rm-link">Listas</Link> para criar.
         </Card>
       ) : (
-        <EtiquetasListaClient listas={opts} />
+        <EtiquetasListaClient
+          listas={opts}
+          argoxBridgeUrl={lojaInfo?.argoxBridgeUrl ?? null}
+          argoxCloudReady={Boolean(lojaInfo?.argoxBridgeToken)}
+        />
       )}
     </div>
   );
