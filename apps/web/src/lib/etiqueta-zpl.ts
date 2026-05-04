@@ -98,16 +98,17 @@ export function generateEtiquetasZpl(items: EtiquetaItem[]): string {
 // Rolo com 2 etiquetas POR LINHA, separadas por 2mm de gap, 4mm de
 // margem lateral. Total de papel: 106×40mm = 848×320 dots @ 203dpi.
 //
-// Estratégia: cada "label" lógico é a linha inteira (106×40mm), com
-// CONTEÚDO IDÊNTICO repetido nas 2 metades (esquerda e direita) pra
-// aproveitar as duas etiquetas físicas que avançam juntas no rolo.
+// Estratégia: aproveita o rolo PAREANDO etiquetas. Cada "label" lógico
+// (linha de 106×40mm) leva 2 etiquetas DIFERENTES — uma na metade
+// esquerda, outra na direita. Quando a quantidade de etiquetas é ímpar,
+// a última linha tem só a metade esquerda preenchida.
 //
 // Layout dentro de CADA metade (48×40mm = 384×320 dots, área útil
-// ~36×32mm = ~288×256 dots após padding):
-//   [faixa preta com método]        ← 30 dots de altura
-//   [nome do produto, 2 linhas]
+// ~360×290 dots após padding):
+//   [faixa preta com método + #ID]            ← 34 dots de altura
+//   [nome do produto, 2 linhas]   [QR no canto direito]
 //   MANIP: dd/mm/aaaa | VAL: dd/mm/aaaa
-//   LOTE: ...                       (sem QR — não cabe em 48mm)
+//   LOTE | RESP/UN
 // =====================================================================
 
 const DUPLA_LABEL_WIDTH = 848;       // 106mm
@@ -115,52 +116,70 @@ const DUPLA_LABEL_HEIGHT = 320;      // 40mm
 const DUPLA_LEFT_X = 32;             // 4mm margem esquerda
 const DUPLA_RIGHT_X = 432;           // 4mm + 48mm + 2mm = 54mm
 
-function dupla48HalfBlock(item: EtiquetaItem, offsetX: number, manip: string, validade: string): string {
-  const nome = shortStr(item.produtoNome.toUpperCase(), 38);
+function dupla48HalfBlock(item: EtiquetaItem, offsetX: number): string {
+  const { manip, validade } = fmtDates(item);
+  const nome = shortStr(item.produtoNome.toUpperCase(), 36);
   const lote = `${item.cdarvprod}${item.loteSufixo ? '-' + item.loteSufixo : ''}`;
-  // Área útil dentro de uma etiqueta = ~360 dots de largura (48mm - 2*1.5mm padding)
+  const resp = shortStr(item.responsavel, 9);
   const W = 360;
+  // QR fica no canto inferior direito; mag=3 ≈ 8mm de lado.
+  const qr = `LA,${item.qrPayload}`;
   return [
-    // Faixa preta com o método
+    // Faixa preta com o método e ID
     `^FO${offsetX},6^GB${W},34,34,B,0^FS`,
     `^FO${offsetX + 8},12^A0N,24,24^FR^FD${s(item.metodo)}^FS`,
-    `^FO${offsetX + W - 60},14^A0N,18,18^FR^FD#${s(item.etiquetaId)}^FS`,
+    `^FO${offsetX + W - 70},14^A0N,18,18^FR^FD#${s(item.etiquetaId)}^FS`,
 
-    // Nome do produto (2 linhas)
-    `^FO${offsetX},50^A0N,26,26^FB${W},2,3,L,0^FD${s(nome)}^FS`,
+    // Nome do produto — 2 linhas, largura reduzida pra deixar QR à direita
+    `^FO${offsetX},50^A0N,24,24^FB${W},2,3,L,0^FD${s(nome)}^FS`,
 
-    // Datas (manip à esquerda, validade à direita do bloco)
+    // Datas
     `^FO${offsetX},140^A0N,16,16^FDMANIP^FS`,
-    `^FO${offsetX},160^A0N,24,24^FD${s(manip)}^FS`,
-    `^FO${offsetX + 180},140^A0N,16,16^FDVAL.^FS`,
-    `^FO${offsetX + 180},160^A0N,24,24^FD${s(validade)}^FS`,
+    `^FO${offsetX},158^A0N,22,22^FD${s(manip)}^FS`,
+    `^FO${offsetX + 150},140^A0N,16,16^FDVAL.^FS`,
+    `^FO${offsetX + 150},158^A0N,22,22^FD${s(validade)}^FS`,
 
-    // Lote (linha inferior)
-    `^FO${offsetX},230^A0N,16,16^FDLOTE^FS`,
-    `^FO${offsetX},250^A0N,20,20^FD${s(lote)}^FS`,
+    // Lote (linha inferior, esquerda)
+    `^FO${offsetX},210^A0N,14,14^FDLOTE^FS`,
+    `^FO${offsetX},226^A0N,18,18^FD${s(lote)}^FS`,
 
-    // Responsável + UN à direita do lote
-    `^FO${offsetX + 180},230^A0N,16,16^FDRESP/UN^FS`,
-    `^FO${offsetX + 180},250^A0N,20,20^FD${s(shortStr(item.responsavel, 10))} · ${s(item.unidade)}^FS`,
+    // Responsável + UN
+    `^FO${offsetX},258^A0N,14,14^FDRESP/UN^FS`,
+    `^FO${offsetX},274^A0N,18,18^FD${s(resp)} · ${s(item.unidade)}^FS`,
+
+    // QR no canto inferior direito (mag=3 → ~63 dots ≈ 8mm)
+    `^FO${offsetX + W - 80},200^BQN,2,3^FD${s(qr)}^FS`,
   ].join('\n');
 }
 
-/** Gera o ZPL de UMA linha do rolo dupla 48×40mm — imprime conteúdo idêntico nas 2 metades. */
-export function generateEtiquetaZplDuplaSmall(item: EtiquetaItem): string {
-  const { manip, validade } = fmtDates(item);
+/**
+ * Gera o ZPL de UMA linha do rolo dupla 48×40mm com 2 etiquetas
+ * potencialmente diferentes (esquerda + direita). `right` opcional —
+ * se ausente, só preenche a metade esquerda.
+ */
+export function generateEtiquetaZplDuplaPair(left: EtiquetaItem, right?: EtiquetaItem): string {
+  const blocks = [dupla48HalfBlock(left, DUPLA_LEFT_X)];
+  if (right) blocks.push(dupla48HalfBlock(right, DUPLA_RIGHT_X));
   return [
     '^XA',
     '^CI28',
     `^PW${DUPLA_LABEL_WIDTH}`,
     `^LL${DUPLA_LABEL_HEIGHT}`,
     '^LH0,0',
-    dupla48HalfBlock(item, DUPLA_LEFT_X, manip, validade),
-    dupla48HalfBlock(item, DUPLA_RIGHT_X, manip, validade),
+    ...blocks,
     '^XZ',
   ].join('\n');
 }
 
-/** Gera ZPL de N linhas do rolo dupla 48×40mm. */
+/**
+ * Gera ZPL de todas as etiquetas pro rolo dupla 48×40mm — pareadas 2 a 2.
+ * Aproveita 100% do rolo; se a quantidade for ímpar, a última linha
+ * tem só a metade esquerda usada (a direita sai em branco).
+ */
 export function generateEtiquetasZplDuplaSmall(items: EtiquetaItem[]): string {
-  return items.map(generateEtiquetaZplDuplaSmall).join('\n');
+  const lines: string[] = [];
+  for (let i = 0; i < items.length; i += 2) {
+    lines.push(generateEtiquetaZplDuplaPair(items[i]!, items[i + 1]));
+  }
+  return lines.join('\n');
 }
