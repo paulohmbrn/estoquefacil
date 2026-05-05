@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { lojaPodeRotular } from '@estoque/shared';
 import { prisma } from '@/lib/db';
 import { requireLojaAtiva } from '@/lib/permissions';
 import { PageHead } from '@/components/shell/page-head';
@@ -30,6 +31,7 @@ export default async function EtiquetasPage() {
         unidade: true,
         grupoId: true,
         grupo: { select: { nome: true } },
+        nutricional: { select: { id: true, conteudoLiquidoPadrao: true } },
       },
     }),
     prisma.grupo.findMany({
@@ -41,9 +43,13 @@ export default async function EtiquetasPage() {
         _count: { select: { produtos: { where: { lojaId, ativo: true } } } },
       },
     }),
-    prisma.loja.findUnique({ where: { id: lojaId }, select: { argoxBridgeUrl: true, argoxBridgeToken: true } }),
+    prisma.loja.findUnique({
+      where: { id: lojaId },
+      select: { argoxBridgeUrl: true, argoxBridgeToken: true, zmartbiId: true },
+    }),
   ]);
 
+  const podeRotular = lojaPodeRotular(lojaInfo?.zmartbiId);
   const produtosClient: ProdutoEtiqueta[] = produtos.map((p) => ({
     id: p.id,
     cdarvprod: p.cdarvprod,
@@ -51,6 +57,8 @@ export default async function EtiquetasPage() {
     unidade: p.unidade,
     grupoId: p.grupoId,
     grupoNome: p.grupo?.nome ?? null,
+    temNutricional: Boolean(p.nutricional?.id),
+    conteudoLiquidoPadrao: p.nutricional?.conteudoLiquidoPadrao ?? null,
   }));
   const gruposClient: GrupoOpt[] = grupos.map((g) => ({
     id: g.id,
@@ -93,6 +101,7 @@ export default async function EtiquetasPage() {
           grupos={gruposClient}
           argoxBridgeUrl={lojaInfo?.argoxBridgeUrl ?? null}
           argoxCloudReady={Boolean(lojaInfo?.argoxBridgeToken)}
+          podeRotular={podeRotular}
         />
       )}
     </div>

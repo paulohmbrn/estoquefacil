@@ -1,6 +1,7 @@
 // /etiquetas/lista — escolhe uma Lista de Contagem e gera etiquetas pra todos
 // os produtos dela de uma vez.
 
+import { lojaPodeRotular } from '@estoque/shared';
 import { prisma } from '@/lib/db';
 import { requireLojaAtiva } from '@/lib/permissions';
 import { PageHead } from '@/components/shell/page-head';
@@ -26,7 +27,12 @@ export default async function EtiquetasListaPage() {
       include: {
         produtos: {
           include: {
-            produto: { select: { id: true, cdarvprod: true, nome: true, unidade: true } },
+            produto: {
+              select: {
+                id: true, cdarvprod: true, nome: true, unidade: true,
+                nutricional: { select: { id: true, conteudoLiquidoPadrao: true } },
+              },
+            },
           },
           orderBy: { ordem: 'asc' },
         },
@@ -34,10 +40,11 @@ export default async function EtiquetasListaPage() {
     }),
     prisma.loja.findUnique({
       where: { id: lojaId },
-      select: { argoxBridgeUrl: true, argoxBridgeToken: true },
+      select: { argoxBridgeUrl: true, argoxBridgeToken: true, zmartbiId: true },
     }),
   ]);
 
+  const podeRotular = lojaPodeRotular(lojaInfo?.zmartbiId);
   const opts: ListaOption[] = listas.map((l) => ({
     id: l.id,
     nome: l.nome,
@@ -46,6 +53,8 @@ export default async function EtiquetasListaPage() {
       cdarvprod: pl.produto.cdarvprod,
       nome: pl.produto.nome,
       unidade: pl.produto.unidade,
+      temNutricional: Boolean(pl.produto.nutricional?.id),
+      conteudoLiquidoPadrao: pl.produto.nutricional?.conteudoLiquidoPadrao ?? null,
     })),
   }));
 
@@ -84,6 +93,7 @@ export default async function EtiquetasListaPage() {
           listas={opts}
           argoxBridgeUrl={lojaInfo?.argoxBridgeUrl ?? null}
           argoxCloudReady={Boolean(lojaInfo?.argoxBridgeToken)}
+          podeRotular={podeRotular}
         />
       )}
     </div>

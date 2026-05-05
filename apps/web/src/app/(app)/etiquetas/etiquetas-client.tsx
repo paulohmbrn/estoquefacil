@@ -5,6 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  RotuloLoteDialog,
+  type RotuloLoteItem,
+  type RotuloLoteValores,
+} from './rotulo-lote-dialog';
 
 export type ProdutoEtiqueta = {
   id: string;
@@ -13,6 +18,8 @@ export type ProdutoEtiqueta = {
   unidade: string;
   grupoId: string | null;
   grupoNome: string | null;
+  temNutricional: boolean;
+  conteudoLiquidoPadrao: string | null;
 };
 
 export type GrupoOpt = { id: string; nome: string; total: number };
@@ -22,6 +29,8 @@ interface Props {
   grupos: GrupoOpt[];
   argoxBridgeUrl: string | null;
   argoxCloudReady: boolean; // tem token cadastrado (modo WS via cloud)
+  /** Loja é FFB / Madre Pane → libera opção de rótulo industrializado RDC 429. */
+  podeRotular: boolean;
 }
 
 type Selection = Record<
@@ -29,13 +38,14 @@ type Selection = Record<
   { qtd: number; metodo: 'CONGELADO' | 'RESFRIADO' | 'AMBIENTE' }
 >;
 
-export function EtiquetasClient({ produtos, grupos, argoxBridgeUrl, argoxCloudReady }: Props) {
+export function EtiquetasClient({ produtos, grupos, argoxBridgeUrl, argoxCloudReady, podeRotular }: Props) {
   const [grupoId, setGrupoId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [sel, setSel] = useState<Selection>({});
   const [pending, startTransition] = useTransition();
   const [erro, setErro] = useState<string | null>(null);
   const [showFormatoPicker, setShowFormatoPicker] = useState(false);
+  const [rotuloItens, setRotuloItens] = useState<RotuloLoteItem[] | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -65,10 +75,38 @@ export function EtiquetasClient({ produtos, grupos, argoxBridgeUrl, argoxCloudRe
     });
   }
 
-  function gerarPdf(formato: 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60' | 'ARGOX_NETWORK' | 'ARGOX_CLOUD' | 'ZEBRA_48X40_DUPLA_CLOUD') {
+  function gerarPdf(formato: FormatoId) {
     if (itensSelecionados.length === 0) return;
     setErro(null);
     setShowFormatoPicker(false);
+
+    // Rótulo industrializado 100×100 — abre dialog pra capturar lote/data/conteúdo
+    if (formato === 'ZEBRA_100X100_ROTULO_CLOUD') {
+      const semNutri = itensSelecionados
+        .map(([id]) => produtos.find((p) => p.id === id))
+        .filter((p): p is ProdutoEtiqueta => Boolean(p))
+        .filter((p) => !p.temNutricional);
+      if (semNutri.length > 0) {
+        setErro(
+          `Cadastre a informação nutricional dos produtos antes de imprimir o rótulo: ${semNutri
+            .map((p) => p.nome)
+            .slice(0, 3)
+            .join(', ')}${semNutri.length > 3 ? ` (+${semNutri.length - 3})` : ''}`,
+        );
+        return;
+      }
+      const itens: RotuloLoteItem[] = itensSelecionados.map(([id, s]) => {
+        const p = produtos.find((x) => x.id === id)!;
+        return {
+          produtoId: id,
+          produtoNome: p.nome,
+          qtd: s.qtd,
+          conteudoLiquidoPadrao: p.conteudoLiquidoPadrao,
+        };
+      });
+      setRotuloItens(itens);
+      return;
+    }
 
     // Modo cloud (WebSocket via api): chama endpoint próprio que despacha pelo server
     if (formato === 'ARGOX_CLOUD' || formato === 'ZEBRA_48X40_DUPLA_CLOUD') {
@@ -328,21 +366,56 @@ export function EtiquetasClient({ produtos, grupos, argoxBridgeUrl, argoxCloudRe
           pending={pending}
           argoxBridgeUrl={argoxBridgeUrl}
           argoxCloudReady={argoxCloudReady}
+          podeRotular={podeRotular}
           onClose={() => setShowFormatoPicker(false)}
           onPick={gerarPdf}
+        />
+      )}
+
+      {rotuloItens && (
+        <RotuloLoteDialog
+          itens={rotuloItens}
+          pending={pending}
+          onClose={() => setRotuloItens(null)}
+          onConfirm={(valores: RotuloLoteValores[]) => {
+            startTransition(async () => {
+              try {
+                const res = await fetch('/api/etiquetas/imprimir-rotulo', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ itens: valores }),
+                });
+                const j = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(j.error ?? `Erro ${res.status}`);
+                setRotuloItens(null);
+                alert(`✓ ${j.total ?? totalEtiquetas} rótulo(s) enviados pra impressora.`);
+              } catch (e) {
+                setErro((e as Error).message);
+              }
+            });
+          }}
         />
       )}
     </div>
   );
 }
 
-type FormatoId = 'TERMICA_60' | 'TERMICA_40' | 'A4_PIMACO' | 'ARGOX_100X60' | 'ARGOX_NETWORK' | 'ARGOX_CLOUD' | 'ZEBRA_48X40_DUPLA_CLOUD';
+type FormatoId =
+  | 'TERMICA_60'
+  | 'TERMICA_40'
+  | 'A4_PIMACO'
+  | 'ARGOX_100X60'
+  | 'ARGOX_NETWORK'
+  | 'ARGOX_CLOUD'
+  | 'ZEBRA_48X40_DUPLA_CLOUD'
+  | 'ZEBRA_100X100_ROTULO_CLOUD';
 
 function FormatoPicker({
   totalEtiquetas,
   pending,
   argoxBridgeUrl,
   argoxCloudReady,
+  podeRotular,
   onClose,
   onPick,
 }: {
@@ -350,6 +423,7 @@ function FormatoPicker({
   pending: boolean;
   argoxBridgeUrl: string | null;
   argoxCloudReady: boolean;
+  podeRotular: boolean;
   onClose: () => void;
   onPick: (formato: FormatoId) => void;
 }) {
@@ -367,6 +441,9 @@ function FormatoPicker({
       : []),
     ...(argoxCloudReady
       ? [{ id: 'ZEBRA_48X40_DUPLA_CLOUD' as const, titulo: 'Zebra 48×40mm dupla — Imprimir (cloud)', sub: 'Rolo Microline 48×40×02 (2 etiquetas idênticas por linha)', badge: 'FFB' }]
+      : []),
+    ...(argoxCloudReady && podeRotular
+      ? [{ id: 'ZEBRA_100X100_ROTULO_CLOUD' as const, titulo: 'Rótulo industrializado 100×100mm', sub: 'Tabela nutricional RDC 429 + ingredientes + alergênicos + selos frontais', badge: 'Anvisa' }]
       : []),
     ...(argoxBridgeUrl
       ? [{ id: 'ARGOX_NETWORK' as const, titulo: 'Argox 100×60mm — Imprimir (rede local)', sub: `Direto pra ${argoxBridgeUrl} (PC mesma rede da impressora)`, badge: argoxCloudReady ? 'Local' : 'Recomendado' }]

@@ -233,6 +233,7 @@ model Produto {
   subgrupoId   String?
 
   meta             ProdutoMeta?
+  nutricional      ProdutoNutricional?
   lancamentos      Lancamento[]
   etiquetas        Etiqueta[]
   produtosListas   ProdutoLista[]
@@ -267,6 +268,49 @@ model ProdutoMeta {
   updatedAt         DateTime @updatedAt
 
   @@index([controlado])
+}
+
+// ============================================================
+// Rótulo regulamentado (RDC 429/2020 + IN 75/2020) — usado em
+// produtos industrializados/manipulados da FFB e Madre Pane.
+// Valores nutricionais ARMAZENADOS sempre por 100g/100ml (canônico).
+// Os valores por porção e %VD são CALCULADOS em runtime.
+// ============================================================
+model ProdutoNutricional {
+  id                       String   @id @default(cuid())
+  produto                  Produto  @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  produtoId                String   @unique
+
+  // Porção / categoria
+  unidadeBase              String   @default("g")  // "g" ou "ml"
+  porcaoG                  Float?                  // tamanho da porção em g/ml
+  porcaoMedidaCaseira      String?                 // "1 fatia", "2 colheres de sopa", "6 unidades"
+  porcoesEmbalagem         Float?                  // quantas porções a embalagem rende
+  categoriaRDC429          String   @default("SOLIDO") // "SOLIDO" | "LIQUIDO" | "REFEICAO_PRONTA"
+
+  // Valores POR 100g/100ml (canônicos)
+  valorEnergeticoKcal100   Float?
+  carboidratosG100         Float?
+  acucaresTotaisG100       Float?
+  acucaresAdicionadosG100  Float?
+  proteinasG100            Float?
+  gordurasTotaisG100       Float?
+  gordurasSaturadasG100    Float?
+  gordurasTransG100        Float?
+  fibrasG100               Float?
+  sodioMg100               Float?
+
+  // Texto livre que entra no rótulo
+  ingredientes             String?  @db.Text   // lista completa
+  alergicos                String?  @db.Text   // ex: "CONTÉM TRIGO, OVOS E LEITE · CONTÉM GLÚTEN"
+  modoPreparo              String?  @db.Text
+  modoConservacao          String?  @db.Text
+
+  // Dados padrão de impressão (default — operador pode sobrescrever na tela)
+  conteudoLiquidoPadrao    String?              // "6 UNI", "500g", "1L"
+
+  atualizadoEm             DateTime @updatedAt
+  criadoEm                 DateTime @default(now())
 }
 
 // ============================================================

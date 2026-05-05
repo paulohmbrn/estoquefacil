@@ -4,11 +4,23 @@ import { useState, useTransition } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  RotuloLoteDialog,
+  type RotuloLoteItem,
+  type RotuloLoteValores,
+} from '../rotulo-lote-dialog';
 
 export type ListaOption = {
   id: string;
   nome: string;
-  produtos: Array<{ id: string; cdarvprod: string; nome: string; unidade: string }>;
+  produtos: Array<{
+    id: string;
+    cdarvprod: string;
+    nome: string;
+    unidade: string;
+    temNutricional: boolean;
+    conteudoLiquidoPadrao: string | null;
+  }>;
 };
 
 type Metodo = 'CONGELADO' | 'RESFRIADO' | 'AMBIENTE';
@@ -19,13 +31,15 @@ type FormatoId =
   | 'ARGOX_100X60'
   | 'ARGOX_NETWORK'
   | 'ARGOX_CLOUD'
-  | 'ZEBRA_48X40_DUPLA_CLOUD';
+  | 'ZEBRA_48X40_DUPLA_CLOUD'
+  | 'ZEBRA_100X100_ROTULO_CLOUD';
 
 interface Props {
   listas: ListaOption[];
   initialListaId?: string;
   argoxBridgeUrl: string | null;
   argoxCloudReady: boolean;
+  podeRotular: boolean;
 }
 
 export function EtiquetasListaClient({
@@ -33,6 +47,7 @@ export function EtiquetasListaClient({
   initialListaId,
   argoxBridgeUrl,
   argoxCloudReady,
+  podeRotular,
 }: Props) {
   const initial = initialListaId && listas.some((l) => l.id === initialListaId)
     ? initialListaId
@@ -43,6 +58,7 @@ export function EtiquetasListaClient({
   const [pending, startTransition] = useTransition();
   const [erro, setErro] = useState<string | null>(null);
   const [showFormatoPicker, setShowFormatoPicker] = useState(false);
+  const [rotuloItens, setRotuloItens] = useState<RotuloLoteItem[] | null>(null);
 
   const lista = listas.find((l) => l.id === listaId);
   const totalProdutos = lista?.produtos.length ?? 0;
@@ -52,6 +68,29 @@ export function EtiquetasListaClient({
     if (!lista || totalEtiquetas === 0) return;
     setErro(null);
     setShowFormatoPicker(false);
+
+    // Rótulo industrializado 100×100 — abre dialog pra capturar lote/data/conteúdo
+    if (formato === 'ZEBRA_100X100_ROTULO_CLOUD') {
+      const semNutri = lista.produtos.filter((p) => !p.temNutricional);
+      if (semNutri.length > 0) {
+        setErro(
+          `Cadastre a informação nutricional dos produtos antes: ${semNutri
+            .map((p) => p.nome)
+            .slice(0, 3)
+            .join(', ')}${semNutri.length > 3 ? ` (+${semNutri.length - 3})` : ''}`,
+        );
+        return;
+      }
+      setRotuloItens(
+        lista.produtos.map((p) => ({
+          produtoId: p.id,
+          produtoNome: p.nome,
+          qtd: qtdPorProduto,
+          conteudoLiquidoPadrao: p.conteudoLiquidoPadrao,
+        })),
+      );
+      return;
+    }
 
     const itens = lista.produtos.map((p) => ({
       produtoId: p.id, qtd: qtdPorProduto, metodo,
@@ -269,6 +308,9 @@ export function EtiquetasListaClient({
                   ...(argoxCloudReady
                     ? [{ id: 'ZEBRA_48X40_DUPLA_CLOUD' as const, titulo: 'Zebra 48×40mm dupla — Imprimir (cloud)', sub: 'Rolo Microline 48×40×02 (2 etiquetas por linha)', badge: 'FFB' }]
                     : []),
+                  ...(argoxCloudReady && podeRotular
+                    ? [{ id: 'ZEBRA_100X100_ROTULO_CLOUD' as const, titulo: 'Rótulo industrializado 100×100mm', sub: 'Tabela nutricional RDC 429 + ingredientes + alergênicos + selos', badge: 'Anvisa' }]
+                    : []),
                   ...(argoxBridgeUrl
                     ? [{ id: 'ARGOX_NETWORK' as const, titulo: 'Argox 100×60mm — Imprimir (rede local)', sub: `Direto pra ${argoxBridgeUrl}`, badge: argoxCloudReady ? 'Local' : 'Recomendado' }]
                     : []),
@@ -300,6 +342,31 @@ export function EtiquetasListaClient({
             </div>
           </div>
         </div>
+      )}
+
+      {rotuloItens && (
+        <RotuloLoteDialog
+          itens={rotuloItens}
+          pending={pending}
+          onClose={() => setRotuloItens(null)}
+          onConfirm={(valores: RotuloLoteValores[]) => {
+            startTransition(async () => {
+              try {
+                const res = await fetch('/api/etiquetas/imprimir-rotulo', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ itens: valores }),
+                });
+                const j = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(j.error ?? `Erro ${res.status}`);
+                setRotuloItens(null);
+                alert(`✓ ${j.total ?? totalEtiquetas} rótulo(s) enviados pra impressora.`);
+              } catch (e) {
+                setErro((e as Error).message);
+              }
+            });
+          }}
+        />
       )}
     </div>
   );

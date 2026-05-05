@@ -183,3 +183,280 @@ export function generateEtiquetasZplDuplaSmall(items: EtiquetaItem[]): string {
   }
   return lines.join('\n');
 }
+
+// =====================================================================
+// FORMATO RÓTULO INDUSTRIALIZADO 100×100mm — RDC 429/2020 + IN 75/2020
+//
+// Rótulo regulamentado pra produtos da FFB e Madre Pane. Inclui:
+//   - Identificação do produto (nome em destaque)
+//   - Lote, data de fabricação, conteúdo líquido
+//   - Código de barras EAN-13
+//   - Modo de Preparo
+//   - Modo de Conservação
+//   - Ingredientes
+//   - Alergênicos (caixa em destaque)
+//   - Tabela Nutricional completa (10 linhas × 3 colunas + %VD)
+//   - Selos frontais "ALTO EM…" condicionais
+//   - Identificação do fabricante (nome + CNPJ + endereço)
+//
+// 100mm × 100mm @ 203dpi = 800×800 dots.
+// =====================================================================
+
+import {
+  montarTabelaNutricional,
+  calcularSelosFrontais,
+  formatNum,
+  formatPct,
+  type ValoresPor100,
+  type CategoriaRDC429,
+} from './rotulo-anvisa';
+
+export interface RotuloDadosLote {
+  /** Número do lote impresso. Ex: "01", "L240505". */
+  lote: string;
+  /** Data de fabricação (formatada dd/mm/aaaa). */
+  fabricacao: string;
+  /** Conteúdo líquido (texto livre). Ex: "6 UNI", "500g", "1 LITRO". */
+  conteudoLiquido: string;
+}
+
+export interface RotuloFabricante {
+  nome: string;
+  cnpj: string | null;
+  endereco: string | null;
+}
+
+export interface RotuloItem {
+  produtoNome: string;
+  /** EAN-13 (pode ser null — nesse caso esconde o código de barras). */
+  ean13: string | null;
+  ingredientes: string | null;
+  alergicos: string | null;
+  modoPreparo: string | null;
+  modoConservacao: string | null;
+  /** Texto da porção formatado, ex: "Porção 40g (2 fatias)". */
+  porcaoTexto: string;
+  porcaoColunaTexto: string; // ex: "40 g" — vai no header da tabela
+  porcoesEmbalagemTexto: string; // ex: "5 porções" — opcional acima
+  valoresPor100: ValoresPor100;
+  fabricante: RotuloFabricante;
+  lote: RotuloDadosLote;
+}
+
+const W = 800;
+const H = 800;
+const PAD = 16;          // ~2mm
+const COL_RIGHT = W - PAD;
+
+/** ZPL field block escape para texto: troca chars do ZPL por equivalentes. */
+function z(text: string | null | undefined): string {
+  if (!text) return '';
+  // ^ e ~ são tokens do ZPL. \ não é especial em ^FD mas evitamos.
+  return text.replace(/[\^~]/g, '-').replace(/\\/g, '/');
+}
+
+function shortenLine(text: string, max: number): string {
+  return text.length <= max ? text : text.slice(0, max - 1) + '…';
+}
+
+/** Mede aproximação grosseira de quantas linhas o texto ocupa em ZPL ^FB. */
+function buildBlock(text: string, width: number, maxLines: number, fontH: number): string {
+  // ^FB: width,maxLines,lineSpacing,justify,hangingIndent
+  return `^FB${width},${maxLines},2,L,0^FD${z(text)}^FS`;
+}
+
+interface NutricionalCol {
+  x: number;
+  w: number;
+  align: 'L' | 'R' | 'C';
+}
+
+/**
+ * Renderiza a tabela nutricional dentro de uma caixa.
+ * Retorna lista de strings ZPL.
+ */
+function renderTabelaNutricional(
+  oxX: number,
+  oyY: number,
+  width: number,
+  item: RotuloItem,
+): string[] {
+  const out: string[] = [];
+  const linhas = montarTabelaNutricional(item.valoresPor100);
+  const ROW_H = 17;
+  const HEADER_H = 24;
+
+  // Bordas externas
+  out.push(`^FO${oxX},${oyY}^GB${width},${HEADER_H + ROW_H * linhas.length + 32},1,B,0^FS`);
+
+  // Título "INFORMAÇÃO NUTRICIONAL" em barra preta
+  out.push(`^FO${oxX},${oyY}^GB${width},22,22,B,0^FS`);
+  out.push(`^FO${oxX + 6},${oyY + 4}^A0N,16,16^FR^FDINFORMAÇÃO NUTRICIONAL^FS`);
+
+  // Linha do "Porção…"
+  out.push(`^FO${oxX + 6},${oyY + 26}^A0N,14,14^FD${z(item.porcaoTexto)}^FS`);
+
+  // Cabeçalho das colunas
+  const headerY = oyY + 46;
+  const cols: NutricionalCol[] = [
+    { x: oxX + 6, w: width - 6 - 80 - 80 - 60 - 12, align: 'L' }, // rótulo
+    { x: oxX + width - 80 - 80 - 60 - 6, w: 80, align: 'R' },      // 100g
+    { x: oxX + width - 80 - 60 - 6, w: 80, align: 'R' },           // porção
+    { x: oxX + width - 60 - 6, w: 60, align: 'R' },                // %VD
+  ];
+
+  // Linha do header
+  out.push(`^FO${oxX + 4},${headerY + 13}^GB${width - 8},1,1^FS`);
+
+  out.push(`^FO${cols[1]!.x - 30},${headerY}^A0N,14,14^FB${cols[1]!.w + 30},1,0,R,0^FD100 ${item.valoresPor100.unidadeBase}^FS`);
+  out.push(`^FO${cols[2]!.x - 30},${headerY}^A0N,14,14^FB${cols[2]!.w + 30},1,0,R,0^FD${z(item.porcaoColunaTexto)}^FS`);
+  out.push(`^FO${cols[3]!.x - 10},${headerY}^A0N,14,14^FB${cols[3]!.w + 10},1,0,R,0^FD%VD*^FS`);
+
+  // Linhas
+  let y = headerY + 18;
+  for (const l of linhas) {
+    out.push(`^FO${cols[0]!.x},${y}^A0N,14,14^FD${z(l.rotulo)}^FS`);
+    out.push(`^FO${cols[1]!.x - 30},${y}^A0N,14,14^FB${cols[1]!.w + 30},1,0,R,0^FD${z(formatNum(l.por100))} ${l.unidade}^FS`);
+    out.push(`^FO${cols[2]!.x - 30},${y}^A0N,14,14^FB${cols[2]!.w + 30},1,0,R,0^FD${z(formatNum(l.porPorcao))} ${l.unidade}^FS`);
+    out.push(`^FO${cols[3]!.x - 10},${y}^A0N,14,14^FB${cols[3]!.w + 10},1,0,R,0^FD${z(formatPct(l.vdPorcao))}^FS`);
+    // separador
+    out.push(`^FO${oxX + 4},${y + ROW_H - 1}^GB${width - 8},1,1,A,0^FS`);
+    y += ROW_H;
+  }
+
+  // Rodapé legal
+  out.push(`^FO${oxX + 4},${y + 2}^A0N,12,12^FD*Percentual de valores diários fornecidos pela porção.^FS`);
+
+  return out;
+}
+
+function renderSelos(
+  ox: number,
+  oy: number,
+  width: number,
+  item: RotuloItem,
+): { zpl: string[]; height: number } {
+  const selos = calcularSelosFrontais(item.valoresPor100);
+  const ativos: string[] = [];
+  if (selos.acucarAdicionado) ativos.push('AÇÚCAR\nADICIONADO');
+  if (selos.gorduraSaturada) ativos.push('GORDURA\nSATURADA');
+  if (selos.sodio) ativos.push('SÓDIO');
+  if (ativos.length === 0) return { zpl: [], height: 0 };
+
+  // "ALTO EM" + N selos
+  const out: string[] = [];
+  const SELO_H = 44;
+  const labelWidth = 100;
+  // Caixa "ALTO EM"
+  out.push(`^FO${ox},${oy}^GB${labelWidth},${SELO_H},1,B,4^FS`);
+  out.push(`^FO${ox + 8},${oy + 8}^A0N,16,16^FR^FDALTO EM^FS`);
+  out.push(`^FO${ox + 8},${oy + 24}^A0N,12,12^FR^FD(LUPA)^FS`);
+
+  let cx = ox + labelWidth + 6;
+  const remaining = width - labelWidth - 6;
+  const each = Math.floor((remaining - 6 * (ativos.length - 1)) / ativos.length);
+  for (const s of ativos) {
+    out.push(`^FO${cx},${oy}^GB${each},${SELO_H},1,B,4^FS`);
+    const lines = s.split('\n');
+    const fontH = lines.length === 1 ? 18 : 14;
+    let ty = oy + (SELO_H - fontH * lines.length) / 2;
+    for (const ln of lines) {
+      out.push(`^FO${cx},${ty}^A0N,${fontH},${fontH}^FR^FB${each},1,0,C,0^FD${z(ln)}^FS`);
+      ty += fontH + 2;
+    }
+    cx += each + 6;
+  }
+  return { zpl: out, height: SELO_H };
+}
+
+export function generateEtiquetaZplRotulo(item: RotuloItem): string {
+  const out: string[] = [];
+  out.push('^XA');
+  out.push('^CI28');
+  out.push(`^PW${W}`);
+  out.push(`^LL${H}`);
+  out.push('^LH0,0');
+
+  // ===== 1. Nome do produto (header em fonte grande, até 2 linhas) =====
+  const nome = item.produtoNome.toUpperCase();
+  out.push(`^FO${PAD},10^A0N,38,38^FB${W - 2 * PAD},2,4,L,0^FD${z(nome)}^FS`);
+
+  // ===== 2. Faixa fab/lote/conteúdo =====
+  const faixaY = 100;
+  out.push(`^FO${PAD},${faixaY}^GB${W - 2 * PAD},28,1,B,0^FS`);
+  out.push(`^FO${PAD + 6},${faixaY + 6}^A0N,16,16^FR^FDFAB.: ${z(item.lote.fabricacao)}^FS`);
+  out.push(`^FO${PAD + 280},${faixaY + 6}^A0N,16,16^FR^FDLOTE: ${z(item.lote.lote)}^FS`);
+  out.push(`^FO${PAD + 460},${faixaY + 6}^A0N,16,16^FR^FDCONT.: ${z(item.lote.conteudoLiquido)}^FS`);
+
+  // ===== 3. Código de barras EAN-13 (centralizado) =====
+  let cursorY = faixaY + 38;
+  if (item.ean13 && /^\d{12,13}$/.test(item.ean13)) {
+    // ^BEN,height,interpretationLine,linesAbove
+    // O EAN-13 ocupa ~~110 dots de largura com module 2. Pra centralizar:
+    const barW = 270; // estimativa
+    const barX = Math.round((W - barW) / 2);
+    out.push(`^FO${barX},${cursorY}^BY2,2.0,60`);
+    out.push(`^BEN,60,Y,N^FD${item.ean13}^FS`);
+    cursorY += 88;
+  } else {
+    cursorY += 6;
+  }
+
+  // ===== 4. Modo de Preparo =====
+  if (item.modoPreparo) {
+    out.push(`^FO${PAD},${cursorY}^A0N,14,14^FDMODO DE PREPARO^FS`);
+    out.push(`^FO${PAD},${cursorY + 16}^A0N,16,16^FB${W - 2 * PAD},3,2,L,0^FD${z(item.modoPreparo)}^FS`);
+    cursorY += 16 + 16 * 3 + 4;
+  }
+
+  // ===== 5. Modo de Conservação =====
+  if (item.modoConservacao) {
+    out.push(`^FO${PAD},${cursorY}^A0N,14,14^FDMODO DE CONSERVAÇÃO^FS`);
+    out.push(`^FO${PAD},${cursorY + 16}^A0N,16,16^FB${W - 2 * PAD},2,2,L,0^FD${z(item.modoConservacao)}^FS`);
+    cursorY += 16 + 16 * 2 + 4;
+  }
+
+  // ===== 6. Ingredientes =====
+  if (item.ingredientes) {
+    out.push(`^FO${PAD},${cursorY}^A0N,14,14^FDINGREDIENTES^FS`);
+    out.push(`^FO${PAD},${cursorY + 16}^A0N,15,15^FB${W - 2 * PAD},4,2,L,0^FD${z(item.ingredientes)}^FS`);
+    cursorY += 16 + 15 * 4 + 4;
+  }
+
+  // ===== 7. Alergênicos (caixa em destaque) =====
+  if (item.alergicos) {
+    const alergH = 38;
+    out.push(`^FO${PAD},${cursorY}^GB${W - 2 * PAD},${alergH},${alergH},B,0^FS`);
+    out.push(`^FO${PAD + 8},${cursorY + 8}^A0N,18,18^FR^FB${W - 2 * PAD - 16},2,2,L,0^FD${z(item.alergicos)}^FS`);
+    cursorY += alergH + 6;
+  }
+
+  // ===== 8. Tabela Nutricional =====
+  // Calcula altura aproximada pra ver se sobra espaço pros selos depois.
+  const nutriHeight = 22 /*titulo*/ + 22 /*porcao*/ + 18 /*header*/ + 17 * 10 /*linhas*/ + 18 /*footer*/;
+  const tabelaY = cursorY;
+  for (const ln of renderTabelaNutricional(PAD, tabelaY, W - 2 * PAD, item)) {
+    out.push(ln);
+  }
+  cursorY = tabelaY + nutriHeight + 6;
+
+  // ===== 9. Selos frontais =====
+  const selosOut = renderSelos(PAD, cursorY, W - 2 * PAD, item);
+  for (const ln of selosOut.zpl) out.push(ln);
+  if (selosOut.height > 0) cursorY += selosOut.height + 6;
+
+  // ===== 10. Fabricante (rodapé, sempre na base) =====
+  const footerY = Math.max(cursorY, H - 38);
+  const fabLinha1 = `${item.fabricante.nome}${item.fabricante.cnpj ? ` · CNPJ ${item.fabricante.cnpj}` : ''}`;
+  out.push(`^FO${PAD},${footerY}^A0N,14,14^FB${W - 2 * PAD},1,0,L,0^FD${z(shortenLine(fabLinha1, 90))}^FS`);
+  if (item.fabricante.endereco) {
+    out.push(`^FO${PAD},${footerY + 16}^A0N,14,14^FB${W - 2 * PAD},1,0,L,0^FD${z(shortenLine(item.fabricante.endereco, 90))}^FS`);
+  }
+
+  out.push('^XZ');
+  return out.join('\n');
+}
+
+export function generateEtiquetasZplRotulo(items: RotuloItem[]): string {
+  return items.map(generateEtiquetaZplRotulo).join('\n');
+}

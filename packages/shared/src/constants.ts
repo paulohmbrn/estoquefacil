@@ -92,3 +92,13 @@ export function isEmailDomainAllowed(email: string, domains: readonly string[]):
 
 // Etiqueta
 export const ETIQUETA_TAMANHO_MM = { largura: 60, altura: 60 } as const;
+
+// Lojas habilitadas a imprimir o rótulo industrializado RDC 429
+// (etiqueta nutricional 100×100mm). FFB e Madre Pane têm produção própria
+// e precisam de rótulo regulamentado; as demais lojas só revendem.
+export const LOJAS_COM_ROTULO_NUTRICIONAL: readonly string[] = ['0013', '0023'];
+
+export function lojaPodeRotular(zmartbiId: string | null | undefined): boolean {
+  if (!zmartbiId) return false;
+  return LOJAS_COM_ROTULO_NUTRICIONAL.includes(zmartbiId);
+}
