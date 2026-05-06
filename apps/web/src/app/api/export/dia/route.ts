@@ -10,6 +10,7 @@ import {
   marcarContagensComoExportadas,
 } from '@/lib/export-data';
 import { buildContagemXlsx } from '@/lib/export-xlsx';
+import { cdAlmoxarifePorFilial } from '@estoque/shared';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -47,6 +48,7 @@ export async function GET(req: NextRequest): Promise<Response> {
 
     const xlsx = await buildContagemXlsx(result.meta.cdFilial, result.lancamentos, {
       dataPreferida: dataContagem,
+      cdAlmoxarife: cdAlmoxarifePorFilial(result.meta.cdFilial),
     });
     await marcarContagensComoExportadas(result.meta.contagensIds);
 

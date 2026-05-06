@@ -22,11 +22,15 @@ export type ExportResult = {
 /**
  * Agrega lançamentos por (CDARVPROD, DTLANCESTQ) e gera xlsx.
  * `cdFilial` = CDFILIAL ZmartBI da loja (ex: "0003").
+ *
+ * Quando `cdAlmoxarife` é passado (não-null), uma 4ª coluna CDALMOXARIFE
+ * é adicionada em todas as linhas. Usado pra Capim Macio (0001), cujo ERP
+ * exige o campo. Demais filiais ignoram (3 colunas).
  */
 export async function buildContagemXlsx(
   cdFilial: string,
   lancamentos: LancamentoExport[],
-  options?: { dataPreferida?: Date },
+  options?: { dataPreferida?: Date; cdAlmoxarife?: number | null },
 ): Promise<ExportResult> {
   // Agregação
   const agg = new Map<string, { cdarvprod: string; dtlancestq: number; quantidade: number }>();
@@ -56,11 +60,15 @@ export async function buildContagemXlsx(
   const ws = wb.addWorksheet('Sheet1');
 
   // Larguras alinhadas com o exemplo real
-  ws.columns = [
+  const cdAlmox = options?.cdAlmoxarife ?? null;
+  const baseCols = [
     { header: 'CDARVPROD',   key: 'cdarvprod',  width: 15 },
     { header: 'DTLANCESTQ',  key: 'dtlancestq', width: 15.85 },
     { header: 'QTTOTLANCTO', key: 'qttotlancto', width: 17.28 },
   ];
+  ws.columns = cdAlmox !== null
+    ? [...baseCols, { header: 'CDALMOXARIFE', key: 'cdalmoxarife', width: 18.14 }]
+    : baseCols;
   // Header em bold (mimetiza style do exemplo)
   ws.getRow(1).font = { bold: true };
 
@@ -70,11 +78,13 @@ export async function buildContagemXlsx(
   ws.getColumn('dtlancestq').numFmt = '@';
 
   for (const r of rows) {
-    ws.addRow({
+    const row: Record<string, number | string> = {
       cdarvprod: Number(r.cdarvprod),                          // numérico, igual ao ERP
       dtlancestq: String(r.dtlancestq).padStart(8, '0'),       // string DDMMAAAA com 8 dígitos
       qttotlancto: roundQuantidade(r.quantidade),
-    });
+    };
+    if (cdAlmox !== null) row.cdalmoxarife = cdAlmox;
+    ws.addRow(row);
   }
 
   const buffer = Buffer.from(await wb.xlsx.writeBuffer());

@@ -6,6 +6,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { requireGestor } from '@/lib/permissions';
 import { fetchContagemUnica, marcarContagensComoExportadas } from '@/lib/export-data';
 import { buildContagemXlsx } from '@/lib/export-xlsx';
+import { cdAlmoxarifePorFilial } from '@estoque/shared';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -26,7 +27,9 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
       return NextResponse.json({ error: 'Contagem sem lançamentos' }, { status: 400 });
     }
 
-    const result = await buildContagemXlsx(data.meta.cdFilial, data.lancamentos);
+    const result = await buildContagemXlsx(data.meta.cdFilial, data.lancamentos, {
+      cdAlmoxarife: cdAlmoxarifePorFilial(data.meta.cdFilial),
+    });
     if (data.meta.status === 'FINALIZADA') {
       await marcarContagensComoExportadas([data.meta.id]);
     }

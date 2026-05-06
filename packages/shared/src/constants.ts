@@ -93,6 +93,18 @@ export function isEmailDomainAllowed(email: string, domains: readonly string[]):
 // Etiqueta
 export const ETIQUETA_TAMANHO_MM = { largura: 60, altura: 60 } as const;
 
+// Lojas que exigem a coluna CDALMOXARIFE no export pro ZmartBI.
+// Capim Macio (0001) tem o ERP configurado em modo multi-almoxarife;
+// o resto das filiais não envia esse campo. Mapa filial → cdAlmoxarife
+// fixo (sempre 1 hoje, mas vira variável se outra loja entrar).
+export const CDALMOXARIFE_POR_FILIAL: Readonly<Record<string, number>> = {
+  '0001': 1,
+};
+
+export function cdAlmoxarifePorFilial(cdFilial: string): number | null {
+  return CDALMOXARIFE_POR_FILIAL[cdFilial] ?? null;
+}
+
 // Lojas habilitadas a imprimir o rótulo industrializado RDC 429
 // (etiqueta nutricional 100×100mm). FFB e Madre Pane têm produção própria
 // e precisam de rótulo regulamentado; as demais lojas só revendem.
