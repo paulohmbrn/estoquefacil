@@ -240,6 +240,43 @@ export async function runZmartbiSync(trigger: SyncTrigger): Promise<SyncOutcome>
     });
 
     // 6) Soft-delete: produtos das lojas MVP que não vimos (foram desativados no ZmartBI)
+    //
+    // GUARD CRÍTICO — Em 06/05/2026 o ZmartBI entregou um dump vazio (recebidos=0)
+    // e o updateMany abaixo desativou ~18 mil produtos de uma vez, derrubando o
+    // catálogo de TODAS as lojas. A regra: se vier menos de 80% do que hoje está
+    // ativo, é falha do ERP — abortamos o sync ao invés de propagar o estrago.
+    const totalAtivosAntes = await prisma.produto.count({
+      where: { loja: { zmartbiId: { in: [...FILIAIS_MVP_SET] } }, ativo: true },
+    });
+    const SAFETY_FLOOR = Math.max(100, Math.floor(totalAtivosAntes * 0.8));
+    if (processados < SAFETY_FLOOR) {
+      const motivo =
+        processados === 0
+          ? 'dump do ZmartBI veio vazio'
+          : `dump trouxe apenas ${processados} produtos (mínimo seguro: ${SAFETY_FLOOR}, base atual: ${totalAtivosAntes})`;
+      logger.error(
+        { syncRunId: run.id, recebidos, processados, totalAtivosAntes, SAFETY_FLOOR },
+        `[sync] abortado por safety guard: ${motivo}`,
+      );
+      await prisma.syncRun.update({
+        where: { id: run.id },
+        data: {
+          status: 'FAILED',
+          finishedAt: new Date(),
+          durationMs: Date.now() - startedAt,
+          itensRecebidos: recebidos,
+          itensIgnorados: ignorados,
+          itensProcessados: processados,
+          errorMessage: `Sync abortado pra preservar catálogo: ${motivo}`,
+        },
+      });
+      return {
+        syncRunId: run.id,
+        status: 'FAILED',
+        message: `Sync abortado pra preservar catálogo: ${motivo}`,
+      };
+    }
+
     const desativacao = await prisma.produto.updateMany({
       where: {
         loja: { zmartbiId: { in: [...FILIAIS_MVP_SET] } },
