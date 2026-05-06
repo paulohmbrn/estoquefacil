@@ -64,10 +64,15 @@ export async function buildContagemXlsx(
   // Header em bold (mimetiza style do exemplo)
   ws.getRow(1).font = { bold: true };
 
+  // DTLANCESTQ precisa preservar zero à esquerda em datas com dia 1-9
+  // (ex: 04/05/2026 → "04052026"). Como número o Excel descarta o zero
+  // e vai 4052026 — o ERP ZmartBI rejeita. Forçamos a coluna como texto.
+  ws.getColumn('dtlancestq').numFmt = '@';
+
   for (const r of rows) {
     ws.addRow({
-      cdarvprod: Number(r.cdarvprod),       // numérico, igual ao ERP
-      dtlancestq: r.dtlancestq,             // já é número DDMMAAAA
+      cdarvprod: Number(r.cdarvprod),                          // numérico, igual ao ERP
+      dtlancestq: String(r.dtlancestq).padStart(8, '0'),       // string DDMMAAAA com 8 dígitos
       qttotlancto: roundQuantidade(r.quantidade),
     });
   }
