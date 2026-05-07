@@ -21,6 +21,14 @@ export const authConfig = {
           prompt: 'select_account',
         },
       },
+      // Liga automaticamente o Account novo a um User existente com o mesmo
+      // e-mail. Necessário pra usuários pré-cadastrados via tela de
+      // Funcionários: o User já existe (com UsuarioLoja vinculada) mas
+      // sem Account de Google. Sem essa flag, NextAuth bloqueia o 1º
+      // login e o usuário trava com "Fale com o gestor".
+      // Seguro neste sistema: provider único (Google), e-mail sempre
+      // verificado (checamos email_verified) e domínio em whitelist.
+      allowDangerousEmailAccountLinking: true,
     }),
   ],
   callbacks: {
