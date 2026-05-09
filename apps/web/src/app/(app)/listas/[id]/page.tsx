@@ -154,13 +154,21 @@ export default async function ListaDetailPage({ params }: { params: Promise<{ id
               <img src={qrImg} alt="QR da lista" width={224} height={224} />
             </div>
             <p className="rm-mono text-[10px] text-rm-mid mt-3 break-all">{qrUrl}</p>
-            <a
-              href={qrImg}
-              download={`qr-lista-${lista.nome.toLowerCase().replace(/\s+/g, '-')}.png`}
-              className="ef-btn ef-btn-ghost ef-btn-sm mt-4 w-full justify-center"
-            >
-              Baixar PNG
-            </a>
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              <a
+                href={`/api/listas/${lista.id}/qr-pdf`}
+                className="ef-btn ef-btn-primary ef-btn-sm justify-center"
+              >
+                PDF (A5)
+              </a>
+              <a
+                href={qrImg}
+                download={`qr-lista-${lista.nome.toLowerCase().replace(/\s+/g, '-')}.png`}
+                className="ef-btn ef-btn-ghost ef-btn-sm justify-center"
+              >
+                PNG
+              </a>
+            </div>
           </Card>
         </aside>
       </div>
