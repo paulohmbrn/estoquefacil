@@ -20,27 +20,50 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
 
   const userId = session.user.id;
 
-  const vinculos = await prisma.usuarioLoja.findMany({
-    where: { userId, ativo: true, loja: { ativo: true } },
-    include: {
-      loja: { select: { id: true, zmartbiId: true, nome: true, apelido: true } },
-    },
-    orderBy: { loja: { zmartbiId: 'asc' } },
+  // Super Gestor vê TODAS as lojas ativas como GESTOR; Gestor/Operador comum
+  // vê só os vínculos próprios.
+  const userInfo2 = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { superGestor: true },
   });
+  const isSuper = Boolean(userInfo2?.superGestor);
 
-  const lojas: LojaSwitcherItem[] = vinculos.map((v) => ({
-    id: v.loja.id,
-    zmartbiId: v.loja.zmartbiId,
-    nome: v.loja.nome,
-    apelido: v.loja.apelido,
-    papel: v.papel,
-  }));
+  let lojas: LojaSwitcherItem[];
+  let papelAtivo: 'GESTOR' | 'OPERADOR' | null = null;
+
+  if (isSuper) {
+    const todas = await prisma.loja.findMany({
+      where: { ativo: true },
+      orderBy: { zmartbiId: 'asc' },
+      select: { id: true, zmartbiId: true, nome: true, apelido: true },
+    });
+    lojas = todas.map((l) => ({
+      id: l.id,
+      zmartbiId: l.zmartbiId,
+      nome: l.nome,
+      apelido: l.apelido,
+      papel: 'GESTOR',
+    }));
+  } else {
+    const vinculos = await prisma.usuarioLoja.findMany({
+      where: { userId, ativo: true, loja: { ativo: true } },
+      include: {
+        loja: { select: { id: true, zmartbiId: true, nome: true, apelido: true } },
+      },
+      orderBy: { loja: { zmartbiId: 'asc' } },
+    });
+    lojas = vinculos.map((v) => ({
+      id: v.loja.id,
+      zmartbiId: v.loja.zmartbiId,
+      nome: v.loja.nome,
+      apelido: v.loja.apelido,
+      papel: v.papel,
+    }));
+  }
 
   const cookieAtiva = await getLojaAtivaId();
   const ativa = lojas.find((l) => l.id === cookieAtiva) ?? lojas[0] ?? null;
-  const papelAtivo = ativa
-    ? vinculos.find((v) => v.lojaId === ativa.id)?.papel ?? null
-    : null;
+  if (ativa) papelAtivo = ativa.papel;
 
   const userInfo = {
     name: session.user.name ?? null,
@@ -50,22 +73,23 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-white text-rm-ink">
-      {/* Mobile chrome (header simples) — apenas <lg */}
+      {/* Mobile chrome (header simples) — apenas <lg.
+         Switcher só pra Super Gestor; Gestor comum só vê a loja fixa. */}
       <MobileChrome
         user={userInfo}
         apelidoLoja={ativa?.apelido ?? null}
-        lojas={lojas}
+        lojas={isSuper ? lojas : ativa ? [ativa] : []}
         lojaAtivaId={ativa?.id ?? null}
       />
 
       {/* Desktop layout — apenas lg+ */}
       <div className="hidden lg:grid lg:grid-cols-[240px_1fr] lg:min-h-screen">
-        <Sidebar apelidoLoja={ativa?.apelido ?? null} />
+        <Sidebar apelidoLoja={ativa?.apelido ?? null} isSuperGestor={isSuper} />
         <div className="flex flex-col min-w-0 overflow-hidden">
           <Topbar
             user={userInfo}
             papel={papelAtivo}
-            lojas={lojas}
+            lojas={isSuper ? lojas : ativa ? [ativa] : []}
             lojaAtivaId={ativa?.id ?? null}
           />
           <main className="flex-1 overflow-auto p-10">{children}</main>

@@ -27,6 +27,11 @@ model User {
   emailVerified DateTime?
   image         String?
 
+  // Super Gestor: acesso a TODAS as lojas (vínculo implícito como Gestor),
+  // pode promover/rebaixar outros usuários e atribuir lojas. Não é um
+  // PapelUsuario porque não é por loja — é uma propriedade da identidade.
+  superGestor Boolean @default(false)
+
   accounts Account[]
   sessions Session[]
 
@@ -37,6 +42,8 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([superGestor])
 }
 
 model Account {

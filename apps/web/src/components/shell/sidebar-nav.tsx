@@ -38,7 +38,15 @@ const CADASTROS = [
   { id: 'lojas', label: 'Lojas (fiscal)', href: '/cadastros/lojas' },
 ] as const;
 
-export function SidebarNav() {
+const CADASTROS_SUPER = [
+  { id: 'gestores', label: 'Gestores', href: '/cadastros/gestores' },
+] as const;
+
+interface SidebarNavProps {
+  isSuperGestor?: boolean;
+}
+
+export function SidebarNav({ isSuperGestor = false }: SidebarNavProps) {
   const pathname = usePathname();
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : pathname.startsWith(href);
@@ -99,7 +107,7 @@ export function SidebarNav() {
       </button>
       {cadastrosOpen && (
         <div className="ml-[28px] pl-3 border-l border-dashed border-strong flex flex-col gap-[1px] mt-[2px] mb-1">
-          {CADASTROS.map((c) => (
+          {[...CADASTROS, ...(isSuperGestor ? CADASTROS_SUPER : [])].map((c) => (
             <Link
               key={c.id}
               href={c.href}
