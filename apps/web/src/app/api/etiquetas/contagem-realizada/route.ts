@@ -12,7 +12,6 @@ import {
   generateEtiquetasContagemZpl,
   type EtiquetaContagem100Item,
 } from '@/lib/etiqueta-zpl';
-import { listaQrUrl } from '@/lib/qr';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -113,8 +112,10 @@ export async function POST(req: NextRequest): Promise<Response> {
         lojaApelido,
         metodo: escolha?.metodo ?? 'AMBIENTE',
         etiquetaId,
-        // QR aponta pro lançamento dentro da contagem (rastreio leve, sem persistir Etiqueta)
-        qrPayload: listaQrUrl(`l/${l.id}`),
+        // QR contém o CDARVPROD direto (13 dígitos) — formato que o scanner
+        // de contagem já reconhece nativamente. Permite bipar a etiqueta numa
+        // contagem futura como atalho pra encontrar o produto.
+        qrPayload: l.produto.cdarvprod,
         loteSufixo: String(idx + 1).padStart(2, '0'),
       };
     });
