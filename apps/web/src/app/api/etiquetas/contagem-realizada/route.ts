@@ -9,7 +9,7 @@ import { randomBytes } from 'node:crypto';
 import { prisma } from '@/lib/db';
 import { requireGestor, requireLojaAtiva } from '@/lib/permissions';
 import {
-  generateEtiquetasContagemZpl100x60,
+  generateEtiquetasContagemZpl,
   type EtiquetaContagem100Item,
 } from '@/lib/etiqueta-zpl';
 import { listaQrUrl } from '@/lib/qr';
@@ -119,7 +119,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       };
     });
 
-    const zpl = generateEtiquetasContagemZpl100x60(items);
+    const zpl = generateEtiquetasContagemZpl(items);
 
     const apiUrl = process.env.INTERNAL_API_URL ?? 'http://estoque-api:3001';
     const internalToken = process.env.INTERNAL_API_TOKEN ?? '';

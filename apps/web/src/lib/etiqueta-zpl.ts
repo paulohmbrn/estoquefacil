@@ -187,62 +187,70 @@ export function generateEtiquetasZplDuplaSmall(items: EtiquetaItem[]): string {
 // =====================================================================
 // ETIQUETA DE CONTAGEM REALIZADA — 48×40mm dupla (Microline 48×40×02)
 //
-// Layout dentro de cada metade (~360×290 dots úteis):
-//   [Nome do produto, 2 linhas, fonte grande]
-//   [QUANTIDADE em destaque + UN]
-//   DATA      | VAL.
-//   RESP.     | LOJA
+// Mesmo conteúdo lógico da 100×60mm (modelo ModeloEtiqueta.png), porém
+// adensado pra caber em metade do rolo dupla (~360×290 dots úteis).
+//
+// Layout (1 metade):
+//   [faixa preta com método + #ID] (28 dots)
+//   [Nome do produto, 2 linhas, 22pt]
+//   DATA CONT. | VALIDADE
+//   LOTE
+//   UN | RESP.
+//   QUANTIDADE (destaque)
+//   Loja                                        [QR]
 // =====================================================================
 
-export interface EtiquetaContagemItem {
-  produtoNome: string;
-  quantidade: number;
-  unidade: string;
-  responsavel: string;
-  dataContagem: Date;
-  validadeAte: Date | null;
-  lojaApelido: string;
-}
-
-function fmtQty(n: number): string {
-  if (Number.isInteger(n)) return n.toLocaleString('pt-BR');
-  return n.toLocaleString('pt-BR', { maximumFractionDigits: 3 });
-}
-
-function contagemHalfBlock(item: EtiquetaContagemItem, offsetX: number): string {
+function contagemHalfBlock(item: EtiquetaContagem100Item, offsetX: number): string {
   const dataStr = PT_BR_DATE.format(item.dataContagem);
   const validadeStr = item.validadeAte ? PT_BR_DATE.format(item.validadeAte) : '—';
   const nome = shortStr(item.produtoNome.toUpperCase(), 40);
-  const qty = `${fmtQty(item.quantidade)} ${item.unidade}`;
-  const resp = shortStr(item.responsavel, 14);
-  const loja = shortStr(item.lojaApelido, 18);
+  const lote = `${item.cdarvprod}${item.loteSufixo ? '-' + item.loteSufixo : ''}`;
+  const resp = shortStr(item.responsavel, 11);
+  const loja = shortStr(item.lojaApelido, 22);
+  const qty = `${fmtQtyContagem(item.quantidade)} ${item.unidade}`;
+  const qr = `LA,${item.qrPayload}`;
   const W = 360;
+
   return [
-    // Nome do produto (2 linhas, topo)
-    `^FO${offsetX},6^A0N,24,24^FB${W},2,2,L,0^FD${s(nome)}^FS`,
+    // Header: faixa preta com método + #ID
+    `^FO${offsetX},4^GB${W},28,28,B,0^FS`,
+    `^FO${offsetX + 6},10^A0N,20,20^FR^FD${s(item.metodo)}^FS`,
+    `^FO${offsetX + W - 70},12^A0N,16,16^FR^FD#${s(item.etiquetaId)}^FS`,
 
-    // Quantidade em destaque
-    `^FO${offsetX},80^A0N,18,18^FDQUANTIDADE^FS`,
-    `^FO${offsetX},100^A0N,40,40^FD${s(qty)}^FS`,
+    // Nome do produto (2 linhas)
+    `^FO${offsetX},42^A0N,22,22^FB${W},2,2,L,0^FD${s(nome)}^FS`,
 
-    // Datas — DATA + VAL lado a lado
-    `^FO${offsetX},164^A0N,16,16^FDDATA^FS`,
-    `^FO${offsetX},182^A0N,22,22^FD${s(dataStr)}^FS`,
-    `^FO${offsetX + 180},164^A0N,16,16^FDVAL.^FS`,
-    `^FO${offsetX + 180},182^A0N,22,22^FD${s(validadeStr)}^FS`,
+    // DATA CONTAGEM | VALIDADE
+    `^FO${offsetX},96^A0N,12,12^FDDATA CONT.^FS`,
+    `^FO${offsetX},110^A0N,18,18^FD${s(dataStr)}^FS`,
+    `^FO${offsetX + 170},96^A0N,12,12^FDVALIDADE^FS`,
+    `^FO${offsetX + 170},110^A0N,18,18^FD${s(validadeStr)}^FS`,
 
-    // Responsável (linha inferior)
-    `^FO${offsetX},226^A0N,14,14^FDRESP.^FS`,
-    `^FO${offsetX},242^A0N,18,18^FD${s(resp)}^FS`,
+    // LOTE
+    `^FO${offsetX},138^A0N,12,12^FDLOTE^FS`,
+    `^FO${offsetX},152^A0N,16,16^FD${s(lote)}^FS`,
 
-    // Loja (rodapé pequeno)
-    `^FO${offsetX},278^A0N,14,14^FD${s(loja)}^FS`,
+    // UN | RESP.
+    `^FO${offsetX},178^A0N,12,12^FDUN^FS`,
+    `^FO${offsetX},192^A0N,16,16^FD${s(item.unidade)}^FS`,
+    `^FO${offsetX + 90},178^A0N,12,12^FDRESP.^FS`,
+    `^FO${offsetX + 90},192^A0N,16,16^FD${s(resp)}^FS`,
+
+    // QUANTIDADE (destaque)
+    `^FO${offsetX},218^A0N,12,12^FDQUANTIDADE^FS`,
+    `^FO${offsetX},232^A0N,30,30^FD${s(qty)}^FS`,
+
+    // QR (canto inferior direito da metade, mag=3)
+    `^FO${offsetX + W - 90},170^BQN,2,3^FD${s(qr)}^FS`,
+
+    // Loja (rodapé)
+    `^FO${offsetX},272^A0N,14,14^FD${s(loja)}^FS`,
   ].join('\n');
 }
 
 export function generateEtiquetaContagemZplPair(
-  left: EtiquetaContagemItem,
-  right?: EtiquetaContagemItem,
+  left: EtiquetaContagem100Item,
+  right?: EtiquetaContagem100Item,
 ): string {
   const blocks = [contagemHalfBlock(left, DUPLA_LEFT_X)];
   if (right) blocks.push(contagemHalfBlock(right, DUPLA_RIGHT_X));
@@ -259,10 +267,10 @@ export function generateEtiquetaContagemZplPair(
 
 /**
  * Gera ZPL de N etiquetas de contagem no rolo dupla 48×40mm.
- * Cada item da contagem vira 1 etiqueta — pareadas 2 a 2 pra aproveitar
+ * Cada lançamento vira 1 etiqueta — pareadas 2 a 2 pra aproveitar
  * o rolo. Quantidade ímpar → última linha com metade esquerda só.
  */
-export function generateEtiquetasContagemZpl(items: EtiquetaContagemItem[]): string {
+export function generateEtiquetasContagemZpl(items: EtiquetaContagem100Item[]): string {
   const lines: string[] = [];
   for (let i = 0; i < items.length; i += 2) {
     lines.push(generateEtiquetaContagemZplPair(items[i]!, items[i + 1]));
