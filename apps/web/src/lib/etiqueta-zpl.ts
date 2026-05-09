@@ -114,7 +114,7 @@ export function generateEtiquetasZpl(items: EtiquetaItem[]): string {
 const DUPLA_LABEL_WIDTH = 848;       // 106mm
 const DUPLA_LABEL_HEIGHT = 320;      // 40mm
 const DUPLA_LEFT_X = 32;             // 4mm margem esquerda
-const DUPLA_RIGHT_X = 432;           // 4mm + 48mm + 2mm = 54mm
+const DUPLA_RIGHT_X = 448;           // 4mm + 48mm + 4mm = 56mm (gap 4mm — etiqueta direita "respira")
 
 function dupla48HalfBlock(item: EtiquetaItem, offsetX: number): string {
   const { manip, validade } = fmtDates(item);
@@ -205,46 +205,50 @@ function contagemHalfBlock(item: EtiquetaContagem100Item, offsetX: number): stri
   const validadeStr = item.validadeAte ? PT_BR_DATE.format(item.validadeAte) : '—';
   const nome = shortStr(item.produtoNome.toUpperCase(), 40);
   const lote = `${item.cdarvprod}${item.loteSufixo ? '-' + item.loteSufixo : ''}`;
-  const resp = shortStr(item.responsavel, 11);
+  const resp = shortStr(item.responsavel, 9);
   const loja = shortStr(item.lojaApelido, 22);
   const qty = `${fmtQtyContagem(item.quantidade)} ${item.unidade}`;
   const qr = `LA,${item.qrPayload}`;
   const W = 360;
+  // QR mag=5 (~125 dots) ocupa o canto inferior direito da metade (y 165..290).
+  // Conteúdo da parte de baixo (UN/RESP/QUANT/Loja) usa só Wleft pra não invadir o QR.
+  const Wleft = 230;
 
   return [
-    // Header: faixa preta com método + #ID
+    // Header: faixa preta com método + #ID (W inteiro)
     `^FO${offsetX},4^GB${W},28,28,B,0^FS`,
     `^FO${offsetX + 6},10^A0N,20,20^FR^FD${s(item.metodo)}^FS`,
     `^FO${offsetX + W - 70},12^A0N,16,16^FR^FD#${s(item.etiquetaId)}^FS`,
 
-    // Nome do produto (2 linhas)
+    // Nome do produto — 2 linhas (W inteiro, antes do QR começar)
     `^FO${offsetX},42^A0N,22,22^FB${W},2,2,L,0^FD${s(nome)}^FS`,
 
-    // DATA CONTAGEM | VALIDADE
+    // DATA CONT. | VALIDADE — lado a lado (W inteiro, antes do QR começar)
     `^FO${offsetX},96^A0N,12,12^FDDATA CONT.^FS`,
     `^FO${offsetX},110^A0N,18,18^FD${s(dataStr)}^FS`,
     `^FO${offsetX + 170},96^A0N,12,12^FDVALIDADE^FS`,
     `^FO${offsetX + 170},110^A0N,18,18^FD${s(validadeStr)}^FS`,
 
-    // LOTE
+    // LOTE (W inteiro, ainda antes do QR)
     `^FO${offsetX},138^A0N,12,12^FDLOTE^FS`,
     `^FO${offsetX},152^A0N,16,16^FD${s(lote)}^FS`,
 
+    // ↓ QR começa em y=165 ↓ — daqui pra baixo conteúdo limita a Wleft
     // UN | RESP.
     `^FO${offsetX},178^A0N,12,12^FDUN^FS`,
     `^FO${offsetX},192^A0N,16,16^FD${s(item.unidade)}^FS`,
-    `^FO${offsetX + 90},178^A0N,12,12^FDRESP.^FS`,
-    `^FO${offsetX + 90},192^A0N,16,16^FD${s(resp)}^FS`,
+    `^FO${offsetX + 110},178^A0N,12,12^FDRESP.^FS`,
+    `^FO${offsetX + 110},192^A0N,16,16^FB${Wleft - 110},1,0,L,0^FD${s(resp)}^FS`,
 
     // QUANTIDADE (destaque)
     `^FO${offsetX},218^A0N,12,12^FDQUANTIDADE^FS`,
-    `^FO${offsetX},232^A0N,30,30^FD${s(qty)}^FS`,
-
-    // QR (canto inferior direito da metade, mag=3)
-    `^FO${offsetX + W - 90},170^BQN,2,3^FD${s(qr)}^FS`,
+    `^FO${offsetX},232^A0N,30,30^FB${Wleft},1,0,L,0^FD${s(qty)}^FS`,
 
     // Loja (rodapé)
-    `^FO${offsetX},272^A0N,14,14^FD${s(loja)}^FS`,
+    `^FO${offsetX},272^A0N,14,14^FB${Wleft},1,0,L,0^FD${s(loja)}^FS`,
+
+    // QR mag=5 (~125 dots = 15.5mm) — canto inferior direito
+    `^FO${offsetX + W - 130},165^BQN,2,5^FD${s(qr)}^FS`,
   ].join('\n');
 }
 
