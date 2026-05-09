@@ -8,6 +8,7 @@ import { PageHead } from '@/components/shell/page-head';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toDtlancestq } from '@estoque/shared';
+import { ImprimirEtiquetasButton } from './imprimir-etiquetas-button';
 
 const dt = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo',
@@ -27,7 +28,7 @@ export default async function ContagemDetalhe({ params }: { params: Promise<{ id
   const c = await prisma.contagem.findUnique({
     where: { id },
     include: {
-      loja: { select: { zmartbiId: true, nome: true, apelido: true } },
+      loja: { select: { zmartbiId: true, nome: true, apelido: true, argoxBridgeToken: true } },
       responsavel: { select: { nome: true } },
       criadaPor: { select: { name: true, email: true } },
       lista: { select: { nome: true } },
@@ -38,6 +39,11 @@ export default async function ContagemDetalhe({ params }: { params: Promise<{ id
     },
   });
   if (!c || c.lojaId !== lojaId) notFound();
+  const argoxCloudReady = Boolean(c.loja.argoxBridgeToken);
+  const podeImprimirEtiquetas =
+    argoxCloudReady &&
+    c.lancamentos.length > 0 &&
+    (c.status === 'FINALIZADA' || c.status === 'EXPORTADA');
 
   const totalQtd = c.lancamentos.reduce((acc, l) => acc + Number(l.quantidade), 0);
   const dtlancestq = toDtlancestq(c.dataContagem);
@@ -57,7 +63,7 @@ export default async function ContagemDetalhe({ params }: { params: Promise<{ id
         }
         sub={`${c.loja.apelido ?? c.loja.nome} · ${c.responsavel.nome}`}
         action={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <a
               href={`/api/contagem/${c.id}/pdf`}
               target="_blank"
@@ -66,6 +72,12 @@ export default async function ContagemDetalhe({ params }: { params: Promise<{ id
             >
               Imprimir A4
             </a>
+            {podeImprimirEtiquetas && (
+              <ImprimirEtiquetasButton
+                contagemId={c.id}
+                totalEtiquetas={c.lancamentos.length}
+              />
+            )}
             {(c.status === 'FINALIZADA' || c.status === 'EXPORTADA') && (
               <a
                 href={`/api/export/contagem/${c.id}`}

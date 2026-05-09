@@ -185,6 +185,92 @@ export function generateEtiquetasZplDuplaSmall(items: EtiquetaItem[]): string {
 }
 
 // =====================================================================
+// ETIQUETA DE CONTAGEM REALIZADA — 48×40mm dupla (Microline 48×40×02)
+//
+// Layout dentro de cada metade (~360×290 dots úteis):
+//   [Nome do produto, 2 linhas, fonte grande]
+//   [QUANTIDADE em destaque + UN]
+//   DATA      | VAL.
+//   RESP.     | LOJA
+// =====================================================================
+
+export interface EtiquetaContagemItem {
+  produtoNome: string;
+  quantidade: number;
+  unidade: string;
+  responsavel: string;
+  dataContagem: Date;
+  validadeAte: Date | null;
+  lojaApelido: string;
+}
+
+function fmtQty(n: number): string {
+  if (Number.isInteger(n)) return n.toLocaleString('pt-BR');
+  return n.toLocaleString('pt-BR', { maximumFractionDigits: 3 });
+}
+
+function contagemHalfBlock(item: EtiquetaContagemItem, offsetX: number): string {
+  const dataStr = PT_BR_DATE.format(item.dataContagem);
+  const validadeStr = item.validadeAte ? PT_BR_DATE.format(item.validadeAte) : '—';
+  const nome = shortStr(item.produtoNome.toUpperCase(), 40);
+  const qty = `${fmtQty(item.quantidade)} ${item.unidade}`;
+  const resp = shortStr(item.responsavel, 14);
+  const loja = shortStr(item.lojaApelido, 18);
+  const W = 360;
+  return [
+    // Nome do produto (2 linhas, topo)
+    `^FO${offsetX},6^A0N,24,24^FB${W},2,2,L,0^FD${s(nome)}^FS`,
+
+    // Quantidade em destaque
+    `^FO${offsetX},80^A0N,18,18^FDQUANTIDADE^FS`,
+    `^FO${offsetX},100^A0N,40,40^FD${s(qty)}^FS`,
+
+    // Datas — DATA + VAL lado a lado
+    `^FO${offsetX},164^A0N,16,16^FDDATA^FS`,
+    `^FO${offsetX},182^A0N,22,22^FD${s(dataStr)}^FS`,
+    `^FO${offsetX + 180},164^A0N,16,16^FDVAL.^FS`,
+    `^FO${offsetX + 180},182^A0N,22,22^FD${s(validadeStr)}^FS`,
+
+    // Responsável (linha inferior)
+    `^FO${offsetX},226^A0N,14,14^FDRESP.^FS`,
+    `^FO${offsetX},242^A0N,18,18^FD${s(resp)}^FS`,
+
+    // Loja (rodapé pequeno)
+    `^FO${offsetX},278^A0N,14,14^FD${s(loja)}^FS`,
+  ].join('\n');
+}
+
+export function generateEtiquetaContagemZplPair(
+  left: EtiquetaContagemItem,
+  right?: EtiquetaContagemItem,
+): string {
+  const blocks = [contagemHalfBlock(left, DUPLA_LEFT_X)];
+  if (right) blocks.push(contagemHalfBlock(right, DUPLA_RIGHT_X));
+  return [
+    '^XA',
+    '^CI28',
+    `^PW${DUPLA_LABEL_WIDTH}`,
+    `^LL${DUPLA_LABEL_HEIGHT}`,
+    '^LH0,0',
+    ...blocks,
+    '^XZ',
+  ].join('\n');
+}
+
+/**
+ * Gera ZPL de N etiquetas de contagem no rolo dupla 48×40mm.
+ * Cada item da contagem vira 1 etiqueta — pareadas 2 a 2 pra aproveitar
+ * o rolo. Quantidade ímpar → última linha com metade esquerda só.
+ */
+export function generateEtiquetasContagemZpl(items: EtiquetaContagemItem[]): string {
+  const lines: string[] = [];
+  for (let i = 0; i < items.length; i += 2) {
+    lines.push(generateEtiquetaContagemZplPair(items[i]!, items[i + 1]));
+  }
+  return lines.join('\n');
+}
+
+// =====================================================================
 // FORMATO RÓTULO INDUSTRIALIZADO 100×100mm — RDC 429/2020 + IN 75/2020
 //
 // Rótulo regulamentado pra produtos da FFB e Madre Pane. Inclui:
