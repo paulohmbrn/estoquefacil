@@ -201,7 +201,9 @@ export function generateEtiquetasZplDuplaSmall(items: EtiquetaItem[]): string {
 // =====================================================================
 
 function contagemHalfBlock(item: EtiquetaContagem100Item, offsetX: number): string {
-  const dataStr = PT_BR_DATE.format(item.dataContagem);
+  const dataStr = item.horaContagem
+    ? `${PT_BR_DATE.format(item.dataContagem)} ${item.horaContagem}`
+    : PT_BR_DATE.format(item.dataContagem);
   const validadeStr = item.validadeAte ? PT_BR_DATE.format(item.validadeAte) : '—';
   const nome = shortStr(item.produtoNome.toUpperCase(), 40);
   const lote = `${item.cdarvprod}${item.loteSufixo ? '-' + item.loteSufixo : ''}`;
@@ -224,11 +226,12 @@ function contagemHalfBlock(item: EtiquetaContagem100Item, offsetX: number): stri
     // Nome do produto — 2 linhas (W inteiro, antes do QR começar)
     `^FO${offsetX},42^A0N,22,22^FB${W},2,2,L,0^FD${s(nome)}^FS`,
 
-    // DATA CONT. | VALIDADE — lado a lado (W inteiro, antes do QR começar)
+    // DATA CONT. (data + hora) | VALIDADE — lado a lado (W inteiro)
+    // Fonte 14pt nos valores pra caber "DD/MM/AAAA HH:MM" (16 chars).
     `^FO${offsetX},96^A0N,12,12^FDDATA CONT.^FS`,
-    `^FO${offsetX},110^A0N,18,18^FD${s(dataStr)}^FS`,
-    `^FO${offsetX + 170},96^A0N,12,12^FDVALIDADE^FS`,
-    `^FO${offsetX + 170},110^A0N,18,18^FD${s(validadeStr)}^FS`,
+    `^FO${offsetX},112^A0N,16,16^FD${s(dataStr)}^FS`,
+    `^FO${offsetX + 200},96^A0N,12,12^FDVALIDADE^FS`,
+    `^FO${offsetX + 200},112^A0N,16,16^FD${s(validadeStr)}^FS`,
 
     // LOTE (W inteiro, ainda antes do QR)
     `^FO${offsetX},138^A0N,12,12^FDLOTE^FS`,
@@ -309,6 +312,9 @@ export interface EtiquetaContagem100Item {
   unidade: string;
   responsavel: string;
   dataContagem: Date;
+  /** Hora da contagem já formatada (HH:MM, fuso BRT). Se omitido, etiqueta
+   *  mostra só a data. */
+  horaContagem?: string;
   validadeAte: Date | null;
   lojaApelido: string;
   metodo: string;          // RESFRIADO | CONGELADO | AMBIENTE

@@ -94,6 +94,16 @@ export async function POST(req: NextRequest): Promise<Response> {
     const dataContagem = c.dataContagem;
     const lojaApelido = c.loja.apelido ?? c.loja.nome;
     const responsavel = c.responsavel.nome;
+    // Hora real da contagem (formato 24h, fuso de SP). Usa finalizadaEm
+    // se disponível, senão iniciadaEm — único valor pra todas as etiquetas
+    // do mesmo lote, mesmo as do mesmo produto contadas em momentos diferentes.
+    const horaRef = c.finalizadaEm ?? c.iniciadaEm;
+    const horaContagem = new Intl.DateTimeFormat('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'America/Sao_Paulo',
+    }).format(horaRef);
 
     const items: EtiquetaContagem100Item[] = c.lancamentos.map((l, idx) => {
       const escolha = escolherValidadeDias(l.produto.meta);
@@ -108,6 +118,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         unidade: l.produto.unidade,
         responsavel,
         dataContagem,
+        horaContagem,
         validadeAte,
         lojaApelido,
         metodo: escolha?.metodo ?? 'AMBIENTE',
