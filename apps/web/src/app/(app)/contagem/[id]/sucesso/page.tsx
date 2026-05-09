@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { requireLojaAtiva } from '@/lib/permissions';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ImprimirEtiquetasButton } from '../../../relatorios/contagens/[id]/imprimir-etiquetas-button';
 
 const dt = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short',
@@ -21,6 +22,7 @@ export default async function SucessoPage({ params }: { params: Promise<{ id: st
     include: {
       responsavel: { select: { nome: true } },
       lista: { select: { nome: true } },
+      loja: { select: { argoxBridgeToken: true } },
       _count: { select: { lancamentos: true } },
       lancamentos: { select: { quantidade: true } },
     },
@@ -28,6 +30,10 @@ export default async function SucessoPage({ params }: { params: Promise<{ id: st
   if (!c || c.lojaId !== lojaId) notFound();
 
   const totalQtd = c.lancamentos.reduce((acc, l) => acc + Number(l.quantidade), 0);
+  const podeImprimirEtiquetas =
+    Boolean(c.loja.argoxBridgeToken) &&
+    c._count.lancamentos > 0 &&
+    (c.status === 'FINALIZADA' || c.status === 'EXPORTADA');
 
   return (
     <div className="max-w-[640px] mx-auto pt-4 sm:pt-6">
@@ -65,6 +71,14 @@ export default async function SucessoPage({ params }: { params: Promise<{ id: st
               Imprimir A4 (PDF)
             </a>
           </div>
+          {podeImprimirEtiquetas && (
+            <div className="mt-2 flex justify-center">
+              <ImprimirEtiquetasButton
+                contagemId={c.id}
+                totalEtiquetas={c._count.lancamentos}
+              />
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 mt-6">
