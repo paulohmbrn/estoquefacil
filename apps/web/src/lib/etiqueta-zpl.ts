@@ -210,9 +210,9 @@ function contagemHalfBlock(item: EtiquetaContagem100Item, offsetX: number): stri
   const qty = `${fmtQtyContagem(item.quantidade)} ${item.unidade}`;
   const qr = `LA,${item.qrPayload}`;
   const W = 360;
-  // QR mag=5 (~125 dots) ocupa o canto inferior direito da metade (y 165..290).
+  // QR mag=4 com EC=L (~132 dots ≈ 16mm) ocupa o canto inferior direito.
   // Conteúdo da parte de baixo (UN/RESP/QUANT/Loja) usa só Wleft pra não invadir o QR.
-  const Wleft = 230;
+  const Wleft = 215;
 
   return [
     // Header: faixa preta com método + #ID (W inteiro)
@@ -247,8 +247,9 @@ function contagemHalfBlock(item: EtiquetaContagem100Item, offsetX: number): stri
     // Loja (rodapé)
     `^FO${offsetX},272^A0N,14,14^FB${Wleft},1,0,L,0^FD${s(loja)}^FS`,
 
-    // QR mag=5 (~125 dots = 15.5mm) — canto inferior direito
-    `^FO${offsetX + W - 130},165^BQN,2,5^FD${s(qr)}^FS`,
+    // QR mag=4 com EC L (~132 dots ≈ 16mm) — canto inferior direito,
+    // recuado da borda. EC=L permite caber URL de ~78 bytes na Version 4.
+    `^FO${offsetX + W - 145},155^BQN,2,4,L^FD${s(qr)}^FS`,
   ].join('\n');
 }
 
