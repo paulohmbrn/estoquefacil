@@ -5,12 +5,14 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
+import { randomBytes } from 'node:crypto';
 import { prisma } from '@/lib/db';
 import { requireGestor, requireLojaAtiva } from '@/lib/permissions';
 import {
-  generateEtiquetasContagemZpl,
-  type EtiquetaContagemItem,
+  generateEtiquetasContagemZpl100x60,
+  type EtiquetaContagem100Item,
 } from '@/lib/etiqueta-zpl';
+import { listaQrUrl } from '@/lib/qr';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -25,12 +27,19 @@ function escolherValidadeDias(meta: {
   validadeResfriado: number | null;
   validadeCongelado: number | null;
   validadeAmbiente: number | null;
-} | null): number | null {
+} | null): { dias: number; metodo: 'RESFRIADO' | 'CONGELADO' | 'AMBIENTE' } | null {
   if (!meta) return null;
-  if (meta.validadeResfriado && meta.validadeResfriado > 0) return meta.validadeResfriado;
-  if (meta.validadeCongelado && meta.validadeCongelado > 0) return meta.validadeCongelado;
-  if (meta.validadeAmbiente && meta.validadeAmbiente > 0) return meta.validadeAmbiente;
+  if (meta.validadeResfriado && meta.validadeResfriado > 0)
+    return { dias: meta.validadeResfriado, metodo: 'RESFRIADO' };
+  if (meta.validadeCongelado && meta.validadeCongelado > 0)
+    return { dias: meta.validadeCongelado, metodo: 'CONGELADO' };
+  if (meta.validadeAmbiente && meta.validadeAmbiente > 0)
+    return { dias: meta.validadeAmbiente, metodo: 'AMBIENTE' };
   return null;
+}
+
+function shortId(): string {
+  return randomBytes(3).toString('hex').toUpperCase();
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
@@ -53,6 +62,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           include: {
             produto: {
               select: {
+                cdarvprod: true,
                 nome: true,
                 unidade: true,
                 meta: {
@@ -86,23 +96,30 @@ export async function POST(req: NextRequest): Promise<Response> {
     const lojaApelido = c.loja.apelido ?? c.loja.nome;
     const responsavel = c.responsavel.nome;
 
-    const items: EtiquetaContagemItem[] = c.lancamentos.map((l) => {
-      const dias = escolherValidadeDias(l.produto.meta);
-      const validadeAte = dias
-        ? new Date(dataContagem.getTime() + dias * 24 * 60 * 60 * 1000)
+    const items: EtiquetaContagem100Item[] = c.lancamentos.map((l, idx) => {
+      const escolha = escolherValidadeDias(l.produto.meta);
+      const validadeAte = escolha
+        ? new Date(dataContagem.getTime() + escolha.dias * 24 * 60 * 60 * 1000)
         : null;
+      const etiquetaId = shortId();
       return {
         produtoNome: l.produto.nome,
+        cdarvprod: l.produto.cdarvprod,
         quantidade: Number(l.quantidade),
         unidade: l.produto.unidade,
         responsavel,
         dataContagem,
         validadeAte,
         lojaApelido,
+        metodo: escolha?.metodo ?? 'AMBIENTE',
+        etiquetaId,
+        // QR aponta pro lançamento dentro da contagem (rastreio leve, sem persistir Etiqueta)
+        qrPayload: listaQrUrl(`l/${l.id}`),
+        loteSufixo: String(idx + 1).padStart(2, '0'),
       };
     });
 
-    const zpl = generateEtiquetasContagemZpl(items);
+    const zpl = generateEtiquetasContagemZpl100x60(items);
 
     const apiUrl = process.env.INTERNAL_API_URL ?? 'http://estoque-api:3001';
     const internalToken = process.env.INTERNAL_API_TOKEN ?? '';

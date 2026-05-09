@@ -40,9 +40,9 @@ export function ImprimirEtiquetasButton({ contagemId, totalEtiquetas }: Props) {
         onClick={imprimir}
         disabled={pending || totalEtiquetas === 0}
         className="ef-btn ef-btn-ghost"
-        title="Imprime 1 etiqueta por item da contagem (rolo Microline 48×40×02)"
+        title="Imprime 1 etiqueta por item da contagem (Argox/Zebra/Elgin 100×60mm)"
       >
-        {pending ? 'Imprimindo…' : `Etiquetas Zebra 48×40 (${totalEtiquetas})`}
+        {pending ? 'Imprimindo…' : `Etiquetas 100×60mm (${totalEtiquetas})`}
       </button>
       {erro && (
         <span className="text-rm-red text-[12px] ml-2">{erro}</span>

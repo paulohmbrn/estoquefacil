@@ -271,6 +271,106 @@ export function generateEtiquetasContagemZpl(items: EtiquetaContagemItem[]): str
 }
 
 // =====================================================================
+// ETIQUETA DE CONTAGEM REALIZADA — 100×60mm (Argox/Zebra padrão)
+//
+// Layout (espelha o modelo da imagem ModeloEtiqueta.png):
+//   [faixa preta com método + #ID]
+//   [Nome do produto, 2 linhas, fonte 52pt]
+//   ──────────────────────────────────────
+//   DATA CONTAGEM   |  VALIDADE       [QR]
+//   dd/mm/aaaa      |  dd/mm/aaaa     [QR]
+//   LOTE                              [QR]
+//   cdarvprod-XX                      [QR]
+//   UN          | RESP.
+//   KG          | Paulo
+//   QUANTIDADE
+//   10 KG
+//   Loja
+// =====================================================================
+
+export interface EtiquetaContagem100Item {
+  produtoNome: string;
+  cdarvprod: string;
+  quantidade: number;
+  unidade: string;
+  responsavel: string;
+  dataContagem: Date;
+  validadeAte: Date | null;
+  lojaApelido: string;
+  metodo: string;          // RESFRIADO | CONGELADO | AMBIENTE
+  etiquetaId: string;      // 6 chars hex pra rastreio visual
+  qrPayload: string;       // payload pra QR (URL curta de rastreio)
+  loteSufixo?: string;     // sequencial dentro do lote (ex "01")
+}
+
+function fmtQtyContagem(n: number): string {
+  if (Number.isInteger(n)) return n.toLocaleString('pt-BR');
+  return n.toLocaleString('pt-BR', { maximumFractionDigits: 3 });
+}
+
+export function generateEtiquetaContagemZpl100x60(item: EtiquetaContagem100Item): string {
+  const dataStr = PT_BR_DATE.format(item.dataContagem);
+  const validadeStr = item.validadeAte ? PT_BR_DATE.format(item.validadeAte) : '—';
+  const nome = shortStr(item.produtoNome.toUpperCase(), 60);
+  const lote = `${item.cdarvprod}${item.loteSufixo ? '-' + item.loteSufixo : ''}`;
+  const resp = shortStr(item.responsavel, 14);
+  const lojaNome = shortStr(item.lojaApelido, 36);
+  const qty = `${fmtQtyContagem(item.quantidade)} ${item.unidade}`;
+  const qr = `LA,${item.qrPayload}`;
+
+  return [
+    '^XA',
+    '^CI28',
+    '^PW800',
+    '^LL480',
+    '^LH0,0',
+
+    // Header (faixa preta com método + #ID)
+    '^FO0,0^GB800,72,72,B,0^FS',
+    `^FO20,16^A0N,46,46^FR^FD${s(item.metodo)}^FS`,
+    `^FO580,26^A0N,28,28^FR^FD#${s(item.etiquetaId)}^FS`,
+
+    // Nome do produto
+    `^FO20,90^A0N,52,52^FB560,2,4,L,0^FD${s(nome)}^FS`,
+
+    // Separador
+    '^FO20,200^GB760,2,2^FS',
+
+    // DATA CONTAGEM | VALIDADE
+    '^FO20,210^A0N,18,18^FDDATA CONTAGEM^FS',
+    `^FO20,232^A0N,28,28^FD${s(dataStr)}^FS`,
+    '^FO320,210^A0N,18,18^FDVALIDADE^FS',
+    `^FO320,232^A0N,28,28^FD${s(validadeStr)}^FS`,
+
+    // LOTE
+    '^FO20,278^A0N,18,18^FDLOTE^FS',
+    `^FO20,300^A0N,26,26^FD${s(lote)}^FS`,
+
+    // UN | RESP
+    '^FO20,344^A0N,18,18^FDUN^FS',
+    `^FO20,366^A0N,26,26^FD${s(item.unidade)}^FS`,
+    '^FO180,344^A0N,18,18^FDRESP.^FS',
+    `^FO180,366^A0N,26,26^FD${s(resp)}^FS`,
+
+    // QUANTIDADE em destaque (canto inferior esquerdo)
+    '^FO20,402^A0N,16,16^FDQUANTIDADE^FS',
+    `^FO20,420^A0N,38,38^FD${s(qty)}^FS`,
+
+    // QR Code (canto direito, abaixo do nome)
+    `^FO600,200^BQN,2,5^FD${s(qr)}^FS`,
+
+    // Loja rodapé
+    `^FO20,462^A0N,16,16^FD${s(lojaNome)}^FS`,
+
+    '^XZ',
+  ].join('\n');
+}
+
+export function generateEtiquetasContagemZpl100x60(items: EtiquetaContagem100Item[]): string {
+  return items.map(generateEtiquetaContagemZpl100x60).join('\n');
+}
+
+// =====================================================================
 // FORMATO RÓTULO INDUSTRIALIZADO 100×100mm — RDC 429/2020 + IN 75/2020
 //
 // Rótulo regulamentado pra produtos da FFB e Madre Pane. Inclui:
