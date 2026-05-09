@@ -19,6 +19,7 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
       where: { id },
       include: {
         loja: { select: { nome: true, apelido: true } },
+        _count: { select: { produtos: true } },
       },
     });
     if (!lista || lista.lojaId !== lojaId) {
@@ -30,6 +31,8 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
       lojaNome: lista.loja.apelido ?? lista.loja.nome,
       qrToken: lista.qrToken,
       responsavelImpressao: user.name ?? user.email,
+      totalProdutos: lista._count.produtos,
+      tags: lista.tags,
     });
 
     const safeNome = lista.nome.replace(/[^\w]+/g, '_');

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { setLojaAtiva } from '@/app/_actions/loja-ativa';
 
 export default async function QrResolver({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -48,5 +49,18 @@ export default async function QrResolver({ params }: { params: Promise<{ token: 
     select: { id: true, lojaId: true, ativo: true },
   });
   if (!lista || !lista.ativo) notFound();
+
+  // Garante que a loja ATIVA do user é a dona da lista — senão o operador
+  // que tinha outra loja selecionada acabaria contando lista errada com
+  // produtos errados. setLojaAtiva valida permissão (Super Gestor ou
+  // UsuarioLoja ativo); se não tiver acesso, o redirect falha em silêncio
+  // e o user vê a página /contagem/iniciar com o lojaId atual (a tela
+  // depois mostra erro de "lista de outra loja").
+  try {
+    await setLojaAtiva(lista.lojaId);
+  } catch {
+    // sem permissão pra essa loja — segue com a loja atual; tela seguinte
+    // exibe o erro apropriado.
+  }
   redirect(`/contagem/iniciar?listaId=${lista.id}`);
 }

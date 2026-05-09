@@ -26,6 +26,8 @@ export interface ListaQrPdfData {
   lojaNome: string;        // nome ou apelido amigável
   qrToken: string;
   responsavelImpressao: string;
+  totalProdutos: number;
+  tags: string[];
 }
 
 export async function generateListaQrPdf(data: ListaQrPdfData): Promise<Uint8Array> {
@@ -78,10 +80,56 @@ export async function generateListaQrPdf(data: ListaQrPdfData): Promise<Uint8Arr
     cursorY -= 10 * MM;
   }
 
-  // QR Code centralizado (lado ~80mm)
+  // Quantidade de produtos
+  const qtdText = `${data.totalProdutos} ${data.totalProdutos === 1 ? 'produto' : 'produtos'}`;
+  cursorY -= 1 * MM;
+  drawCenteredText(page, qtdText, {
+    x: CARD_X + CARD_W / 2,
+    y: cursorY,
+    size: 11, font: fontRegular, color: rgb(0.35, 0.4, 0.36),
+  });
+  cursorY -= 6 * MM;
+
+  // Tags como badges em linha (até 5)
+  if (data.tags.length > 0) {
+    const tags = data.tags.slice(0, 5);
+    const tagFontSize = 8;
+    const padX = 2.5 * MM;
+    const padY = 1 * MM;
+    const gap = 2 * MM;
+    const tagH = tagFontSize + 2 * padY;
+    const tagWidths = tags.map((t) => fontBold.widthOfTextAtSize(t.toUpperCase(), tagFontSize) + 2 * padX);
+    const totalW = tagWidths.reduce((a, w) => a + w, 0) + gap * (tags.length - 1);
+    let tx = CARD_X + (CARD_W - totalW) / 2;
+    const ty = cursorY - tagH;
+    tags.forEach((t, i) => {
+      const w = tagWidths[i]!;
+      page.drawRectangle({
+        x: tx, y: ty, width: w, height: tagH,
+        color: rgb(0.93, 0.95, 0.92),
+        borderColor: rgb(0.7, 0.78, 0.72),
+        borderWidth: 0.4,
+      });
+      page.drawText(t.toUpperCase(), {
+        x: tx + padX,
+        y: ty + padY + 1,
+        size: tagFontSize,
+        font: fontBold,
+        color: rgb(0, 0.25, 0.14),
+      });
+      tx += w + gap;
+    });
+    cursorY = ty - 2 * MM;
+  }
+
+  // QR Code centralizado (lado ~80mm) — posição vertical depende do
+  // espaço restante após nome + qtd + tags
   const qrSize = 80 * MM;
   const qrX = CARD_X + (CARD_W - qrSize) / 2;
-  const qrY = CARD_Y + (CARD_H - qrSize) / 2 - 10 * MM;
+  const qrY = Math.min(
+    cursorY - qrSize - 2 * MM,
+    CARD_Y + (CARD_H - qrSize) / 2 - 10 * MM,
+  );
   const qrPayload = listaQrUrl(data.qrToken);
   const qrPng = await qrPngBuffer(qrPayload, 600);
   const qrImage = await pdf.embedPng(qrPng);
