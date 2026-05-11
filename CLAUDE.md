@@ -4,6 +4,17 @@ Sistema multi-loja de contagem e controle de estoque das operações **Famiglia 
 
 > **Para detalhes de produto e decisões:** spec canônica em `docs/PROMPT_ESTOQUE_FACIL.md` e memória durável no hub `paulo-agent-core` em `memory/projects/estoque.md`.
 
+## GBrain (Paulo Brain)
+
+Memória durável compartilhada via MCP `paulo_gbrain`.
+
+Antes de mudanças não-triviais, consulte o GBrain buscando:
+- `projects/estoque` (decisões, pendências, integrações)
+- nome do repo remoto e integrações relacionadas
+- política global de uso em `~/.claude/CLAUDE.md`
+
+Não gravar segredos no GBrain (tokens, senhas, strings de conexão).
+
 ## Estrutura do monorepo
 
 ```
