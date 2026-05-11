@@ -212,10 +212,10 @@ function contagemHalfBlock(item: EtiquetaContagem100Item, offsetX: number): stri
   const qty = `${fmtQtyContagem(item.quantidade)} ${item.unidade}`;
   const qr = `LA,${item.qrPayload}`;
   const W = 360;
-  // QR mag=5 com payload curto (cdarvprod 13 chars) → Version 1 (21x21
-  // módulos) = ~105 dots ≈ 13mm. Fica no canto inferior direito.
+  // QR mag=6 com payload curto (cdarvprod 13 chars) → Version 1 (21x21
+  // módulos) = ~126 dots ≈ 16mm. Fica no canto inferior direito.
   // Conteúdo da parte de baixo (UN/RESP/QUANT/Loja) usa só Wleft pra não invadir o QR.
-  const Wleft = 230;
+  const Wleft = 210;
 
   return [
     // Header: faixa preta com método + #ID (W inteiro)
@@ -237,7 +237,7 @@ function contagemHalfBlock(item: EtiquetaContagem100Item, offsetX: number): stri
     `^FO${offsetX},138^A0N,12,12^FDLOTE^FS`,
     `^FO${offsetX},152^A0N,16,16^FD${s(lote)}^FS`,
 
-    // ↓ QR começa em y=165 ↓ — daqui pra baixo conteúdo limita a Wleft
+    // ↓ QR (~126 dots, y=170..296) ocupa a faixa direita ↓ — daqui pra baixo conteúdo limita a Wleft
     // UN | RESP.
     `^FO${offsetX},178^A0N,12,12^FDUN^FS`,
     `^FO${offsetX},192^A0N,16,16^FD${s(item.unidade)}^FS`,
@@ -251,9 +251,10 @@ function contagemHalfBlock(item: EtiquetaContagem100Item, offsetX: number): stri
     // Loja (rodapé)
     `^FO${offsetX},272^A0N,14,14^FB${Wleft},1,0,L,0^FD${s(loja)}^FS`,
 
-    // QR mag=5 (~105 dots ≈ 13mm com cdarvprod de 13 chars) — canto
-    // inferior direito, recuado 15 dots da borda direita.
-    `^FO${offsetX + W - 120},170^BQN,2,5^FD${s(qr)}^FS`,
+    // QR mag=6 (~126 dots ≈ 16mm com cdarvprod de 13 chars) — canto
+    // inferior direito; borda direita igual à do mag=5 (offsetX+W-15),
+    // só cresce pra esquerda/baixo.
+    `^FO${offsetX + W - 141},170^BQN,2,6^FD${s(qr)}^FS`,
   ].join('\n');
 }
 
