@@ -11,6 +11,11 @@ setlocal
 set SERVICE=ArgoxBridge
 set BRIDGE_DIR=%~dp0
 set SCRIPT=%BRIDGE_DIR%server.js
+REM %~dp0 termina em "\". Versao SEM a barra final pra usar em argumentos que
+REM vao entre aspas (ex.: AppDirectory) — senao "C:\dir\" vira C:\dir" e o
+REM NSSM grava um caminho invalido (servico nao inicia, sem log).
+set BRIDGE_DIR_NS=%~dp0
+if "%BRIDGE_DIR_NS:~-1%"=="\" set BRIDGE_DIR_NS=%BRIDGE_DIR_NS:~0,-1%
 
 if not exist "%BRIDGE_DIR%nssm.exe" (
   echo [ERRO] nssm.exe nao encontrado em %BRIDGE_DIR%
@@ -38,9 +43,13 @@ if not exist "%BRIDGE_DIR%.env" (
   echo Edite o .env com o IP da sua impressora antes de iniciar o servico.
 )
 
+REM Remove instalacao anterior pra o .bat ser idempotente (re-rodar sem erro).
+"%BRIDGE_DIR%nssm.exe" stop %SERVICE% >nul 2>&1
+"%BRIDGE_DIR%nssm.exe" remove %SERVICE% confirm >nul 2>&1
+
 echo Instalando servico %SERVICE%...
 "%BRIDGE_DIR%nssm.exe" install %SERVICE% "%NODE_EXE%" "%SCRIPT%"
-"%BRIDGE_DIR%nssm.exe" set %SERVICE% AppDirectory "%BRIDGE_DIR%"
+"%BRIDGE_DIR%nssm.exe" set %SERVICE% AppDirectory "%BRIDGE_DIR_NS%"
 "%BRIDGE_DIR%nssm.exe" set %SERVICE% DisplayName "Argox Bridge (Estoque Facil)"
 "%BRIDGE_DIR%nssm.exe" set %SERVICE% Description "Recebe ZPL via HTTP local e repassa pra impressora Argox via TCP 9100."
 "%BRIDGE_DIR%nssm.exe" set %SERVICE% Start SERVICE_AUTO_START
