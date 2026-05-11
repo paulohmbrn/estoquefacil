@@ -1,22 +1,20 @@
-// GET /api/relatorios/consolidado?formato=pdf|xlsx&ids=a,b,c
-// Gera relatório consolidado HUMANO (não pra ZmartBI) das contagens selecionadas.
-// Apenas Gestor da loja. Validações: mesma loja, status FINALIZADA/EXPORTADA.
-// As contagens podem ser de datas diferentes — a data de lançamento vira a menor delas.
+// GET /api/export/contagens?ids=a,b,c
+// Exporta no formato ZmartBI um consolidado das contagens selecionadas (mesma loja).
+// As contagens podem ser de datas diferentes — DTLANCESTQ e nome do arquivo usam a
+// MENOR dataContagem do conjunto. Apenas Gestor da loja ativa.
+// Marca as contagens FINALIZADAS como EXPORTADAS (idempotente).
 
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { requireGestor, requireLojaAtiva } from '@/lib/permissions';
-import {
-  fetchConsolidado,
-  generateConsolidadoPdf,
-  buildConsolidadoXlsx,
-} from '@/lib/relatorio-consolidado';
+import { fetchContagensSelecionadas, marcarContagensComoExportadas } from '@/lib/export-data';
+import { buildContagemXlsx } from '@/lib/export-xlsx';
+import { cdAlmoxarifePorFilial } from '@estoque/shared';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const querySchema = z.object({
-  formato: z.enum(['pdf', 'xlsx']),
   ids: z
     .string()
     .min(1)
@@ -31,41 +29,29 @@ const querySchema = z.object({
 
 export async function GET(req: NextRequest): Promise<Response> {
   try {
-    const { user, lojaId } = await requireLojaAtiva();
+    const { lojaId } = await requireLojaAtiva();
     await requireGestor({ lojaId });
 
     const url = new URL(req.url);
-    const parsed = querySchema.safeParse({
-      formato: url.searchParams.get('formato'),
-      ids: url.searchParams.get('ids'),
-    });
+    const parsed = querySchema.safeParse({ ids: url.searchParams.get('ids') });
     if (!parsed.success) {
       return NextResponse.json({ error: 'Parâmetros inválidos' }, { status: 400 });
     }
 
-    const result = await fetchConsolidado({
-      contagensIds: parsed.data.ids,
-      lojaId,
-      exportadoPor: user.name ?? user.email,
-    });
+    const result = await fetchContagensSelecionadas({ contagensIds: parsed.data.ids, lojaId });
     if ('error' in result) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
-
-    if (parsed.data.formato === 'pdf') {
-      const pdf = await generateConsolidadoPdf(result.data);
-      return new Response(new Uint8Array(pdf.buffer), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="${pdf.filename}"`,
-          'Cache-Control': 'no-store',
-          'X-Row-Count': String(pdf.rowCount),
-        },
-      });
+    if (result.lancamentos.length === 0) {
+      return NextResponse.json({ error: 'Nenhum lançamento nas contagens selecionadas' }, { status: 400 });
     }
 
-    const xlsx = await buildConsolidadoXlsx(result.data);
+    const xlsx = await buildContagemXlsx(result.meta.cdFilial, result.lancamentos, {
+      dataPreferida: result.meta.dataLancamento,
+      cdAlmoxarife: cdAlmoxarifePorFilial(result.meta.cdFilial),
+    });
+    await marcarContagensComoExportadas(result.meta.contagensIds);
+
     return new Response(new Uint8Array(xlsx.buffer), {
       status: 200,
       headers: {
@@ -73,6 +59,7 @@ export async function GET(req: NextRequest): Promise<Response> {
         'Content-Disposition': `attachment; filename="${xlsx.filename}"`,
         'Cache-Control': 'no-store',
         'X-Row-Count': String(xlsx.rowCount),
+        'X-Contagens-Consolidadas': String(result.meta.contagensIds.length),
       },
     });
   } catch (err) {

@@ -1,6 +1,7 @@
-// Relatório consolidado humano de N contagens FINALIZADAS/EXPORTADAS da MESMA data.
-// Uso: gestor seleciona contagens em /relatorios/contagens, escolhe PDF ou XLSX.
-// NÃO substitui o export ZmartBI (formato fechado): este é pra leitura/impressão.
+// Relatório consolidado humano de N contagens FINALIZADAS/EXPORTADAS da mesma loja.
+// As contagens podem ser de datas diferentes — a data de lançamento do consolidado
+// é a MENOR delas. Uso: gestor seleciona contagens em /relatorios/contagens, escolhe
+// PDF ou XLSX. NÃO substitui o export ZmartBI (formato fechado): este é pra leitura/impressão.
 
 import ExcelJS from 'exceljs';
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from 'pdf-lib';
@@ -28,9 +29,11 @@ export interface ConsolidadoItem {
 
 export interface ConsolidadoData {
   loja: { nome: string; apelido: string | null; zmartbiId: string };
+  /** Data de lançamento do consolidado: a MENOR `dataContagem` entre as contagens selecionadas. */
   dataContagem: Date;
   contagens: Array<{
     id: string;
+    dataContagem: Date;
     responsavelNome: string;
     listaNome: string | null;
     iniciadaEm: Date;
@@ -52,8 +55,9 @@ export interface ConsolidadoResult {
 // =====================================================================
 
 /**
- * Carrega N contagens, valida que são da mesma loja+data+status, agrega por
- * produto. Retorna `null` se a validação falhar (caller decide o erro).
+ * Carrega N contagens, valida loja + status (FINALIZADA/EXPORTADA), agrega por
+ * produto. As contagens podem ser de datas diferentes — nesse caso a data de
+ * lançamento do consolidado é a MENOR delas. Retorna `{ error }` se a validação falhar.
  */
 export async function fetchConsolidado(args: {
   contagensIds: string[];
@@ -90,12 +94,9 @@ export async function fetchConsolidado(args: {
     return { error: 'Algumas contagens não pertencem a esta loja' };
   }
 
-  // Validações: mesma data, status FINALIZADA ou EXPORTADA
-  const dataRef = contagens[0]!.dataContagem.toISOString().slice(0, 10);
+  // Validação: status FINALIZADA ou EXPORTADA. As datas podem variar entre as
+  // contagens — a data de lançamento do consolidado será a menor delas (abaixo).
   for (const c of contagens) {
-    if (c.dataContagem.toISOString().slice(0, 10) !== dataRef) {
-      return { error: 'Selecione apenas contagens da MESMA data' };
-    }
     if (c.status !== 'FINALIZADA' && c.status !== 'EXPORTADA') {
       return { error: 'Apenas contagens Finalizadas ou Exportadas podem ser consolidadas' };
     }
@@ -129,12 +130,18 @@ export async function fetchConsolidado(args: {
     .sort((a, b) => (a.grupo ?? '').localeCompare(b.grupo ?? '') || a.nome.localeCompare(b.nome));
 
   const ref = contagens[0]!;
+  // Data de lançamento = a MENOR dataContagem entre as contagens selecionadas.
+  const dataLancamento = contagens.reduce(
+    (min, c) => (c.dataContagem < min ? c.dataContagem : min),
+    ref.dataContagem,
+  );
   return {
     data: {
       loja: ref.loja,
-      dataContagem: ref.dataContagem,
+      dataContagem: dataLancamento,
       contagens: contagens.map((c) => ({
         id: c.id,
+        dataContagem: c.dataContagem,
         responsavelNome: c.responsavel.nome,
         listaNome: c.lista?.nome ?? null,
         iniciadaEm: c.iniciadaEm,
@@ -162,8 +169,12 @@ export async function buildConsolidadoXlsx(data: ConsolidadoData): Promise<Conso
   ws.getCell('A1').value = `Consolidado · ${data.loja.apelido ?? data.loja.nome} · #${data.loja.zmartbiId}`;
   ws.getCell('A1').font = { bold: true, size: 14 };
 
+  const datasDistintas = [...new Set(data.contagens.map((c) => c.dataContagem.toISOString().slice(0, 10)))].sort();
   ws.mergeCells('A2:G2');
-  ws.getCell('A2').value = `Data: ${dtData.format(data.dataContagem)} · ${data.contagens.length} contagem${data.contagens.length > 1 ? 's' : ''} consolidada${data.contagens.length > 1 ? 's' : ''}`;
+  ws.getCell('A2').value =
+    datasDistintas.length > 1
+      ? `Data de lançamento: ${dtData.format(data.dataContagem)} (a menor de ${datasDistintas.length} datas) · ${data.contagens.length} contagens consolidadas`
+      : `Data: ${dtData.format(data.dataContagem)} · ${data.contagens.length} contagem${data.contagens.length > 1 ? 's' : ''} consolidada${data.contagens.length > 1 ? 's' : ''}`;
   ws.getCell('A2').font = { size: 10, color: { argb: 'FF555555' } };
 
   ws.mergeCells('A3:G3');
@@ -257,10 +268,16 @@ export async function generateConsolidadoPdf(data: ConsolidadoData): Promise<Con
   });
   cursorY -= 28;
 
-  page.drawText(`Data: ${dtData.format(data.dataContagem)}`, {
-    x: MARGIN, y: cursorY - 12,
-    size: 11, font: fontRegular, color: rgb(0.2, 0.2, 0.2),
-  });
+  const datasDistintas = [...new Set(data.contagens.map((c) => c.dataContagem.toISOString().slice(0, 10)))].sort();
+  page.drawText(
+    datasDistintas.length > 1
+      ? `Data de lançamento: ${dtData.format(data.dataContagem)}  ·  a menor de ${datasDistintas.length} datas`
+      : `Data: ${dtData.format(data.dataContagem)}`,
+    {
+      x: MARGIN, y: cursorY - 12,
+      size: 11, font: fontRegular, color: rgb(0.2, 0.2, 0.2),
+    },
+  );
   cursorY -= 18;
 
   page.drawText(`${data.contagens.length} contagem${data.contagens.length > 1 ? 's' : ''} consolidada${data.contagens.length > 1 ? 's' : ''} · ${data.itens.length} produtos distintos`, {
@@ -273,7 +290,7 @@ export async function generateConsolidadoPdf(data: ConsolidadoData): Promise<Con
   for (const c of data.contagens) {
     if (cursorY < MARGIN + 50) break; // se não couber, corta — fica só o resumo
     page.drawText(
-      `· ${c.listaNome ?? 'Contagem livre'} — ${c.responsavelNome} — ${dt.format(c.iniciadaEm)}`,
+      `· ${dtData.format(c.dataContagem)} — ${c.listaNome ?? 'Contagem livre'} — ${c.responsavelNome} — iniciada ${dt.format(c.iniciadaEm)}`,
       {
         x: MARGIN, y: cursorY - 8,
         size: 8, font: fontRegular, color: rgb(0.4, 0.45, 0.4),

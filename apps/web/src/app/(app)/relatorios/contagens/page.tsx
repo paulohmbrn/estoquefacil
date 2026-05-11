@@ -96,7 +96,7 @@ export default async function HistoricoContagens({
             Histórico de <em>contagens</em>
           </>
         }
-        sub={`${total.toLocaleString('pt-BR')} contagens nesta loja. Marque na tabela e gere PDF/XLSX consolidado pro gestor.`}
+        sub={`${total.toLocaleString('pt-BR')} contagens nesta loja. Marque na tabela (pode misturar datas) e gere o XLSX ZmartBI ou o consolidado PDF/XLSX — a data de lançamento vira a menor da seleção.`}
       />
 
       <Card className="p-4 mb-5 flex flex-wrap items-center gap-3">

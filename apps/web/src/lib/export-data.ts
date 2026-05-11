@@ -102,6 +102,77 @@ export async function fetchContagensDoDia(args: {
   };
 }
 
+/**
+ * Consolida N contagens selecionadas (mesma loja, status FINALIZADA/EXPORTADA) num
+ * único conjunto de lançamentos no formato ZmartBI. Como as contagens podem ser de
+ * datas diferentes, a data de lançamento (DTLANCESTQ e nome do arquivo) é a MENOR
+ * `dataContagem` do conjunto — todos os lançamentos passam a usá-la, então o XLSX
+ * fica com uma linha por (CDARVPROD, dataLancamento). Retorna `{ error }` se a
+ * validação falhar.
+ */
+export async function fetchContagensSelecionadas(args: {
+  contagensIds: string[];
+  lojaId: string;
+}): Promise<
+  | {
+      meta: { lojaId: string; cdFilial: string; dataLancamento: Date; contagensIds: string[] };
+      lancamentos: LancamentoExport[];
+    }
+  | { error: string }
+> {
+  if (args.contagensIds.length === 0) return { error: 'Nenhuma contagem selecionada' };
+
+  const contagens = await prisma.contagem.findMany({
+    where: { id: { in: args.contagensIds }, lojaId: args.lojaId },
+    include: {
+      loja: { select: { zmartbiId: true } },
+      lancamentos: {
+        select: {
+          quantidade: true,
+          produto: { select: { cdarvprod: true } },
+        },
+      },
+    },
+  });
+
+  if (contagens.length === 0) return { error: 'Contagens não encontradas' };
+  if (contagens.length !== args.contagensIds.length) {
+    return { error: 'Algumas contagens não pertencem a esta loja' };
+  }
+  for (const c of contagens) {
+    if (c.status !== 'FINALIZADA' && c.status !== 'EXPORTADA') {
+      return { error: 'Apenas contagens Finalizadas ou Exportadas podem ser exportadas' };
+    }
+  }
+
+  // Data de lançamento = a MENOR dataContagem entre as contagens selecionadas.
+  const dataLancamento = contagens.reduce(
+    (min, c) => (c.dataContagem < min ? c.dataContagem : min),
+    contagens[0]!.dataContagem,
+  );
+
+  const lancamentos: LancamentoExport[] = [];
+  for (const c of contagens) {
+    for (const l of c.lancamentos) {
+      lancamentos.push({
+        cdarvprod: l.produto.cdarvprod,
+        quantidade: Number(l.quantidade),
+        dataContagem: dataLancamento, // colapsa todas as datas na menor
+      });
+    }
+  }
+
+  return {
+    meta: {
+      lojaId: args.lojaId,
+      cdFilial: contagens[0]!.loja.zmartbiId,
+      dataLancamento,
+      contagensIds: contagens.map((c) => c.id),
+    },
+    lancamentos,
+  };
+}
+
 export async function marcarContagensComoExportadas(ids: string[]): Promise<void> {
   if (ids.length === 0) return;
   await prisma.contagem.updateMany({

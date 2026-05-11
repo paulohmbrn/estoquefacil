@@ -35,7 +35,7 @@ interface Props {
 
 export function HistoricoContagensTabela({ contagens }: Props) {
   const [selecionadas, setSelecionadas] = useState<Set<string>>(new Set());
-  const [downloading, setDownloading] = useState<'pdf' | 'xlsx' | null>(null);
+  const [downloading, setDownloading] = useState<'pdf' | 'xlsx' | 'zmartbi' | null>(null);
 
   const consolidaveis = useMemo(
     () => contagens.filter((c) => c.status === 'FINALIZADA' || c.status === 'EXPORTADA'),
@@ -49,15 +49,11 @@ export function HistoricoContagensTabela({ contagens }: Props) {
       const c = contagens.find((x) => x.id === id);
       if (c) set.add(c.dataContagem);
     }
-    return [...set];
+    return [...set].sort(); // ISO YYYY-MM-DD: ordem lexical = cronológica
   }, [selecaoArr, contagens]);
 
-  const erroSelecao = useMemo(() => {
-    if (datasSelecionadas.length > 1) {
-      return 'Selecione apenas contagens da mesma data.';
-    }
-    return null;
-  }, [datasSelecionadas]);
+  // Data de lançamento do consolidado = a MENOR data entre as contagens selecionadas.
+  const dataLancamento = datasSelecionadas[0] ?? null;
 
   function toggle(id: string): void {
     setSelecionadas((prev) => {
@@ -69,26 +65,23 @@ export function HistoricoContagensTabela({ contagens }: Props) {
   }
 
   function toggleAllConsolidaveis(checked: boolean): void {
-    if (!checked) {
-      setSelecionadas(new Set());
-      return;
-    }
-    // Marca todos os consolidáveis da PRIMEIRA data que aparecer (pra evitar misturar)
-    const primeiraData = consolidaveis[0]?.dataContagem;
-    if (!primeiraData) return;
-    setSelecionadas(new Set(consolidaveis.filter((c) => c.dataContagem === primeiraData).map((c) => c.id)));
+    setSelecionadas(checked ? new Set(consolidaveis.map((c) => c.id)) : new Set());
   }
 
   function limpar(): void {
     setSelecionadas(new Set());
   }
 
-  async function baixar(formato: 'pdf' | 'xlsx'): Promise<void> {
-    if (selecaoArr.length === 0 || erroSelecao) return;
-    setDownloading(formato);
+  async function baixar(tipo: 'pdf' | 'xlsx' | 'zmartbi'): Promise<void> {
+    if (selecaoArr.length === 0) return;
+    setDownloading(tipo);
     try {
-      const ids = selecaoArr.join(',');
-      const res = await fetch(`/api/relatorios/consolidado?formato=${formato}&ids=${encodeURIComponent(ids)}`);
+      const ids = encodeURIComponent(selecaoArr.join(','));
+      const endpoint =
+        tipo === 'zmartbi'
+          ? `/api/export/contagens?ids=${ids}`
+          : `/api/relatorios/consolidado?formato=${tipo}&ids=${ids}`;
+      const res = await fetch(endpoint);
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         throw new Error(j.error ?? `Erro ${res.status}`);
@@ -99,7 +92,7 @@ export function HistoricoContagensTabela({ contagens }: Props) {
       a.href = url;
       a.download =
         res.headers.get('content-disposition')?.match(/filename="([^"]+)"/)?.[1] ??
-        `consolidado.${formato}`;
+        (tipo === 'zmartbi' ? 'contagem.xlsx' : `consolidado.${tipo}`);
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -111,16 +104,8 @@ export function HistoricoContagensTabela({ contagens }: Props) {
     }
   }
 
-  const totalConsolidaveisPrimeiraData = useMemo(() => {
-    const primeira = consolidaveis[0]?.dataContagem;
-    return primeira ? consolidaveis.filter((c) => c.dataContagem === primeira).length : 0;
-  }, [consolidaveis]);
-
   const todosConsolidaveisSelecionados =
-    totalConsolidaveisPrimeiraData > 0 &&
-    consolidaveis
-      .filter((c) => c.dataContagem === consolidaveis[0]!.dataContagem)
-      .every((c) => selecionadas.has(c.id));
+    consolidaveis.length > 0 && consolidaveis.every((c) => selecionadas.has(c.id));
 
   return (
     <>
@@ -132,7 +117,7 @@ export function HistoricoContagensTabela({ contagens }: Props) {
               <Th className="w-[40px]">
                 <input
                   type="checkbox"
-                  aria-label="Selecionar todas as contagens consolidáveis da 1ª data"
+                  aria-label="Selecionar todas as contagens consolidáveis"
                   checked={todosConsolidaveisSelecionados}
                   onChange={(e) => toggleAllConsolidaveis(e.target.checked)}
                   disabled={consolidaveis.length === 0}
@@ -154,23 +139,15 @@ export function HistoricoContagensTabela({ contagens }: Props) {
             {contagens.map((c) => {
               const consolidavel = c.status === 'FINALIZADA' || c.status === 'EXPORTADA';
               const checked = selecionadas.has(c.id);
-              const isMisturaProibida =
-                !checked && datasSelecionadas.length === 1 && datasSelecionadas[0] !== c.dataContagem;
               return (
                 <tr key={c.id} className="border-b border-hairline hover:bg-[rgba(0,65,37,.03)]">
                   <td className="px-4 py-2 text-center">
                     <input
                       type="checkbox"
                       checked={checked}
-                      disabled={!consolidavel || isMisturaProibida}
+                      disabled={!consolidavel}
                       onChange={() => toggle(c.id)}
-                      title={
-                        !consolidavel
-                          ? 'Apenas Finalizadas/Exportadas podem ser consolidadas'
-                          : isMisturaProibida
-                          ? 'Selecione contagens da mesma data'
-                          : 'Selecionar'
-                      }
+                      title={consolidavel ? 'Selecionar' : 'Apenas Finalizadas/Exportadas podem ser consolidadas'}
                     />
                   </td>
                   <td className="px-4 py-2 rm-mono text-[12px]">{dtData.format(new Date(c.dataContagem))}</td>
@@ -213,15 +190,13 @@ export function HistoricoContagensTabela({ contagens }: Props) {
         {contagens.map((c) => {
           const consolidavel = c.status === 'FINALIZADA' || c.status === 'EXPORTADA';
           const checked = selecionadas.has(c.id);
-          const isMisturaProibida =
-            !checked && datasSelecionadas.length === 1 && datasSelecionadas[0] !== c.dataContagem;
           return (
             <li key={c.id} className="bg-white border border-hairline rounded-xs p-3">
               <div className="flex items-start gap-3 mb-2">
                 <input
                   type="checkbox"
                   checked={checked}
-                  disabled={!consolidavel || isMisturaProibida}
+                  disabled={!consolidavel}
                   onChange={() => toggle(c.id)}
                   className="mt-1"
                 />
@@ -264,13 +239,11 @@ export function HistoricoContagensTabela({ contagens }: Props) {
               <p className="font-sans font-bold text-[15px]">
                 {selecaoArr.length} contage{selecaoArr.length === 1 ? 'm' : 'ns'} selecionada{selecaoArr.length === 1 ? '' : 's'}
               </p>
-              {erroSelecao ? (
-                <p className="text-[11px] text-rm-gold mt-0.5">{erroSelecao}</p>
-              ) : (
-                <p className="text-[11px] opacity-70 mt-0.5">
-                  Data: {datasSelecionadas[0] ? dtData.format(new Date(datasSelecionadas[0]!)) : '—'}
-                </p>
-              )}
+              <p className="text-[11px] opacity-70 mt-0.5">
+                {datasSelecionadas.length > 1
+                  ? `${datasSelecionadas.length} datas · lançamento como ${dataLancamento ? dtData.format(new Date(dataLancamento)) : '—'} (a menor)`
+                  : `Data: ${dataLancamento ? dtData.format(new Date(dataLancamento)) : '—'}`}
+              </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Button
@@ -286,8 +259,17 @@ export function HistoricoContagensTabela({ contagens }: Props) {
                 type="button"
                 variant="primary"
                 size="sm"
+                onClick={() => baixar('zmartbi')}
+                disabled={downloading !== null}
+              >
+                {downloading === 'zmartbi' ? 'Gerando…' : 'Exportar ZmartBI'}
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
                 onClick={() => baixar('xlsx')}
-                disabled={Boolean(erroSelecao) || downloading !== null}
+                disabled={downloading !== null}
               >
                 {downloading === 'xlsx' ? 'Gerando…' : 'Consolidar XLSX'}
               </Button>
@@ -296,7 +278,7 @@ export function HistoricoContagensTabela({ contagens }: Props) {
                 variant="primary"
                 size="sm"
                 onClick={() => baixar('pdf')}
-                disabled={Boolean(erroSelecao) || downloading !== null}
+                disabled={downloading !== null}
               >
                 {downloading === 'pdf' ? 'Gerando…' : 'Consolidar PDF'}
               </Button>
