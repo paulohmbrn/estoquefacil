@@ -48,3 +48,4 @@ docs/Prints/
 # Next standalone (gerado em build)
 .next/standalone/
 .next/static/
+scripts/.logos-gfa.json

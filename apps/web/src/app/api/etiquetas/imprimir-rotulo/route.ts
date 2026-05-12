@@ -15,6 +15,7 @@ import {
   type RotuloItem,
   type RotuloFabricante,
 } from '@/lib/etiqueta-zpl';
+import { logoPorFilial } from '@/lib/etiqueta-logos';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -48,15 +49,41 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     const loja = await prisma.loja.findUnique({
       where: { id: lojaId },
-      select: { nome: true, apelido: true, endereco: true, cnpj: true },
+      select: {
+        zmartbiId: true,
+        nome: true,
+        apelido: true,
+        endereco: true,
+        cnpj: true,
+        razaoSocial: true,
+        inscricaoEstadual: true,
+        logradouro: true,
+        numero: true,
+        complemento: true,
+        bairro: true,
+        municipio: true,
+        ufFiscal: true,
+        cep: true,
+        telefone: true,
+      },
     });
     if (!loja) return NextResponse.json({ error: 'Loja não encontrada' }, { status: 404 });
 
     const fabricante: RotuloFabricante = {
-      nome: loja.nome,
+      razaoSocial: loja.razaoSocial?.trim() || loja.nome,
       cnpj: formatCnpj(loja.cnpj),
+      inscricaoEstadual: loja.inscricaoEstadual,
       endereco: loja.endereco,
+      logradouro: loja.logradouro,
+      numero: loja.numero,
+      complemento: loja.complemento,
+      bairro: loja.bairro,
+      municipio: loja.municipio,
+      uf: loja.ufFiscal,
+      cep: formatCep(loja.cep),
+      telefone: loja.telefone,
     };
+    const logo = logoPorFilial(loja.zmartbiId);
 
     const items: RotuloItem[] = [];
     for (const it of parsed.data.itens) {
@@ -71,7 +98,6 @@ export async function POST(req: NextRequest): Promise<Response> {
       }
       const porcaoTexto = montarPorcaoTexto(n.porcaoG, n.porcaoMedidaCaseira, n.porcoesEmbalagem, n.unidadeBase);
       const porcaoColunaTexto = n.porcaoG ? `${formatPorcaoNum(n.porcaoG)} ${n.unidadeBase}` : '—';
-      const porcoesEmbalagemTexto = n.porcoesEmbalagem ? `${formatPorcaoNum(n.porcoesEmbalagem)} porções` : '';
 
       const baseItem: RotuloItem = {
         produtoNome: p.nome,
@@ -82,7 +108,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         modoConservacao: n.modoConservacao,
         porcaoTexto,
         porcaoColunaTexto,
-        porcoesEmbalagemTexto,
+        logo,
         valoresPor100: {
           unidadeBase: (n.unidadeBase as 'g' | 'ml') ?? 'g',
           porcaoG: n.porcaoG,
@@ -141,6 +167,13 @@ function formatCnpj(raw: string | null | undefined): string | null {
   const d = raw.replace(/\D/g, '');
   if (d.length !== 14) return raw;
   return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12, 14)}`;
+}
+
+function formatCep(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const d = raw.replace(/\D/g, '');
+  if (d.length !== 8) return raw;
+  return `${d.slice(0, 5)}-${d.slice(5)}`;
 }
 
 function formatPorcaoNum(n: number): string {

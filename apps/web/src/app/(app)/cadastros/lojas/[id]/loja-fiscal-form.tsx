@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   updateLojaFiscal,
+  updateLojaFabricante,
   uploadCertificado,
   removerCertificado,
   updateArgoxBridge,
@@ -22,6 +23,14 @@ interface LojaProps {
   cnpj: string;
   inscricaoEstadual: string;
   ufFiscal: string;
+  razaoSocial: string;
+  logradouro: string;
+  numero: string;
+  complemento: string;
+  bairro: string;
+  municipio: string;
+  cep: string;
+  telefone: string;
   certNome: string | null;
   certValidoAte: string | null;
   certUploadedAt: string | null;
@@ -34,9 +43,11 @@ const dt = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'sh
 export function LojaFiscalForm({ loja }: { loja: LojaProps }) {
   const router = useRouter();
   const [pendingFiscal, startFiscal] = useTransition();
+  const [pendingFab, startFab] = useTransition();
   const [pendingCert, startCert] = useTransition();
   const [erro, setErro] = useState<string | null>(null);
   const [okFiscal, setOkFiscal] = useState<string | null>(null);
+  const [okFab, setOkFab] = useState<string | null>(null);
   const [okCert, setOkCert] = useState<string | null>(null);
 
   // Auto-dismiss feedback de salvamento depois de 3s
@@ -45,6 +56,11 @@ export function LojaFiscalForm({ loja }: { loja: LojaProps }) {
     const t = setTimeout(() => setOkFiscal(null), 3000);
     return () => clearTimeout(t);
   }, [okFiscal]);
+  useEffect(() => {
+    if (!okFab) return;
+    const t = setTimeout(() => setOkFab(null), 3000);
+    return () => clearTimeout(t);
+  }, [okFab]);
   useEffect(() => {
     if (!okCert) return;
     const t = setTimeout(() => setOkCert(null), 4000);
@@ -61,6 +77,26 @@ export function LojaFiscalForm({ loja }: { loja: LojaProps }) {
         ufFiscal: String(formData.get('ufFiscal') ?? '') || null,
       });
       if (r.ok) setOkFiscal('Dados salvos com sucesso.');
+      else setErro(r.error);
+    });
+  }
+
+  function salvarFabricante(formData: FormData) {
+    setErro(null); setOkFab(null);
+    const g = (k: string): string | null => String(formData.get(k) ?? '').trim() || null;
+    startFab(async () => {
+      const r = await updateLojaFabricante({
+        lojaId: loja.id,
+        razaoSocial: g('razaoSocial'),
+        logradouro: g('logradouro'),
+        numero: g('numero'),
+        complemento: g('complemento'),
+        bairro: g('bairro'),
+        municipio: g('municipio'),
+        cep: g('cep'),
+        telefone: g('telefone'),
+      });
+      if (r.ok) setOkFab('Dados do fabricante salvos.');
       else setErro(r.error);
     });
   }
@@ -138,6 +174,57 @@ export function LojaFiscalForm({ loja }: { loja: LojaProps }) {
           {okFiscal && <SavedBadge label={okFiscal} />}
           <Button type="submit" variant="primary" disabled={pendingFiscal}>
             {pendingFiscal ? 'Salvando…' : 'Salvar dados fiscais'}
+          </Button>
+        </div>
+      </form>
+
+      <hr className="border-dashed border-strong" />
+
+      {/* IDENTIFICAÇÃO DO FABRICANTE (RÓTULO) */}
+      <form action={salvarFabricante} className="space-y-4">
+        <div>
+          <h3 className="rm-eyebrow">Identificação do fabricante (rótulo)</h3>
+          <p className="text-[12px] text-rm-mid mt-1">
+            Razão social, endereço completo e SAC — aparecem no cabeçalho e no rodapé da etiqueta nutricional
+            100×100mm (RDC 429/2020 + IN 75/2020). Se a razão social ficar vazia, usa o nome da filial.
+            O CNPJ e a IE vêm dos dados fiscais acima.
+          </p>
+        </div>
+        <Field label="Razão social">
+          <Input name="razaoSocial" defaultValue={loja.razaoSocial} placeholder="Madre Pane Panificadora e Confeitaria Ltda" />
+        </Field>
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px] gap-3">
+          <Field label="Logradouro (rua / avenida)">
+            <Input name="logradouro" defaultValue={loja.logradouro} placeholder="Av. Senador Salgado Filho" />
+          </Field>
+          <Field label="Número">
+            <Input name="numero" defaultValue={loja.numero} placeholder="1234" />
+          </Field>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field label="Complemento">
+            <Input name="complemento" defaultValue={loja.complemento} placeholder="Loja 2 (opcional)" />
+          </Field>
+          <Field label="Bairro">
+            <Input name="bairro" defaultValue={loja.bairro} placeholder="Lagoa Nova" />
+          </Field>
+          <Field label="Município">
+            <Input name="municipio" defaultValue={loja.municipio} placeholder="Natal" />
+          </Field>
+          <Field label="CEP">
+            <Input name="cep" defaultValue={loja.cep} placeholder="59056-000" inputMode="numeric" />
+          </Field>
+        </div>
+        <Field label="SAC / Telefone">
+          <Input name="telefone" defaultValue={loja.telefone} placeholder="(84) 0000-0000" />
+        </Field>
+        <p className="text-[11px] text-rm-mid">
+          Município/UF e CEP usam a <strong>UF</strong> dos dados fiscais acima.
+        </p>
+        <div className="flex items-center justify-end gap-3">
+          {okFab && <SavedBadge label={okFab} />}
+          <Button type="submit" variant="primary" disabled={pendingFab}>
+            {pendingFab ? 'Salvando…' : 'Salvar dados do fabricante'}
           </Button>
         </div>
       </form>

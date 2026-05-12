@@ -43,6 +43,48 @@ export async function updateLojaFiscal(input: z.infer<typeof fiscalSchema>): Pro
   }
 }
 
+// Identificação do fabricante para o rótulo regulamentado (RDC 429/2020 + IN 75/2020):
+// razão social, endereço completo estruturado e SAC. Aparece no cabeçalho/rodapé da etiqueta 100×100.
+const fabricanteSchema = z.object({
+  lojaId: z.string().min(1),
+  razaoSocial: z.string().optional().nullable(),
+  logradouro: z.string().optional().nullable(),
+  numero: z.string().optional().nullable(),
+  complemento: z.string().optional().nullable(),
+  bairro: z.string().optional().nullable(),
+  municipio: z.string().optional().nullable(),
+  cep: z.string().optional().nullable(),
+  telefone: z.string().optional().nullable(),
+});
+
+export async function updateLojaFabricante(input: z.infer<typeof fabricanteSchema>): Promise<ActionResult> {
+  try {
+    const parsed = fabricanteSchema.safeParse(input);
+    if (!parsed.success) return { ok: false, error: parsed.error.issues[0]!.message };
+    await requireGestor({ lojaId: parsed.data.lojaId });
+    const d = parsed.data;
+    const norm = (s: string | null | undefined): string | null => (s && s.trim() ? s.trim() : null);
+    const cepDigits = d.cep ? d.cep.replace(/\D/g, '') : '';
+    await prisma.loja.update({
+      where: { id: d.lojaId },
+      data: {
+        razaoSocial: norm(d.razaoSocial),
+        logradouro: norm(d.logradouro),
+        numero: norm(d.numero),
+        complemento: norm(d.complemento),
+        bairro: norm(d.bairro),
+        municipio: norm(d.municipio),
+        cep: cepDigits || null,
+        telefone: norm(d.telefone),
+      },
+    });
+    revalidatePath('/cadastros/lojas');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: (err as Error).message };
+  }
+}
+
 const certSchema = z.object({
   lojaId: z.string().min(1),
   pfxBase64: z.string().min(100), // pfx é binário grande

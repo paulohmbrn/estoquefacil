@@ -394,19 +394,27 @@ export function generateEtiquetasContagemZpl100x60(items: EtiquetaContagem100Ite
 // =====================================================================
 // FORMATO RÓTULO INDUSTRIALIZADO 100×100mm — RDC 429/2020 + IN 75/2020
 //
-// Rótulo regulamentado pra produtos da FFB e Madre Pane. Inclui:
-//   - Identificação do produto (nome em destaque)
-//   - Lote, data de fabricação, conteúdo líquido
-//   - Código de barras EAN-13
-//   - Modo de Preparo
-//   - Modo de Conservação
-//   - Ingredientes
-//   - Alergênicos (caixa em destaque)
-//   - Tabela Nutricional completa (10 linhas × 3 colunas + %VD)
-//   - Selos frontais "ALTO EM…" condicionais
-//   - Identificação do fabricante (nome + CNPJ + endereço)
+// Rótulo regulamentado pra produtos da FFB (filial 0013) e Madre Pane (0023).
+// Área de impressão: 800×800 dots @ 203dpi.
 //
-// 100mm × 100mm @ 203dpi = 800×800 dots.
+// Layout (de cima pra baixo):
+//   ┌─ CABEÇALHO ── logo da loja (canto esq.) + razão social ───────────┐
+//   ├─ NOME DO PRODUTO (destaque, até 2 linhas) ────────────────────────┤
+//   ├─ FAB.: dd/mm/aaaa │ LOTE: x │ CONT.: y   (faixa preta) ───────────┤
+//   ├─ [EAN-13] · MODO DE PREPARO · CONSERVAÇÃO · INGREDIENTES ─────────┤  (condicionais)
+//   ├─ [ALÉRGICOS] · INFORMAÇÃO NUTRICIONAL (tabela com linha elástica) ─┤
+//   ├─ [ALTO EM …] selos frontais ─────────────────────────────────────┤  (condicional)
+//   └─ RODAPÉ ── CNPJ · IE / endereço completo / SAC   (ancorado na base)┘
+//
+// A tabela nutricional tem ALTURA DE LINHA ELÁSTICA — cresce pra preencher o
+// espaço que sobra quando o produto tem poucos campos cadastrados (nada de
+// faixa em branco no meio da etiqueta).
+//
+// >>> CALIBRAÇÃO MARGEM_ESQ <<<
+// A impressora térmica imprime tudo deslocado pra esquerda. `MARGEM_ESQ`
+// empurra o conteúdo de volta. Ajuste com teste de impressão: se ainda corta
+// texto na esquerda → AUMENTE; se sobra faixa branca grande na direita →
+// DIMINUA. 1mm ≈ 8 dots.
 // =====================================================================
 
 import {
@@ -415,8 +423,8 @@ import {
   formatNum,
   formatPct,
   type ValoresPor100,
-  type CategoriaRDC429,
 } from './rotulo-anvisa';
+import { logoGfa, type LogoZpl } from './etiqueta-logos';
 
 export interface RotuloDadosLote {
   /** Número do lote impresso. Ex: "01", "L240505". */
@@ -428,9 +436,21 @@ export interface RotuloDadosLote {
 }
 
 export interface RotuloFabricante {
-  nome: string;
+  /** Razão social — vai em destaque no cabeçalho (fallback: nome da filial). */
+  razaoSocial: string;
   cnpj: string | null;
+  inscricaoEstadual: string | null;
+  /** Endereço resumido legado — usado só se os campos estruturados estiverem vazios. */
   endereco: string | null;
+  logradouro: string | null;
+  numero: string | null;
+  complemento: string | null;
+  bairro: string | null;
+  municipio: string | null;
+  uf: string | null;
+  cep: string | null;
+  /** Telefone / SAC. */
+  telefone: string | null;
 }
 
 export interface RotuloItem {
@@ -441,223 +461,310 @@ export interface RotuloItem {
   alergicos: string | null;
   modoPreparo: string | null;
   modoConservacao: string | null;
-  /** Texto da porção formatado, ex: "Porção 40g (2 fatias)". */
+  /** Texto da porção, ex: "Porções por embalagem: 8 · Porção: 230 g (1 fatia)". */
   porcaoTexto: string;
-  porcaoColunaTexto: string; // ex: "40 g" — vai no header da tabela
-  porcoesEmbalagemTexto: string; // ex: "5 porções" — opcional acima
+  /** Texto da coluna de porção no header da tabela, ex: "230 g". */
+  porcaoColunaTexto: string;
   valoresPor100: ValoresPor100;
   fabricante: RotuloFabricante;
   lote: RotuloDadosLote;
+  /** Logo da loja (canto esquerdo do cabeçalho). null = sem logo. */
+  logo: LogoZpl | null;
 }
 
-const W = 800;
-const H = 800;
-const PAD = 16;          // ~2mm
-const COL_RIGHT = W - PAD;
+// ---- Geometria (dots @ 203dpi) ----
+const RW = 800; // largura física (100mm)
+const RH = 800; // altura física (100mm)
 
-/** ZPL field block escape para texto: troca chars do ZPL por equivalentes. */
-function z(text: string | null | undefined): string {
+/**
+ * Margem esquerda do conteúdo, em dots. COMPENSA o deslocamento horizontal da
+ * impressora. Calibrar com teste de impressão (ver bloco de comentário acima).
+ * 1mm ≈ 8 dots.
+ */
+// Argox da Madre Pane (0023): mede-se ~7mm de deslocamento pra esquerda no teste de
+// 2026-05-12 → 96 dots (12mm) deixa ~5mm de margem efetiva na esquerda (folga segura).
+const MARGEM_ESQ = 96;
+const MARGEM_DIR = 16;
+const TOPO = 14;
+const RODAPE_ALTURA = 82; // bloco do fabricante, ancorado na base
+
+const RX = MARGEM_ESQ; // x de origem do conteúdo
+const RCW = RW - MARGEM_ESQ - MARGEM_DIR; // largura útil do conteúdo
+const RODAPE_Y = RH - RODAPE_ALTURA;
+
+/** Escapa caracteres especiais do ZPL (^ ~ \) em campos de texto. */
+function rz(text: string | null | undefined): string {
   if (!text) return '';
-  // ^ e ~ são tokens do ZPL. \ não é especial em ^FD mas evitamos.
   return text.replace(/[\^~]/g, '-').replace(/\\/g, '/');
 }
 
-function shortenLine(text: string, max: number): string {
-  return text.length <= max ? text : text.slice(0, max - 1) + '…';
+function rzUpper(text: string | null | undefined): string {
+  return rz(text).toUpperCase();
 }
 
-/** Mede aproximação grosseira de quantas linhas o texto ocupa em ZPL ^FB. */
-function buildBlock(text: string, width: number, maxLines: number, fontH: number): string {
-  // ^FB: width,maxLines,lineSpacing,justify,hangingIndent
-  return `^FB${width},${maxLines},2,L,0^FD${z(text)}^FS`;
+/** Quantos chars (aprox.) cabem por linha numa fonte A0N de altura `h`, largura `w`. */
+function charsPorLinha(w: number, h: number): number {
+  return Math.max(4, Math.floor(w / (h * 0.58)));
 }
 
-interface NutricionalCol {
-  x: number;
-  w: number;
-  align: 'L' | 'R' | 'C';
+/** Estima quantas linhas o texto ocupa num ^FB de largura `w`, fonte `h`, máx `maxL`. */
+function estimaLinhas(text: string | null | undefined, w: number, h: number, maxL: number): number {
+  if (!text) return 0;
+  return Math.min(maxL, Math.max(1, Math.ceil(text.length / charsPorLinha(w, h))));
+}
+
+function rclamp(n: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, n));
+}
+
+/** Monta o endereço completo a partir dos campos estruturados (fallback: `endereco`). */
+function montarEnderecoLinhas(f: RotuloFabricante): string[] {
+  const linha1Partes: string[] = [];
+  if (f.logradouro) {
+    linha1Partes.push(f.numero ? `${f.logradouro}, ${f.numero}` : f.logradouro);
+    if (f.complemento) linha1Partes.push(f.complemento);
+    if (f.bairro) linha1Partes.push(f.bairro);
+  } else if (f.endereco) {
+    linha1Partes.push(f.endereco);
+  }
+  const linha2Partes: string[] = [];
+  if (f.municipio) linha2Partes.push(f.uf ? `${f.municipio}/${f.uf}` : f.municipio);
+  else if (f.uf) linha2Partes.push(f.uf);
+  if (f.cep) linha2Partes.push(`CEP ${f.cep}`);
+  const out: string[] = [];
+  if (linha1Partes.length) out.push(linha1Partes.join(' · '));
+  if (linha2Partes.length) out.push(linha2Partes.join(' · '));
+  return out;
 }
 
 /**
- * Renderiza a tabela nutricional dentro de uma caixa.
- * Retorna lista de strings ZPL.
+ * Renderiza a tabela "INFORMAÇÃO NUTRICIONAL" numa caixa (x,y) de tamanho
+ * (largura × altura). A altura de linha é elástica — divide o espaço útil
+ * pelas 10 linhas, com fonte proporcional.
  */
 function renderTabelaNutricional(
-  oxX: number,
-  oyY: number,
-  width: number,
+  x: number,
+  y: number,
+  largura: number,
+  altura: number,
   item: RotuloItem,
 ): string[] {
   const out: string[] = [];
   const linhas = montarTabelaNutricional(item.valoresPor100);
-  const ROW_H = 17;
-  const HEADER_H = 24;
+  const TITULO_H = 22;
+  const PORCAO_H = 18;
+  const HEADER_H = 20;
+  const FOOT_H = 16;
+  const espacoLinhas = altura - TITULO_H - PORCAO_H - HEADER_H - FOOT_H;
+  const ROW_H = rclamp(Math.floor(espacoLinhas / linhas.length), 14, 40);
+  const fL = ROW_H >= 32 ? 20 : ROW_H >= 26 ? 18 : ROW_H >= 21 ? 16 : 14;
+  const fOff = Math.max(1, Math.floor((ROW_H - fL) / 2));
 
-  // Bordas externas
-  out.push(`^FO${oxX},${oyY}^GB${width},${HEADER_H + ROW_H * linhas.length + 32},1,B,0^FS`);
+  // colunas: rótulo | 100g/ml | porção | %VD
+  const colVD = 56;
+  const colPorcao = 96;
+  const col100 = 96;
+  const xVD = x + largura - colVD;
+  const xPorcao = xVD - colPorcao;
+  const x100 = xPorcao - col100;
+  const xRot = x + 8;
 
-  // Título "INFORMAÇÃO NUTRICIONAL" em barra preta
-  out.push(`^FO${oxX},${oyY}^GB${width},22,22,B,0^FS`);
-  out.push(`^FO${oxX + 6},${oyY + 4}^A0N,16,16^FR^FDINFORMAÇÃO NUTRICIONAL^FS`);
+  // borda externa + barra-título preta
+  out.push(`^FO${x},${y}^GB${largura},${altura},2,B,0^FS`);
+  out.push(`^FO${x},${y}^GB${largura},${TITULO_H},${TITULO_H},B,0^FS`);
+  out.push(`^FO${x + 8},${y + 3}^A0N,16,16^FR^FDINFORMAÇÃO NUTRICIONAL^FS`);
 
-  // Linha do "Porção…"
-  out.push(`^FO${oxX + 6},${oyY + 26}^A0N,14,14^FD${z(item.porcaoTexto)}^FS`);
+  // linha da porção
+  out.push(`^FO${xRot},${y + TITULO_H + 3}^A0N,13,13^FD${rz(item.porcaoTexto)}^FS`);
 
-  // Cabeçalho das colunas
-  const headerY = oyY + 46;
-  const cols: NutricionalCol[] = [
-    { x: oxX + 6, w: width - 6 - 80 - 80 - 60 - 12, align: 'L' }, // rótulo
-    { x: oxX + width - 80 - 80 - 60 - 6, w: 80, align: 'R' },      // 100g
-    { x: oxX + width - 80 - 60 - 6, w: 80, align: 'R' },           // porção
-    { x: oxX + width - 60 - 6, w: 60, align: 'R' },                // %VD
-  ];
+  // header das colunas
+  const hY = y + TITULO_H + PORCAO_H;
+  out.push(`^FO${x100 - 4},${hY + 2}^A0N,14,14^FB${col100 + 8},1,0,R,0^FD100 ${item.valoresPor100.unidadeBase}^FS`);
+  out.push(`^FO${xPorcao - 4},${hY + 2}^A0N,14,14^FB${colPorcao + 8},1,0,R,0^FD${rz(item.porcaoColunaTexto)}^FS`);
+  out.push(`^FO${xVD - 4},${hY + 2}^A0N,14,14^FB${colVD + 4},1,0,R,0^FD%VD*^FS`);
+  out.push(`^FO${x + 4},${hY + HEADER_H - 1}^GB${largura - 8},2,2^FS`);
 
-  // Linha do header
-  out.push(`^FO${oxX + 4},${headerY + 13}^GB${width - 8},1,1^FS`);
+  // linhas
+  let ry = hY + HEADER_H;
+  linhas.forEach((l, i) => {
+    const ty = ry + fOff;
+    const xLab = xRot + (l.indent ? 16 : 0);
+    out.push(`^FO${xLab},${ty}^A0N,${fL},${fL}^FD${rz(l.rotulo.trim())}^FS`);
+    out.push(`^FO${x100 - 4},${ty}^A0N,${fL},${fL}^FB${col100 + 8},1,0,R,0^FD${rz(formatNum(l.por100))}${l.unidade ? ' ' + l.unidade : ''}^FS`);
+    out.push(`^FO${xPorcao - 4},${ty}^A0N,${fL},${fL}^FB${colPorcao + 8},1,0,R,0^FD${rz(formatNum(l.porPorcao))}${l.unidade ? ' ' + l.unidade : ''}^FS`);
+    out.push(`^FO${xVD - 4},${ty}^A0N,${fL},${fL}^FB${colVD + 4},1,0,R,0^FD${rz(formatPct(l.vdPorcao))}^FS`);
+    ry += ROW_H;
+    if (i < linhas.length - 1) out.push(`^FO${x + 4},${ry}^GB${largura - 8},1,1^FS`);
+  });
 
-  out.push(`^FO${cols[1]!.x - 30},${headerY}^A0N,14,14^FB${cols[1]!.w + 30},1,0,R,0^FD100 ${item.valoresPor100.unidadeBase}^FS`);
-  out.push(`^FO${cols[2]!.x - 30},${headerY}^A0N,14,14^FB${cols[2]!.w + 30},1,0,R,0^FD${z(item.porcaoColunaTexto)}^FS`);
-  out.push(`^FO${cols[3]!.x - 10},${headerY}^A0N,14,14^FB${cols[3]!.w + 10},1,0,R,0^FD%VD*^FS`);
-
-  // Linhas
-  let y = headerY + 18;
-  for (const l of linhas) {
-    out.push(`^FO${cols[0]!.x},${y}^A0N,14,14^FD${z(l.rotulo)}^FS`);
-    out.push(`^FO${cols[1]!.x - 30},${y}^A0N,14,14^FB${cols[1]!.w + 30},1,0,R,0^FD${z(formatNum(l.por100))} ${l.unidade}^FS`);
-    out.push(`^FO${cols[2]!.x - 30},${y}^A0N,14,14^FB${cols[2]!.w + 30},1,0,R,0^FD${z(formatNum(l.porPorcao))} ${l.unidade}^FS`);
-    out.push(`^FO${cols[3]!.x - 10},${y}^A0N,14,14^FB${cols[3]!.w + 10},1,0,R,0^FD${z(formatPct(l.vdPorcao))}^FS`);
-    // separador
-    out.push(`^FO${oxX + 4},${y + ROW_H - 1}^GB${width - 8},1,1,A,0^FS`);
-    y += ROW_H;
-  }
-
-  // Rodapé legal
-  out.push(`^FO${oxX + 4},${y + 2}^A0N,12,12^FD*Percentual de valores diários fornecidos pela porção.^FS`);
-
+  // rodapé legal
+  out.push(`^FO${xRot},${y + altura - FOOT_H + 2}^A0N,12,12^FD*Percentual de valores diários fornecidos pela porção.^FS`);
   return out;
 }
 
-function renderSelos(
-  ox: number,
-  oy: number,
-  width: number,
-  item: RotuloItem,
-): { zpl: string[]; height: number } {
+/** Renderiza os selos frontais "ALTO EM …". Retorna [] se nenhum ativo. */
+function renderSelos(x: number, y: number, largura: number, altura: number, item: RotuloItem): string[] {
   const selos = calcularSelosFrontais(item.valoresPor100);
-  const ativos: string[] = [];
-  if (selos.acucarAdicionado) ativos.push('AÇÚCAR\nADICIONADO');
-  if (selos.gorduraSaturada) ativos.push('GORDURA\nSATURADA');
-  if (selos.sodio) ativos.push('SÓDIO');
-  if (ativos.length === 0) return { zpl: [], height: 0 };
+  const ativos: { l1: string; l2: string }[] = [];
+  if (selos.acucarAdicionado) ativos.push({ l1: 'AÇÚCAR', l2: 'ADICIONADO' });
+  if (selos.gorduraSaturada) ativos.push({ l1: 'GORDURA', l2: 'SATURADA' });
+  if (selos.sodio) ativos.push({ l1: 'SÓDIO', l2: '' });
+  if (ativos.length === 0) return [];
 
-  // "ALTO EM" + N selos
   const out: string[] = [];
-  const SELO_H = 44;
-  const labelWidth = 100;
-  // Caixa "ALTO EM"
-  out.push(`^FO${ox},${oy}^GB${labelWidth},${SELO_H},1,B,4^FS`);
-  out.push(`^FO${ox + 8},${oy + 8}^A0N,16,16^FR^FDALTO EM^FS`);
-  out.push(`^FO${ox + 8},${oy + 24}^A0N,12,12^FR^FD(LUPA)^FS`);
-
-  let cx = ox + labelWidth + 6;
-  const remaining = width - labelWidth - 6;
-  const each = Math.floor((remaining - 6 * (ativos.length - 1)) / ativos.length);
+  const h = Math.min(altura, 48);
+  const wAlto = 100;
+  // caixa "ALTO EM" (preenchida)
+  out.push(`^FO${x},${y}^GB${wAlto},${h},${h},B,3^FS`);
+  out.push(`^FO${x + 4},${y + Math.round(h / 2) - 10}^A0N,17,17^FR^FB${wAlto - 8},1,0,C,0^FDALTO EM^FS`);
+  // caixas dos nutrientes
+  let cx = x + wAlto + 8;
+  const rest = largura - wAlto - 8;
+  const each = Math.floor((rest - 6 * (ativos.length - 1)) / ativos.length);
   for (const s of ativos) {
-    out.push(`^FO${cx},${oy}^GB${each},${SELO_H},1,B,4^FS`);
-    const lines = s.split('\n');
-    const fontH = lines.length === 1 ? 18 : 14;
-    let ty = oy + (SELO_H - fontH * lines.length) / 2;
-    for (const ln of lines) {
-      out.push(`^FO${cx},${ty}^A0N,${fontH},${fontH}^FR^FB${each},1,0,C,0^FD${z(ln)}^FS`);
-      ty += fontH + 2;
+    out.push(`^FO${cx},${y}^GB${each},${h},${h},B,3^FS`);
+    if (s.l2) {
+      out.push(`^FO${cx},${y + Math.round(h / 2) - 17}^A0N,15,15^FR^FB${each},1,0,C,0^FD${rz(s.l1)}^FS`);
+      out.push(`^FO${cx},${y + Math.round(h / 2) + 1}^A0N,15,15^FR^FB${each},1,0,C,0^FD${rz(s.l2)}^FS`);
+    } else {
+      out.push(`^FO${cx},${y + Math.round(h / 2) - 10}^A0N,18,18^FR^FB${each},1,0,C,0^FD${rz(s.l1)}^FS`);
     }
     cx += each + 6;
   }
-  return { zpl: out, height: SELO_H };
+  return out;
+}
+
+// Altura fixa (não-linhas) da tabela nutricional: TITULO 22 + PORCAO 18 + HEADER 20 + FOOT 16.
+const TABELA_FIXO_H = 76;
+// Altura mínima decente da tabela (fixo + 10 linhas a 14 dots).
+const TABELA_MIN_H = TABELA_FIXO_H + 14 * 10;
+
+/** Altura da seção de texto "Título: conteúdo" (título inline pra economizar espaço). */
+function alturaSecaoTexto(titulo: string, texto: string | null | undefined, fonte: number, maxL: number): number {
+  if (!texto) return 0;
+  return estimaLinhas(`${titulo}: ${texto}`, RCW, fonte, maxL) * (fonte + 2) + 8;
 }
 
 export function generateEtiquetaZplRotulo(item: RotuloItem): string {
   const out: string[] = [];
-  out.push('^XA');
-  out.push('^CI28');
-  out.push(`^PW${W}`);
-  out.push(`^LL${H}`);
-  out.push('^LH0,0');
+  out.push('^XA', '^CI28', `^PW${RW}`, `^LL${RH}`, '^LH0,0');
+  const f = item.fabricante;
 
-  // ===== 1. Nome do produto (header em fonte grande, até 2 linhas) =====
-  const nome = item.produtoNome.toUpperCase();
-  out.push(`^FO${PAD},10^A0N,38,38^FB${W - 2 * PAD},2,4,L,0^FD${z(nome)}^FS`);
+  // ===== Pré-cálculo das alturas pra distribuir o espaço vertical =====
+  const headerH = item.logo ? Math.max(item.logo.height, 86) + 6 : 74;
+  const nomeFonte = 36;
+  const nomeLinhas = estimaLinhas(item.produtoNome, RCW, nomeFonte, 2);
+  const nomeH = nomeLinhas * (nomeFonte + 4);
+  const faixaH = 30;
+  const temBarcode = !!(item.ean13 && /^\d{12,13}$/.test(item.ean13));
+  const barcodeH = temBarcode ? 56 + 28 : 0;
+  const preparoH = alturaSecaoTexto('MODO DE PREPARO', item.modoPreparo, 14, 2);
+  const conservH = alturaSecaoTexto('CONSERVAÇÃO', item.modoConservacao, 14, 2);
+  const ingredH = alturaSecaoTexto('INGREDIENTES', item.ingredientes, 13, 4);
+  const alergLinhas = item.alergicos ? estimaLinhas(item.alergicos, RCW - 16, 16, 2) : 0;
+  const alergH = item.alergicos ? (alergLinhas <= 1 ? 32 : 44) : 0;
+  const alergBloco = alergH ? alergH + 10 : 0;
 
-  // ===== 2. Faixa fab/lote/conteúdo =====
-  const faixaY = 100;
-  out.push(`^FO${PAD},${faixaY}^GB${W - 2 * PAD},28,1,B,0^FS`);
-  out.push(`^FO${PAD + 6},${faixaY + 6}^A0N,16,16^FR^FDFAB.: ${z(item.lote.fabricacao)}^FS`);
-  out.push(`^FO${PAD + 280},${faixaY + 6}^A0N,16,16^FR^FDLOTE: ${z(item.lote.lote)}^FS`);
-  out.push(`^FO${PAD + 460},${faixaY + 6}^A0N,16,16^FR^FDCONT.: ${z(item.lote.conteudoLiquido)}^FS`);
+  const selosCalc = calcularSelosFrontais(item.valoresPor100);
+  const temSelos = selosCalc.acucarAdicionado || selosCalc.gorduraSaturada || selosCalc.sodio;
+  const selosBloco = temSelos ? 46 + 10 : 0; // caixa + gap acima
 
-  // ===== 3. Código de barras EAN-13 (centralizado) =====
-  let cursorY = faixaY + 38;
-  if (item.ean13 && /^\d{12,13}$/.test(item.ean13)) {
-    // ^BEN,height,interpretationLine,linesAbove
-    // O EAN-13 ocupa ~~110 dots de largura com module 2. Pra centralizar:
-    const barW = 270; // estimativa
-    const barX = Math.round((W - barW) / 2);
-    out.push(`^FO${barX},${cursorY}^BY2,2.0,60`);
-    out.push(`^BEN,60,Y,N^FD${item.ean13}^FS`);
-    cursorY += 88;
+  // rodapé do fabricante (linhas)
+  const rodapeLinhas: string[] = [];
+  if (!item.logo) rodapeLinhas.push(rzUpper(f.razaoSocial));
+  const ident: string[] = [];
+  if (f.cnpj) ident.push(`CNPJ ${f.cnpj}`);
+  if (f.inscricaoEstadual) ident.push(`IE ${f.inscricaoEstadual}`);
+  if (ident.length) rodapeLinhas.push(ident.join(' · '));
+  for (const ln of montarEnderecoLinhas(f)) rodapeLinhas.push(ln);
+  if (f.telefone) rodapeLinhas.push(`SAC: ${f.telefone}`);
+  const rodapeLinhasShow = rodapeLinhas.slice(0, 5);
+  const rodapeFonte = rodapeLinhasShow.length > 4 ? 12 : 14;
+  const rodapeH = 6 /*rule+pad*/ + rodapeLinhasShow.length * (rodapeFonte + 3) + 4;
+
+  // espaço pra tabela = o que sobra entre o fim do bloco superior e o rodapé/selos
+  const topoAteTabela =
+    TOPO + headerH + 12 /*rule+gap*/ + nomeH + 10 + faixaH + 12 + barcodeH + preparoH + conservH + ingredH + alergBloco;
+  const espacoRestante = RH - 4 /*margem base*/ - rodapeH - selosBloco - topoAteTabela;
+  // teto: 10 linhas a 40 dots + fixo — acima disso só sobra "ar" dentro da tabela.
+  const tabelaAltura = rclamp(espacoRestante, TABELA_MIN_H, TABELA_FIXO_H + 40 * 10);
+
+  // ===== 1. CABEÇALHO — logo (canto esq.) + razão social =====
+  if (item.logo) {
+    out.push(`^FO${RX},${TOPO}${logoGfa(item.logo)}^FS`);
+    const rsX = RX + item.logo.width + 20;
+    const rsW = RCW - item.logo.width - 20;
+    if (rsW > 90) {
+      out.push(`^FO${rsX},${TOPO + 6}^A0N,22,22^FB${rsW},3,3,L,0^FD${rzUpper(f.razaoSocial)}^FS`);
+    }
   } else {
-    cursorY += 6;
+    out.push(`^FO${RX},${TOPO}^A0N,30,30^FB${RCW},2,4,C,0^FD${rzUpper(f.razaoSocial)}^FS`);
+  }
+  let y = TOPO + headerH;
+  out.push(`^FO${RX},${y}^GB${RCW},2,2^FS`);
+  y += 12;
+
+  // ===== 2. NOME DO PRODUTO =====
+  out.push(`^FO${RX},${y}^A0N,${nomeFonte},${nomeFonte}^FB${RCW},2,4,L,0^FD${rzUpper(item.produtoNome)}^FS`);
+  y += nomeH + 10;
+
+  // ===== 3. FAIXA FAB / LOTE / CONT =====
+  out.push(`^FO${RX},${y}^GB${RCW},${faixaH},${faixaH},B,0^FS`);
+  out.push(`^FO${RX + 10},${y + 7}^A0N,17,17^FR^FDFAB.: ${rz(item.lote.fabricacao)}^FS`);
+  out.push(`^FO${RX + Math.round(RCW * 0.40)},${y + 7}^A0N,17,17^FR^FDLOTE: ${rz(item.lote.lote)}^FS`);
+  out.push(`^FO${RX + Math.round(RCW * 0.66)},${y + 7}^A0N,17,17^FR^FDCONT.: ${rz(item.lote.conteudoLiquido)}^FS`);
+  y += faixaH + 12;
+
+  // ===== 3b. EAN-13 (centralizado na área útil) =====
+  if (temBarcode) {
+    const barH = 56;
+    const barW = 240;
+    const barX = RX + Math.round((RCW - barW) / 2);
+    out.push(`^FO${barX},${y}^BY2,2.5,${barH}^BEN,${barH},Y,N^FD${item.ean13}^FS`);
+    y += barcodeH;
   }
 
-  // ===== 4. Modo de Preparo =====
-  if (item.modoPreparo) {
-    out.push(`^FO${PAD},${cursorY}^A0N,14,14^FDMODO DE PREPARO^FS`);
-    out.push(`^FO${PAD},${cursorY + 16}^A0N,16,16^FB${W - 2 * PAD},3,2,L,0^FD${z(item.modoPreparo)}^FS`);
-    cursorY += 16 + 16 * 3 + 4;
-  }
+  // ===== 4/5/6. Modo de preparo · conservação · ingredientes (condicionais) =====
+  // Título inline ("MODO DE PREPARO: ...") pra economizar espaço vertical.
+  const secaoTexto = (titulo: string, texto: string, fonte: number, maxL: number): void => {
+    const full = `${titulo}: ${texto}`;
+    const nl = estimaLinhas(full, RCW, fonte, maxL);
+    out.push(`^FO${RX},${y}^A0N,${fonte},${fonte}^FB${RCW},${maxL},2,L,0^FD${rz(full)}^FS`);
+    y += nl * (fonte + 2) + 8;
+  };
+  if (item.modoPreparo) secaoTexto('MODO DE PREPARO', item.modoPreparo, 14, 2);
+  if (item.modoConservacao) secaoTexto('CONSERVAÇÃO', item.modoConservacao, 14, 2);
+  if (item.ingredientes) secaoTexto('INGREDIENTES', item.ingredientes, 13, 4);
 
-  // ===== 5. Modo de Conservação =====
-  if (item.modoConservacao) {
-    out.push(`^FO${PAD},${cursorY}^A0N,14,14^FDMODO DE CONSERVAÇÃO^FS`);
-    out.push(`^FO${PAD},${cursorY + 16}^A0N,16,16^FB${W - 2 * PAD},2,2,L,0^FD${z(item.modoConservacao)}^FS`);
-    cursorY += 16 + 16 * 2 + 4;
-  }
-
-  // ===== 6. Ingredientes =====
-  if (item.ingredientes) {
-    out.push(`^FO${PAD},${cursorY}^A0N,14,14^FDINGREDIENTES^FS`);
-    out.push(`^FO${PAD},${cursorY + 16}^A0N,15,15^FB${W - 2 * PAD},4,2,L,0^FD${z(item.ingredientes)}^FS`);
-    cursorY += 16 + 15 * 4 + 4;
-  }
-
-  // ===== 7. Alergênicos (caixa em destaque) =====
+  // ===== 7. Alérgicos (caixa em destaque) =====
   if (item.alergicos) {
-    const alergH = 38;
-    out.push(`^FO${PAD},${cursorY}^GB${W - 2 * PAD},${alergH},${alergH},B,0^FS`);
-    out.push(`^FO${PAD + 8},${cursorY + 8}^A0N,18,18^FR^FB${W - 2 * PAD - 16},2,2,L,0^FD${z(item.alergicos)}^FS`);
-    cursorY += alergH + 6;
+    out.push(`^FO${RX},${y}^GB${RCW},${alergH},${alergH},B,0^FS`);
+    out.push(`^FO${RX + 8},${y + 5}^A0N,16,16^FR^FB${RCW - 16},2,2,L,0^FD${rz(item.alergicos)}^FS`);
+    y += alergH + 10;
   }
 
-  // ===== 8. Tabela Nutricional =====
-  // Calcula altura aproximada pra ver se sobra espaço pros selos depois.
-  const nutriHeight = 22 /*titulo*/ + 22 /*porcao*/ + 18 /*header*/ + 17 * 10 /*linhas*/ + 18 /*footer*/;
-  const tabelaY = cursorY;
-  for (const ln of renderTabelaNutricional(PAD, tabelaY, W - 2 * PAD, item)) {
-    out.push(ln);
+  // ===== 8. Tabela nutricional (elástica — preenche o que sobra) =====
+  for (const ln of renderTabelaNutricional(RX, y, RCW, tabelaAltura, item)) out.push(ln);
+  y += tabelaAltura;
+
+  // ===== 9. Selos frontais "ALTO EM…" =====
+  if (temSelos) {
+    y += 10;
+    for (const ln of renderSelos(RX, y, RCW, 46, item)) out.push(ln);
+    y += 46;
   }
-  cursorY = tabelaY + nutriHeight + 6;
 
-  // ===== 9. Selos frontais =====
-  const selosOut = renderSelos(PAD, cursorY, W - 2 * PAD, item);
-  for (const ln of selosOut.zpl) out.push(ln);
-  if (selosOut.height > 0) cursorY += selosOut.height + 6;
-
-  // ===== 10. Fabricante (rodapé, sempre na base) =====
-  const footerY = Math.max(cursorY, H - 38);
-  const fabLinha1 = `${item.fabricante.nome}${item.fabricante.cnpj ? ` · CNPJ ${item.fabricante.cnpj}` : ''}`;
-  out.push(`^FO${PAD},${footerY}^A0N,14,14^FB${W - 2 * PAD},1,0,L,0^FD${z(shortenLine(fabLinha1, 90))}^FS`);
-  if (item.fabricante.endereco) {
-    out.push(`^FO${PAD},${footerY + 16}^A0N,14,14^FB${W - 2 * PAD},1,0,L,0^FD${z(shortenLine(item.fabricante.endereco, 90))}^FS`);
+  // ===== 10. RODAPÉ — identificação do fabricante =====
+  // Ancorado na base se sobrou espaço; senão flui logo abaixo dos selos.
+  // Renderiza só as linhas que cabem (sem corte no meio de uma linha) — quando
+  // o produto tem texto demais, sobra menos espaço; CNPJ/endereço têm prioridade.
+  const rodapeY = Math.max(y + 4, RH - rodapeH);
+  out.push(`^FO${RX},${rodapeY}^GB${RCW},2,2^FS`);
+  const cabeRodape = Math.max(1, Math.floor((RH - 2 - (rodapeY + 6)) / (rodapeFonte + 3)));
+  let ry = rodapeY + 6;
+  for (const ln of rodapeLinhasShow.slice(0, cabeRodape)) {
+    out.push(`^FO${RX},${ry}^A0N,${rodapeFonte},${rodapeFonte}^FB${RCW},1,0,L,0^FD${rz(ln)}^FS`);
+    ry += rodapeFonte + 3;
   }
 
   out.push('^XZ');

@@ -21,6 +21,14 @@ export default async function EditarLojaPage({ params }: { params: Promise<{ id:
       cnpj: true,
       inscricaoEstadual: true,
       ufFiscal: true,
+      razaoSocial: true,
+      logradouro: true,
+      numero: true,
+      complemento: true,
+      bairro: true,
+      municipio: true,
+      cep: true,
+      telefone: true,
       certificadoNome: true,
       certificadoValidoAte: true,
       certificadoUploadedAt: true,
@@ -43,7 +51,7 @@ export default async function EditarLojaPage({ params }: { params: Promise<{ id:
             Editar <em>{loja.apelido ?? loja.nome}</em>
           </>
         }
-        sub="Informações fiscais e certificado A1 para integração com SEFAZ."
+        sub="Dados fiscais, identificação do fabricante (rótulo), certificado A1 (SEFAZ) e impressora Argox."
       />
 
       <Card className="p-5">
@@ -55,6 +63,14 @@ export default async function EditarLojaPage({ params }: { params: Promise<{ id:
             cnpj: loja.cnpj ?? '',
             inscricaoEstadual: loja.inscricaoEstadual ?? '',
             ufFiscal: loja.ufFiscal ?? '',
+            razaoSocial: loja.razaoSocial ?? '',
+            logradouro: loja.logradouro ?? '',
+            numero: loja.numero ?? '',
+            complemento: loja.complemento ?? '',
+            bairro: loja.bairro ?? '',
+            municipio: loja.municipio ?? '',
+            cep: loja.cep ?? '',
+            telefone: loja.telefone ?? '',
             certNome: loja.certificadoNome,
             certValidoAte: loja.certificadoValidoAte?.toISOString() ?? null,
             certUploadedAt: loja.certificadoUploadedAt?.toISOString() ?? null,

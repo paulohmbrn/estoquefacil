@@ -115,6 +115,16 @@ model Loja {
   cnpj                   String?
   inscricaoEstadual      String?
   ufFiscal               String?
+  // Identificação do fabricante para o rótulo regulamentado (RDC 429/2020 + IN 75/2020).
+  // `endereco` acima continua sendo o resumido legado; estes são os campos estruturados.
+  razaoSocial            String?
+  logradouro             String?
+  numero                 String?
+  complemento            String?
+  bairro                 String?
+  municipio              String?
+  cep                    String?
+  telefone               String? // SAC
   certificadoPath        String?
   certificadoSenhaEnc    String?
   certificadoNome        String?
