@@ -476,21 +476,18 @@ export interface RotuloItem {
 const RW = 800; // largura física (100mm)
 const RH = 800; // altura física (100mm)
 
-/**
- * Margem esquerda do conteúdo, em dots. COMPENSA o deslocamento horizontal da
- * impressora. Calibrar com teste de impressão (ver bloco de comentário acima).
- * 1mm ≈ 8 dots.
- */
-// Argox da Madre Pane (0023): mede-se ~7mm de deslocamento pra esquerda no teste de
-// 2026-05-12 → 96 dots (12mm) deixa ~5mm de margem efetiva na esquerda (folga segura).
-const MARGEM_ESQ = 96;
-const MARGEM_DIR = 16;
+// Margens do conteúdo, em dots (1mm ≈ 8 dots @ 203dpi). COMPENSAM o deslocamento
+// horizontal da impressora térmica, que varia entre prints (0 a ~7mm pra esquerda na
+// Argox da Madre Pane / 0023). Folga dos dois lados pra nada cortar independente da
+// oscilação. Calibrar com teste de impressão (apps/web/scripts/gerar-rotulo-teste.mts).
+const MARGEM_ESQ = 96; // ~12mm
+const MARGEM_DIR = 60; // ~7.5mm — a impressora também corta perto da borda direita
 const TOPO = 14;
-const RODAPE_ALTURA = 82; // bloco do fabricante, ancorado na base
+const FUNDO = 22; // margem inferior — o último corte da etiqueta também varia ~±2mm
 
 const RX = MARGEM_ESQ; // x de origem do conteúdo
 const RCW = RW - MARGEM_ESQ - MARGEM_DIR; // largura útil do conteúdo
-const RODAPE_Y = RH - RODAPE_ALTURA;
+const RBASE = RH - FUNDO; // y máximo utilizável pra conteúdo (deixa margem na base)
 
 /** Escapa caracteres especiais do ZPL (^ ~ \) em campos de texto. */
 function rz(text: string | null | undefined): string {
@@ -560,11 +557,12 @@ function renderTabelaNutricional(
   const fL = ROW_H >= 32 ? 20 : ROW_H >= 26 ? 18 : ROW_H >= 21 ? 16 : 14;
   const fOff = Math.max(1, Math.floor((ROW_H - fL) / 2));
 
-  // colunas: rótulo | 100g/ml | porção | %VD
-  const colVD = 56;
-  const colPorcao = 96;
-  const col100 = 96;
-  const xVD = x + largura - colVD;
+  // colunas: rótulo | 100g/ml | porção | %VD — com folga de 8 dots da borda direita
+  const padDir = 8;
+  const colVD = 48;
+  const colPorcao = 92;
+  const col100 = 92;
+  const xVD = x + largura - padDir - colVD;
   const xPorcao = xVD - colPorcao;
   const x100 = xPorcao - col100;
   const xRot = x + 8;
@@ -651,7 +649,7 @@ export function generateEtiquetaZplRotulo(item: RotuloItem): string {
   const f = item.fabricante;
 
   // ===== Pré-cálculo das alturas pra distribuir o espaço vertical =====
-  const headerH = item.logo ? Math.max(item.logo.height, 86) + 6 : 74;
+  const headerH = item.logo ? item.logo.height + 14 : 70;
   const nomeFonte = 36;
   const nomeLinhas = estimaLinhas(item.produtoNome, RCW, nomeFonte, 2);
   const nomeH = nomeLinhas * (nomeFonte + 4);
@@ -669,9 +667,9 @@ export function generateEtiquetaZplRotulo(item: RotuloItem): string {
   const temSelos = selosCalc.acucarAdicionado || selosCalc.gorduraSaturada || selosCalc.sodio;
   const selosBloco = temSelos ? 46 + 10 : 0; // caixa + gap acima
 
-  // rodapé do fabricante (linhas)
+  // rodapé do fabricante (identificação completa: razão social, CNPJ/IE, endereço, SAC)
   const rodapeLinhas: string[] = [];
-  if (!item.logo) rodapeLinhas.push(rzUpper(f.razaoSocial));
+  if (f.razaoSocial) rodapeLinhas.push(rzUpper(f.razaoSocial));
   const ident: string[] = [];
   if (f.cnpj) ident.push(`CNPJ ${f.cnpj}`);
   if (f.inscricaoEstadual) ident.push(`IE ${f.inscricaoEstadual}`);
@@ -679,33 +677,30 @@ export function generateEtiquetaZplRotulo(item: RotuloItem): string {
   for (const ln of montarEnderecoLinhas(f)) rodapeLinhas.push(ln);
   if (f.telefone) rodapeLinhas.push(`SAC: ${f.telefone}`);
   const rodapeLinhasShow = rodapeLinhas.slice(0, 5);
-  const rodapeFonte = rodapeLinhasShow.length > 4 ? 12 : 14;
+  const rodapeFonte = rodapeLinhasShow.length >= 5 ? 12 : 13;
   const rodapeH = 6 /*rule+pad*/ + rodapeLinhasShow.length * (rodapeFonte + 3) + 4;
 
   // espaço pra tabela = o que sobra entre o fim do bloco superior e o rodapé/selos
   const topoAteTabela =
     TOPO + headerH + 12 /*rule+gap*/ + nomeH + 10 + faixaH + 12 + barcodeH + preparoH + conservH + ingredH + alergBloco;
-  const espacoRestante = RH - 4 /*margem base*/ - rodapeH - selosBloco - topoAteTabela;
+  const espacoRestante = RBASE - rodapeH - selosBloco - topoAteTabela;
   // teto: 10 linhas a 40 dots + fixo — acima disso só sobra "ar" dentro da tabela.
   const tabelaAltura = rclamp(espacoRestante, TABELA_MIN_H, TABELA_FIXO_H + 40 * 10);
 
-  // ===== 1. CABEÇALHO — logo (canto esq.) + razão social =====
+  // ===== 1. CABEÇALHO — logo da loja, centralizado =====
   if (item.logo) {
-    out.push(`^FO${RX},${TOPO}${logoGfa(item.logo)}^FS`);
-    const rsX = RX + item.logo.width + 20;
-    const rsW = RCW - item.logo.width - 20;
-    if (rsW > 90) {
-      out.push(`^FO${rsX},${TOPO + 6}^A0N,22,22^FB${rsW},3,3,L,0^FD${rzUpper(f.razaoSocial)}^FS`);
-    }
+    const lx = RX + Math.round((RCW - item.logo.width) / 2);
+    out.push(`^FO${lx},${TOPO}${logoGfa(item.logo)}^FS`);
   } else {
-    out.push(`^FO${RX},${TOPO}^A0N,30,30^FB${RCW},2,4,C,0^FD${rzUpper(f.razaoSocial)}^FS`);
+    // sem logo (caso defensivo): razão social grande no topo
+    out.push(`^FO${RX},${TOPO}^A0N,28,28^FB${RCW},2,4,C,0^FD${rzUpper(f.razaoSocial)}^FS`);
   }
   let y = TOPO + headerH;
   out.push(`^FO${RX},${y}^GB${RCW},2,2^FS`);
   y += 12;
 
-  // ===== 2. NOME DO PRODUTO =====
-  out.push(`^FO${RX},${y}^A0N,${nomeFonte},${nomeFonte}^FB${RCW},2,4,L,0^FD${rzUpper(item.produtoNome)}^FS`);
+  // ===== 2. NOME DO PRODUTO (centralizado) =====
+  out.push(`^FO${RX},${y}^A0N,${nomeFonte},${nomeFonte}^FB${RCW},2,4,C,0^FD${rzUpper(item.produtoNome)}^FS`);
   y += nomeH + 10;
 
   // ===== 3. FAIXA FAB / LOTE / CONT =====
@@ -758,9 +753,9 @@ export function generateEtiquetaZplRotulo(item: RotuloItem): string {
   // Ancorado na base se sobrou espaço; senão flui logo abaixo dos selos.
   // Renderiza só as linhas que cabem (sem corte no meio de uma linha) — quando
   // o produto tem texto demais, sobra menos espaço; CNPJ/endereço têm prioridade.
-  const rodapeY = Math.max(y + 4, RH - rodapeH);
+  const rodapeY = Math.max(y + 4, RBASE - rodapeH);
   out.push(`^FO${RX},${rodapeY}^GB${RCW},2,2^FS`);
-  const cabeRodape = Math.max(1, Math.floor((RH - 2 - (rodapeY + 6)) / (rodapeFonte + 3)));
+  const cabeRodape = Math.max(1, Math.floor((RBASE - (rodapeY + 6)) / (rodapeFonte + 3)));
   let ry = rodapeY + 6;
   for (const ln of rodapeLinhasShow.slice(0, cabeRodape)) {
     out.push(`^FO${RX},${ry}^A0N,${rodapeFonte},${rodapeFonte}^FB${RCW},1,0,L,0^FD${rz(ln)}^FS`);
