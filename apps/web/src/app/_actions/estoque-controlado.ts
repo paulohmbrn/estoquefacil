@@ -175,7 +175,9 @@ export async function saldoControlado(): Promise<
     const { lojaId } = await requireLojaAtiva();
     const grupos = await prisma.etiqueta.groupBy({
       by: ['produtoId'],
-      where: { lojaId, estado: 'ATIVA' },
+      // cdarvprodEstoqueSnap só é setado por gerarEtiquetasControladas —
+      // exclui etiquetas de manipulação (lote/imprimir-ws).
+      where: { lojaId, estado: 'ATIVA', cdarvprodEstoqueSnap: { not: null } },
       _count: { _all: true },
     });
     if (grupos.length === 0) return { ok: true, data: [] };

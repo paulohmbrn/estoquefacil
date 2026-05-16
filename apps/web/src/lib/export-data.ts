@@ -1,7 +1,69 @@
 // Helpers de query usados pelo route handler de export.
 
+import { FILIAIS_ESTOQUE_CONTROLADO_SET } from '@estoque/shared';
 import { prisma } from '@/lib/db';
 import type { LancamentoExport } from './export-xlsx';
+
+/**
+ * Consolida lançamentos pro ZmartBI nas lojas de Estoque Controlado:
+ *  1. cada CDARVPROD vira o produto de estoque base (`cdarvprodEstoque`), com
+ *     quantidade × `fatorConversao` (unidade base);
+ *  2. soma o saldo do Estoque Controlado (etiquetas ATIVA com snapshot) — cada
+ *     etiqueta = 1 unidade física × `fatorConversaoSnap`, no `cdarvprodEstoqueSnap`.
+ * O `buildContagemXlsx` então agrega por (base, data) → 1 linha por família.
+ *
+ * Lojas fora de `FILIAIS_ESTOQUE_CONTROLADO` (ex.: FFB 0013) mantêm o
+ * comportamento legado: lançamentos crus, sem fator e sem saldo controlado.
+ */
+async function consolidarParaZmartbi(args: {
+  lojaId: string;
+  cdFilial: string;
+  lancamentos: LancamentoExport[];
+  dataLancamento: Date;
+  // Saldo do Estoque Controlado é um agregado do dia — só entra nas exportações
+  // consolidadas (dia/seleção), nunca numa contagem isolada (evita duplicar o
+  // saldo se o gestor exporta várias contagens avulsas no mesmo dia).
+  incluirSaldoControlado: boolean;
+}): Promise<LancamentoExport[]> {
+  if (!FILIAIS_ESTOQUE_CONTROLADO_SET.has(args.cdFilial)) return args.lancamentos;
+
+  const codes = [...new Set(args.lancamentos.map((l) => l.cdarvprod))];
+  const prods = codes.length
+    ? await prisma.produto.findMany({
+        where: { lojaId: args.lojaId, cdarvprod: { in: codes } },
+        select: { cdarvprod: true, fatorConversao: true, cdarvprodEstoque: true },
+      })
+    : [];
+  const map = new Map(prods.map((p) => [p.cdarvprod, p]));
+
+  const out: LancamentoExport[] = [];
+  for (const l of args.lancamentos) {
+    const p = map.get(l.cdarvprod);
+    const fator = p ? Number(p.fatorConversao) : 1;
+    const base = p?.cdarvprodEstoque ?? l.cdarvprod;
+    out.push({ cdarvprod: base, quantidade: l.quantidade * fator, dataContagem: l.dataContagem });
+  }
+
+  if (!args.incluirSaldoControlado) return out;
+
+  // Saldo do Estoque Controlado: só etiquetas com snapshot (gerarEtiquetasControladas).
+  // Etiquetas de manipulação (lote/imprimir-ws) têm cdarvprodEstoqueSnap = null e
+  // não entram aqui.
+  const grupos = await prisma.etiqueta.groupBy({
+    by: ['cdarvprodEstoqueSnap', 'fatorConversaoSnap'],
+    where: { lojaId: args.lojaId, estado: 'ATIVA', cdarvprodEstoqueSnap: { not: null } },
+    _count: { _all: true },
+  });
+  for (const g of grupos) {
+    if (!g.cdarvprodEstoqueSnap) continue;
+    out.push({
+      cdarvprod: g.cdarvprodEstoqueSnap,
+      quantidade: g._count._all * Number(g.fatorConversaoSnap),
+      dataContagem: args.dataLancamento,
+    });
+  }
+  return out;
+}
 
 export type ContagemMeta = {
   id: string;
@@ -28,6 +90,11 @@ export async function fetchContagemUnica(contagemId: string): Promise<{
     },
   });
   if (!c) return null;
+  const lancamentosCrus = c.lancamentos.map((l) => ({
+    cdarvprod: l.produto.cdarvprod,
+    quantidade: Number(l.quantidade),
+    dataContagem: c.dataContagem,
+  }));
   return {
     meta: {
       id: c.id,
@@ -36,11 +103,13 @@ export async function fetchContagemUnica(contagemId: string): Promise<{
       status: c.status,
       dataContagem: c.dataContagem,
     },
-    lancamentos: c.lancamentos.map((l) => ({
-      cdarvprod: l.produto.cdarvprod,
-      quantidade: Number(l.quantidade),
-      dataContagem: c.dataContagem,
-    })),
+    lancamentos: await consolidarParaZmartbi({
+      lojaId: c.lojaId,
+      cdFilial: c.loja.zmartbiId,
+      lancamentos: lancamentosCrus,
+      dataLancamento: c.dataContagem,
+      incluirSaldoControlado: false, // contagem isolada não carrega o saldo do dia
+    }),
   };
 }
 
@@ -98,7 +167,13 @@ export async function fetchContagensDoDia(args: {
       dataContagem: args.dataContagem,
       contagensIds: contagens.map((c) => c.id),
     },
-    lancamentos,
+    lancamentos: await consolidarParaZmartbi({
+      lojaId: args.lojaId,
+      cdFilial: loja.zmartbiId,
+      lancamentos,
+      dataLancamento: args.dataContagem,
+      incluirSaldoControlado: true,
+    }),
   };
 }
 
@@ -169,7 +244,13 @@ export async function fetchContagensSelecionadas(args: {
       dataLancamento,
       contagensIds: contagens.map((c) => c.id),
     },
-    lancamentos,
+    lancamentos: await consolidarParaZmartbi({
+      lojaId: args.lojaId,
+      cdFilial: contagens[0]!.loja.zmartbiId,
+      lancamentos,
+      dataLancamento,
+      incluirSaldoControlado: true,
+    }),
   };
 }
 
