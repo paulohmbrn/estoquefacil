@@ -60,6 +60,30 @@ export default async function RelatoriosIndexPage() {
           </p>
         </Link>
 
+        <Link
+          href="/estoque-controlado/sugestao-pedido"
+          className="block bg-white border border-hairline rounded-xs p-6 hover:border-rm-green transition-colors"
+        >
+          <p className="rm-eyebrow text-rm-mid">Estoque Controlado</p>
+          <h3 className="rm-h3 mt-2">Sugestão de pedido</h3>
+          <p className="rm-caption text-rm-mid mt-2">
+            Compara o saldo real (etiquetas ativas) com o estoque mínimo e sugere
+            quanto pedir por produto controlado.
+          </p>
+        </Link>
+
+        <Link
+          href="/estoque-controlado/movimentacao"
+          className="block bg-white border border-hairline rounded-xs p-6 hover:border-rm-green transition-colors"
+        >
+          <p className="rm-eyebrow text-rm-mid">Estoque Controlado</p>
+          <h3 className="rm-h3 mt-2">Movimentação</h3>
+          <p className="rm-caption text-rm-mid mt-2">
+            Histórico de entradas (impressão de etiquetas) e baixas (retiradas)
+            com setor e responsável.
+          </p>
+        </Link>
+
         <Card className="p-6">
           <p className="rm-eyebrow text-rm-mid">Último export</p>
           <h3 className="rm-h4 mt-2">

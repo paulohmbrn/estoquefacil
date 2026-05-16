@@ -9,7 +9,7 @@
      * Rotas de API/auth/scan     → passa direto (sem cache, sempre online).
 */
 
-const VERSION = 'estoque-v47-qr-scan-feedback';
+const VERSION = 'estoque-v48-relatorios-controlado';
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 

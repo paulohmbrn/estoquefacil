@@ -95,6 +95,18 @@ export default async function EstoqueControladoHub() {
         <Link href="/estoque-controlado/baixa" className="ef-btn ef-btn-primary inline-flex">
           Baixar por scan
         </Link>
+        <Link
+          href="/estoque-controlado/sugestao-pedido"
+          className="inline-flex items-center px-4 py-2 border border-hairline rounded-xs text-[13px] font-medium hover:border-rm-green transition-colors"
+        >
+          Sugestão de pedido
+        </Link>
+        <Link
+          href="/estoque-controlado/movimentacao"
+          className="inline-flex items-center px-4 py-2 border border-hairline rounded-xs text-[13px] font-medium hover:border-rm-green transition-colors"
+        >
+          Movimentação
+        </Link>
       </div>
 
       <section className="mb-10">
