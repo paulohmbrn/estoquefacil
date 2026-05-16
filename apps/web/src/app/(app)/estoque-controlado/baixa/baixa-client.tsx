@@ -3,13 +3,15 @@
 // Fluxo imersivo (tablet): bipa seriais das etiquetas que estão saindo,
 // acumula a lista, escolhe setor + responsável e confirma a baixa.
 
-import { useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { CheckCircle2, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { QrScanner } from '../../contagem/[id]/qr-scanner';
 import { baixarEtiquetas } from '@/app/_actions/estoque-controlado';
 
 type Func = { id: string; nome: string };
+type Flash = { tipo: 'novo' | 'dup'; serial: string; key: number };
 
 export function BaixaClient({ funcionarios }: { funcionarios: Func[] }) {
   const [seriais, setSeriais] = useState<string[]>([]);
@@ -17,13 +19,33 @@ export function BaixaClient({ funcionarios }: { funcionarios: Func[] }) {
   const [respId, setRespId] = useState<string | null>(null);
   const [obs, setObs] = useState('');
   const [msg, setMsg] = useState<{ tipo: 'ok' | 'erro'; texto: string } | null>(null);
+  const [flash, setFlash] = useState<Flash | null>(null);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+
+  // Espelho do estado pra detectar duplicado mesmo em scans rápidos (closure).
+  const seriaisRef = useRef<string[]>([]);
+  useEffect(() => {
+    seriaisRef.current = seriais;
+  }, [seriais]);
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (flashTimer.current) clearTimeout(flashTimer.current);
+  }, []);
 
   function onScan(text: string) {
     const serial = text.trim().toUpperCase();
     if (!serial) return;
-    setSeriais((prev) => (prev.includes(serial) ? prev : [...prev, serial]));
+    const dup = seriaisRef.current.includes(serial);
+    if (!dup) setSeriais((prev) => (prev.includes(serial) ? prev : [...prev, serial]));
+
+    // Feedback bem visível: overlay grande + vibração (haptic no tablet).
+    setFlash({ tipo: dup ? 'dup' : 'novo', serial, key: Date.now() });
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(dup ? [30, 40, 30] : 70);
+    }
+    if (flashTimer.current) clearTimeout(flashTimer.current);
+    flashTimer.current = setTimeout(() => setFlash(null), 1100);
   }
 
   function remover(s: string) {
@@ -67,8 +89,33 @@ export function BaixaClient({ funcionarios }: { funcionarios: Func[] }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div>
-          <div className="aspect-square bg-black rounded-xs overflow-hidden">
+          <div className="relative aspect-square bg-black rounded-xs overflow-hidden">
             <QrScanner onScan={onScan} pause={pending} />
+            {flash && (
+              <div
+                key={flash.key}
+                className={`absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 animate-in fade-in zoom-in-95 duration-200 ${
+                  flash.tipo === 'novo'
+                    ? 'bg-[rgba(0,65,37,.88)] text-white'
+                    : 'bg-[rgba(184,144,46,.92)] text-rm-ink'
+                }`}
+              >
+                {flash.tipo === 'novo' ? (
+                  <CheckCircle2 size={96} strokeWidth={2.4} />
+                ) : (
+                  <Copy size={84} strokeWidth={2.4} />
+                )}
+                <p className="mt-3 text-[28px] font-bold tracking-wide">
+                  {flash.tipo === 'novo' ? 'BIPADO!' : 'JÁ NA LISTA'}
+                </p>
+                <p className="mt-1 font-mono text-[16px] opacity-90">{flash.serial}</p>
+                <p className="mt-2 text-[14px] opacity-90">
+                  {flash.tipo === 'novo'
+                    ? `Total bipado: ${seriais.length}`
+                    : 'Essa etiqueta já foi bipada'}
+                </p>
+              </div>
+            )}
           </div>
           <p className="text-[12px] text-rm-mid mt-2">
             Cada etiqueta tem um QR único. Bipe uma por uma — duplicados são ignorados.

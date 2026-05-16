@@ -145,8 +145,9 @@ function controladaHalfBlock(item: EtiquetaControladaItem, offsetX: number): str
     `^FO${offsetX},264^A0N,16,16^FD${s(resp)}^FS`,
     `^FO${offsetX},290^A0N,14,14^FD${s(empresa)}^FS`,
 
-    // QR = serial puro (scan da baixa). mag=5 ≈ 13mm, canto inf. direito.
-    `^FO${offsetX + W - 120},150^BQN,2,5^FD${s(item.serial)}^FS`,
+    // QR = serial puro (scan da baixa). mag=7 ≈ 18mm — maior pra leitura
+    // rápida no tablet; canto inferior direito, com folga até a borda.
+    `^FO${offsetX + W - 175},120^BQN,2,7^FD${s(item.serial)}^FS`,
   ].join('\n');
 }
 
