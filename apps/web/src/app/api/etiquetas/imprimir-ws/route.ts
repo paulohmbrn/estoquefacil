@@ -77,7 +77,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         dbRows.push({
           produtoId: p.id, lojaId, metodo: it.metodo,
           lote: `${p.cdarvprod}-${String(i + 1).padStart(2, '0')}`,
-          responsavel: user.name ?? user.email, qrPayload, validadeAte, consumida: false,
+          responsavel: user.name ?? user.email, qrPayload, validadeAte, serial: etiquetaId,
         });
       }
     }

@@ -215,7 +215,9 @@ export async function identificarProdutoPorScan(contagemId: string, scanned: str
       });
       if (e) {
         cdarvprod = e.produto.cdarvprod;
-        await prisma.etiqueta.update({ where: { id: e.id }, data: { consumida: true } }).catch(() => undefined);
+        await prisma.etiqueta
+          .update({ where: { id: e.id }, data: { estado: 'BAIXADA', baixadaEm: new Date() } })
+          .catch(() => undefined);
       }
     }
 
@@ -305,8 +307,10 @@ export async function resolverScan(contagemId: string, scanned: string): Promise
       });
       if (e2) {
         cdarvprod = e2.produto.cdarvprod;
-        // Marca a etiqueta como consumida
-        await prisma.etiqueta.update({ where: { id: e2.id }, data: { consumida: true } }).catch(() => {});
+        // Marca a etiqueta como baixada (consumida na contagem)
+        await prisma.etiqueta
+          .update({ where: { id: e2.id }, data: { estado: 'BAIXADA', baixadaEm: new Date() } })
+          .catch(() => {});
       }
       void et;
     }

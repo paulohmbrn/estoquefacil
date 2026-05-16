@@ -39,6 +39,7 @@ model User {
   usuarioLojas        UsuarioLoja[]
   contagensCriadas    Contagem[]    @relation("ContagemCriadaPor")
   recebimentosCriadas Recebimento[] @relation("RecebimentoCriadaPor")
+  etiquetasBaixadas   Etiqueta[]    @relation("EtiquetaBaixadaPor")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -241,6 +242,13 @@ model Produto {
   compoeCmv    Boolean   @default(true) // COMPOE_CMV
   dtCadastro   DateTime // DT_CADASTRO (DD/MM/AAAA -> Date)
   dtAlteracao  DateTime // DT_ALTERACAO -> usar como signal de delta no sync
+  // Fator de conversão (ZmartBI): liga "produto de compra" ao "produto de
+  // estoque" base. ESTOQUE = unidade base (fator 1, cdarvprodEstoque = próprio);
+  // COMPRA = embalagem (ex. C/6 → fator 6, cdarvprodEstoque = código base ...00).
+  // Consolidação do estoque soma qtd × fatorConversao por cdarvprodEstoque.
+  fatorConversao   Decimal @default(1) @db.Decimal(18, 6)
+  cdarvprodEstoque String? // código do produto de estoque base (na mesma loja)
+  tipoEstoque      String  @default("ESTOQUE") // ESTOQUE | COMPRA
   // Relacionamentos
   loja         Loja      @relation(fields: [lojaId], references: [id], onDelete: Cascade)
   lojaId       String
@@ -265,6 +273,7 @@ model Produto {
   @@index([lojaId, ativo])
   @@index([cdarvprod])
   @@index([lojaId, cdBarra])
+  @@index([lojaId, cdarvprodEstoque])
 }
 
 // Metadados editáveis localmente (não conflita com sync).
@@ -465,6 +474,17 @@ enum SyncStatus {
   LOCKED // ZmartBI retornou API_REQUEST_DUPLICATE
 }
 
+enum EstadoEtiqueta {
+  ATIVA // impressa e disponível no estoque controlado
+  BAIXADA // retirada/consumida (auditada)
+  CANCELADA // anulada (erro de impressão / descarte)
+}
+
+enum OrigemEtiqueta {
+  RECEBIMENTO // gerada ao finalizar um Recebimento
+  AVULSO // impressa manualmente pelo gestor/estoquista
+}
+
 model Etiqueta {
   id          String    @id @default(cuid())
   produto     Produto   @relation(fields: [produtoId], references: [id], onDelete: Cascade)
@@ -477,10 +497,31 @@ model Etiqueta {
   qrPayload   String // JSON serializado
   validadeAte DateTime?
   impressaEm  DateTime  @default(now())
-  consumida   Boolean   @default(false)
+
+  // Estoque controlado: cada etiqueta = 1 unidade física rastreada.
+  serial String         @unique // código curto que o QR codifica (scan da baixa)
+  estado EstadoEtiqueta @default(ATIVA)
+  origem OrigemEtiqueta @default(AVULSO)
+
+  recebimentoItem   RecebimentoItem? @relation(fields: [recebimentoItemId], references: [id], onDelete: SetNull)
+  recebimentoItemId String?
+
+  // Auditoria da baixa
+  baixadaEm        DateTime?
+  baixadaPor       User?     @relation("EtiquetaBaixadaPor", fields: [baixadaPorId], references: [id], onDelete: SetNull)
+  baixadaPorId     String?
+  setorSolicitante String? // ex: "copa", "cozinha"
+  baixaObs         String?
+
+  // Snapshot do fator no momento da impressão (consolidação não depende
+  // de mudança posterior no Produto via sync).
+  fatorConversaoSnap   Decimal @default(1) @db.Decimal(18, 6)
+  cdarvprodEstoqueSnap String?
 
   @@index([lojaId, impressaEm])
   @@index([produtoId])
+  @@index([lojaId, estado, produtoId])
+  @@index([recebimentoItemId])
 }
 
 // ============================================================
@@ -532,6 +573,7 @@ model RecebimentoItem {
   descricaoNf   String?
   registradoEm  DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+  etiquetas     Etiqueta[]
 
   @@unique([recebimentoId, produtoId])
   @@index([produtoId])

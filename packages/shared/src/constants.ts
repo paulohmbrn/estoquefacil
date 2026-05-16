@@ -35,6 +35,17 @@ export const FILIAIS_REIS_MAGOS: readonly string[] = [
 
 export const FILIAIS_REIS_MAGOS_SET: ReadonlySet<string> = new Set(FILIAIS_REIS_MAGOS);
 
+// Lojas com Estoque Controlado (etiqueta por unidade + fator de conversão):
+// as 9 pizzarias Reis Magos + Madre Pane (0023). FFB (0013) fora.
+export const FILIAIS_ESTOQUE_CONTROLADO: readonly string[] = [
+  ...FILIAIS_REIS_MAGOS,
+  '0023',
+] as const;
+
+export const FILIAIS_ESTOQUE_CONTROLADO_SET: ReadonlySet<string> = new Set(
+  FILIAIS_ESTOQUE_CONTROLADO,
+);
+
 // Prefixos de CDARVPROD que são contáveis no MVP (em todas as lojas).
 // 1*     = MATERIA PRIMA / ALIMENTOS
 // 30105* = USO CONSUMO
@@ -55,6 +66,14 @@ export const PREFIXOS_CDARVPROD_EXTRAS_POR_FILIAL: Readonly<Record<string, reado
 // CDARVPROD com 11 chars são agrupadores (categoria/nome lógico) e devem ser ignorados.
 export const CDARVPROD_LEN_SKU = 13;
 
+// Produto de estoque base da família: mesmos 11 primeiros chars + sufixo "00".
+// A consolidação soma Σ(qtd × FATOR_CONVERSAO) agrupando por este código.
+// O ZmartBI não traz campo de vínculo — a ligação é derivada do código.
+export function cdarvprodEstoqueBase(cdarvprod: string): string {
+  if (cdarvprod.length !== CDARVPROD_LEN_SKU) return cdarvprod;
+  return cdarvprod.slice(0, 11) + '00';
+}
+
 // SKU de estoque ZmartBI: 13 chars com regras diferentes por origem do prefixo:
 //   • prefixo MVP (1, 30105, 915) → exige terminar em "00" (SKU-base; o resto é receita)
 //   • prefixo extra da loja → SEM regra de sufixo (cada item é o SKU final)
@@ -67,13 +86,15 @@ export function isCdarvprodContavel(cdarvprod: string, cdfilial?: string): boole
     cdarvprod.endsWith('00') &&
     PREFIXOS_CDARVPROD_MVP.some((p) => cdarvprod.startsWith(p))
   ) return true;
-  // Reis Magos (pizzarias): prefixo "1" conta SEM regra de sufixo "00" —
-  // receitas/sub-itens entram em contagem. Decisão de Paulo (2026-05-16),
-  // reverte a regra do "00" só pro prefixo "1" e só nas 9 pizzarias.
+  // Lojas com Estoque Controlado (9 pizzarias RM + Madre Pane 0023): qualquer
+  // SKU 13ch de prefixo MVP conta SEM exigir terminar em "00". Necessário pra
+  // capturar produtos de compra (ex. 915…01/02 C/12, C/6) e receitas — toda a
+  // família é consolidada por cdarvprodEstoqueBase via FATOR_CONVERSAO.
+  // Decisão de Paulo (2026-05-16) — generaliza a regra do prefixo "1".
   if (
     cdfilial &&
-    FILIAIS_REIS_MAGOS_SET.has(cdfilial) &&
-    cdarvprod.startsWith('1')
+    FILIAIS_ESTOQUE_CONTROLADO_SET.has(cdfilial) &&
+    PREFIXOS_CDARVPROD_MVP.some((p) => cdarvprod.startsWith(p))
   ) return true;
   // Caminho extra por filial: prefixo extra cadastrado, sem regra de sufixo
   const extras = cdfilial ? PREFIXOS_CDARVPROD_EXTRAS_POR_FILIAL[cdfilial] ?? [] : [];

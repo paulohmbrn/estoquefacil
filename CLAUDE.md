@@ -74,7 +74,7 @@ pnpm dev
 ## Decisões críticas (não derive do código — leia)
 
 1. **ZmartBI tem lock global por webtoken.** Não chame em paralelo. Não cancele no meio. Worker do sync (Sprint 2) deve segurar lock Redis local, fazer 1 tentativa por agendamento (06:15 diário), e em erro alertar o gestor sem retry imediato.
-2. **`CDARVPROD` com 11 chars são agrupadores** (categoria/nome lógico). Apenas SKUs com **13 chars** entram em contagem e export. Filtro adicional: prefixos `1`, `30105`, `915`. Regra do sufixo `00` (SKU-base vs receita) vale para `30105` e `915` em todas as lojas e para `1` fora das pizzarias. **Exceção (Paulo, 2026-05-16):** nas 9 pizzarias Reis Magos (`FILIAIS_REIS_MAGOS`) o prefixo `1` conta **sem** exigir terminar em `00` — receitas/sub-itens entram em contagem e export. FFB (`0013`) e Madre Pane (`0023`) seguem seus prefixos extras próprios.
+2. **`CDARVPROD` com 11 chars são agrupadores** (categoria/nome lógico). Apenas SKUs com **13 chars** entram em contagem/export. Filtro: prefixos `1`, `30105`, `915`. Regra do sufixo `00` (SKU-base vs receita) vale para lojas **fora** de `FILIAIS_ESTOQUE_CONTROLADO`. **Decisão Paulo 2026-05-16 (generaliza a regra do prefixo `1`):** nas 10 lojas de `FILIAIS_ESTOQUE_CONTROLADO` (9 pizzarias Reis Magos + Madre Pane `0023`) qualquer SKU 13ch de prefixo MVP conta **sem** exigir `00` — captura produtos de compra (`915…01/02`) e receitas; tudo consolidado por família. FFB (`0013`) mantém a regra antiga + prefixos extras.
 3. **`DTLANCESTQ` é número inteiro `DDMMAAAA`** (não string `DD/MM/YYYY`). Filename do export: `CONTAGEMFILIAL{CDFILIAL:4}{DDMMAAAA}.xlsx`. Ver `packages/shared/src/format.ts`.
 4. **10 filiais no MVP**: `0001` Capim Macio · `0003` Candelária · `0004` Nova Parnamirim · `0005` Lagoa Nova · `0006` Midway Mall · `0008` Petrópolis · `0016` Vila Mariana · `0017` Norte Shopping · `0019` Coophab · `0023` Madre Pane Lagoa Nova.
 5. **Catálogo replicado por loja** (decisão de Paulo). Mesmo que o dump traga os mesmos 13k produtos por filial, mantém isolamento por loja para flexibilidade futura.
@@ -82,6 +82,7 @@ pnpm dev
 7. **Etiqueta térmica 60×60mm** (define template do PDF — Sprint 3).
 8. **Validade calculada** (data_impressão + dias do `produto_meta`).
 9. **Domínios de produção**: web em `estoque.reismagos.com.br`, API em `api-estoque.reismagos.com.br` (Sprint 6 / Docker Swarm + Traefik). Sobrescreve as URLs `*.robosac.com` da spec original.
+10. **`FATOR_CONVERSAO` (dump ZmartBI, desde 2026-05-16).** Único campo novo no dump (não há campo de vínculo). Semântica: fator à unidade base. `1` = produto de estoque base; `>1` = embalagem de compra (C/6 → 6); `<1` = sub-embalagem (taça 150ml → 0.2, **fatores fracionários são válidos**); `0` = agrupador 11ch. **Vínculo compra→estoque é derivado do código:** o produto de estoque base é `cdarvprod[0..11] + "00"` (`cdarvprodEstoqueBase()` em `packages/shared`). Consolidação do export = Σ(qtd × `fatorConversao`) agrupado por `cdarvprodEstoque`, **uma linha por família** (código `...00`). Confiar no fator do dump mesmo no raro `...00` com fator ≠ 1 (decisão Paulo — dado do ERP é a verdade). Etiqueta individual (Estoque Controlado) pode ser qualquer SKU, não só `fator>1`.
 
 ## Status atual (Sprint 1 ✓)
 

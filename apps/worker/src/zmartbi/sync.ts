@@ -10,6 +10,7 @@ const Parser = (ParserLib as unknown as { default: typeof ParserLib }).default ?
 import {
   FILIAIS_MVP_SET,
   isCdarvprodContavel,
+  cdarvprodEstoqueBase,
   parseZmartbiDate,
   ZMARTBI_CD_EMPRESA,
   ZMARTBI_NRORG,
@@ -165,6 +166,11 @@ export async function runZmartbiSync(trigger: SyncTrigger): Promise<SyncOutcome>
             compoeCmv: it.COMPOE_CMV === 'S',
             dtCadastro: parseZmartbiDate(it.DT_CADASTRO),
             dtAlteracao: parseZmartbiDate(it.DT_ALTERACAO),
+            // Fator de conversão (ZmartBI). Confiar no dump (inclusive <1 e
+            // o raro ...00 com fator !=1). Vínculo derivado do código.
+            fatorConversao: new Prisma.Decimal(it.FATOR_CONVERSAO ?? 1),
+            cdarvprodEstoque: cdarvprodEstoqueBase(it.CDARVPROD),
+            tipoEstoque: it.CDARVPROD.endsWith('00') ? 'ESTOQUE' : 'COMPRA',
             grupoId,
             subgrupoId,
             ativo: true,

@@ -147,7 +147,7 @@ async function DashboardCards({ lojaId }: { lojaId: string }) {
     prisma.etiqueta.findMany({
       where: {
         lojaId,
-        consumida: false,
+        estado: 'ATIVA',
         validadeAte: { not: null, lte: em48h, gte: new Date() },
       },
       orderBy: { validadeAte: 'asc' },

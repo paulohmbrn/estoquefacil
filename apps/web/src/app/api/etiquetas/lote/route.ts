@@ -102,7 +102,7 @@ export async function POST(req: NextRequest): Promise<Response> {
           responsavel: user.name ?? user.email,
           qrPayload,
           validadeAte,
-          consumida: false,
+          serial: etiquetaId,
         });
       }
     }
