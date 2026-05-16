@@ -16,6 +16,7 @@ import {
   ChevronDown,
   Truck,
   AlertTriangle,
+  PackageCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +26,7 @@ const NAV = [
   { id: 'contagem', label: 'Contagem', href: '/contagem', icon: Calculator },
   { id: 'recebimento', label: 'Recebimento', href: '/recebimento', icon: Truck },
   { id: 'controlados', label: 'Controlados', href: '/controlados', icon: AlertTriangle },
+  { id: 'estoque-controlado', label: 'Estoque Ctrl.', href: '/estoque-controlado', icon: PackageCheck },
   { id: 'listas', label: 'Listas (QR)', href: '/listas', icon: QrCode },
   { id: 'etiquetas', label: 'Etiquetas', href: '/etiquetas', icon: Tag },
   { id: 'sincronizacao', label: 'Sincronização', href: '/sincronizacao', icon: RefreshCw },

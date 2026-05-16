@@ -167,6 +167,42 @@ export async function baixarEtiquetas(
   }
 }
 
+/** Busca produtos da loja ativa por nome ou CDARVPROD (até 20, p/ gerar etiquetas). */
+export async function buscarProdutosControlado(
+  q: string,
+): Promise<ActionResult<{ id: string; nome: string; cdarvprod: string; unidade: string; fator: number }[]>> {
+  try {
+    const { lojaId } = await requireLojaAtiva();
+    const termo = q.trim();
+    if (termo.length < 2) return { ok: true, data: [] };
+    const produtos = await prisma.produto.findMany({
+      where: {
+        lojaId,
+        ativo: true,
+        OR: [
+          { nome: { contains: termo, mode: 'insensitive' } },
+          { cdarvprod: { contains: termo } },
+        ],
+      },
+      select: { id: true, nome: true, cdarvprod: true, unidade: true, fatorConversao: true },
+      orderBy: { nome: 'asc' },
+      take: 20,
+    });
+    return {
+      ok: true,
+      data: produtos.map((p) => ({
+        id: p.id,
+        nome: p.nome,
+        cdarvprod: p.cdarvprod,
+        unidade: p.unidade,
+        fator: Number(p.fatorConversao),
+      })),
+    };
+  } catch (err) {
+    return { ok: false, error: (err as Error).message ?? 'Erro interno' };
+  }
+}
+
 /** Saldo do estoque controlado: nº de etiquetas ATIVAS por produto na loja ativa. */
 export async function saldoControlado(): Promise<
   ActionResult<{ produtoId: string; nome: string; cdarvprod: string; unidade: string; ativas: number }[]>

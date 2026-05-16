@@ -5,7 +5,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Calculator, Truck, Tag, QrCode, BarChart3 } from 'lucide-react';
+import { Home, Calculator, Truck, Tag, QrCode, PackageCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const TABS = [
@@ -13,8 +13,8 @@ const TABS = [
   { id: 'contagem', label: 'Contar', href: '/contagem', icon: Calculator },
   { id: 'listas', label: 'Listas', href: '/listas', icon: QrCode },
   { id: 'recebimento', label: 'Receber', href: '/recebimento', icon: Truck },
+  { id: 'estoque-controlado', label: 'Estoque', href: '/estoque-controlado', icon: PackageCheck },
   { id: 'etiquetas', label: 'Etiq.', href: '/etiquetas', icon: Tag },
-  { id: 'relatorios', label: 'Relat.', href: '/relatorios', icon: BarChart3 },
 ] as const;
 
 export function MobileBottomNav() {
@@ -28,8 +28,9 @@ export function MobileBottomNav() {
   // Mantém visível em /contagem (lista) e /contagem/<id>/sucesso.
   // Esconde nas telas imersivas (contagem ativa e recebimento ativo)
   const hideOnImmersive =
-    (/^\/contagem\/[^/]+$/.test(pathname) || /^\/recebimento\/[^/]+$/.test(pathname)) &&
-    !pathname.endsWith('/sucesso');
+    ((/^\/contagem\/[^/]+$/.test(pathname) || /^\/recebimento\/[^/]+$/.test(pathname)) &&
+      !pathname.endsWith('/sucesso')) ||
+    pathname === '/estoque-controlado/baixa';
   if (hideOnImmersive) return null;
 
   return (
