@@ -18,6 +18,23 @@ export type CdFilialMvp = (typeof FILIAIS_MVP)[number];
 
 export const FILIAIS_MVP_SET: ReadonlySet<string> = new Set(FILIAIS_MVP);
 
+// Pizzarias Famiglia Reis Magos (CDFILIAL/zmartbiId). Nelas o prefixo "1"
+// conta SEM exigir terminar em "00" (receitas/sub-itens entram em contagem).
+// FFB (0013) e Madre Pane (0023) NÃO entram aqui — operam por prefixo extra.
+export const FILIAIS_REIS_MAGOS: readonly string[] = [
+  '0001',
+  '0003',
+  '0004',
+  '0005',
+  '0006',
+  '0008',
+  '0016',
+  '0017',
+  '0019',
+] as const;
+
+export const FILIAIS_REIS_MAGOS_SET: ReadonlySet<string> = new Set(FILIAIS_REIS_MAGOS);
+
 // Prefixos de CDARVPROD que são contáveis no MVP (em todas as lojas).
 // 1*     = MATERIA PRIMA / ALIMENTOS
 // 30105* = USO CONSUMO
@@ -49,6 +66,14 @@ export function isCdarvprodContavel(cdarvprod: string, cdfilial?: string): boole
   if (
     cdarvprod.endsWith('00') &&
     PREFIXOS_CDARVPROD_MVP.some((p) => cdarvprod.startsWith(p))
+  ) return true;
+  // Reis Magos (pizzarias): prefixo "1" conta SEM regra de sufixo "00" —
+  // receitas/sub-itens entram em contagem. Decisão de Paulo (2026-05-16),
+  // reverte a regra do "00" só pro prefixo "1" e só nas 9 pizzarias.
+  if (
+    cdfilial &&
+    FILIAIS_REIS_MAGOS_SET.has(cdfilial) &&
+    cdarvprod.startsWith('1')
   ) return true;
   // Caminho extra por filial: prefixo extra cadastrado, sem regra de sufixo
   const extras = cdfilial ? PREFIXOS_CDARVPROD_EXTRAS_POR_FILIAL[cdfilial] ?? [] : [];

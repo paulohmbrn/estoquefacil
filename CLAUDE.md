@@ -74,7 +74,7 @@ pnpm dev
 ## Decisões críticas (não derive do código — leia)
 
 1. **ZmartBI tem lock global por webtoken.** Não chame em paralelo. Não cancele no meio. Worker do sync (Sprint 2) deve segurar lock Redis local, fazer 1 tentativa por agendamento (06:15 diário), e em erro alertar o gestor sem retry imediato.
-2. **`CDARVPROD` com 11 chars são agrupadores** (categoria/nome lógico). Apenas SKUs com **13 chars** entram em contagem e export. Filtro adicional: prefixos `1`, `30105`, `915` (3.363 produtos por loja).
+2. **`CDARVPROD` com 11 chars são agrupadores** (categoria/nome lógico). Apenas SKUs com **13 chars** entram em contagem e export. Filtro adicional: prefixos `1`, `30105`, `915`. Regra do sufixo `00` (SKU-base vs receita) vale para `30105` e `915` em todas as lojas e para `1` fora das pizzarias. **Exceção (Paulo, 2026-05-16):** nas 9 pizzarias Reis Magos (`FILIAIS_REIS_MAGOS`) o prefixo `1` conta **sem** exigir terminar em `00` — receitas/sub-itens entram em contagem e export. FFB (`0013`) e Madre Pane (`0023`) seguem seus prefixos extras próprios.
 3. **`DTLANCESTQ` é número inteiro `DDMMAAAA`** (não string `DD/MM/YYYY`). Filename do export: `CONTAGEMFILIAL{CDFILIAL:4}{DDMMAAAA}.xlsx`. Ver `packages/shared/src/format.ts`.
 4. **10 filiais no MVP**: `0001` Capim Macio · `0003` Candelária · `0004` Nova Parnamirim · `0005` Lagoa Nova · `0006` Midway Mall · `0008` Petrópolis · `0016` Vila Mariana · `0017` Norte Shopping · `0019` Coophab · `0023` Madre Pane Lagoa Nova.
 5. **Catálogo replicado por loja** (decisão de Paulo). Mesmo que o dump traga os mesmos 13k produtos por filial, mantém isolamento por loja para flexibilidade futura.
