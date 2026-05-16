@@ -94,9 +94,10 @@ export function generateEtiquetasZpl(items: EtiquetaItem[]): string {
 
 // ============================================================
 // Etiqueta de ESTOQUE CONTROLADO (1 por unidade física).
-// QR codifica o `serial` puro (a baixa lê o serial direto).
-// Rodapé traz empresa: razão social + CNPJ (rastreabilidade).
-// 100×60mm @ 203dpi (mesmo formato físico da etiqueta padrão).
+// Formato 48×40mm DUPLA (rolo Microline 48×40×02) — mesmo rolo das
+// etiquetas de contagem; 2 etiquetas por linha. QR codifica o `serial`
+// puro (a baixa lê o serial direto). Constantes DUPLA_* definidas
+// adiante no arquivo (uso em runtime, ok).
 // ============================================================
 export type EtiquetaControladaItem = {
   serial: string; // QR + identificação da unidade
@@ -109,64 +110,70 @@ export type EtiquetaControladaItem = {
   empresa: { razaoSocial: string | null; cnpj: string | null; nome: string };
 };
 
-export function generateEtiquetaControladaZpl(item: EtiquetaControladaItem): string {
+function controladaHalfBlock(item: EtiquetaControladaItem, offsetX: number): string {
   const now = new Date();
-  const manip = PT_BR_DATE.format(now);
   let validade = '—';
   if (item.validadeDias && item.validadeDias > 0) {
     const v = new Date(now);
     v.setUTCDate(v.getUTCDate() + item.validadeDias);
     validade = PT_BR_DATE.format(v);
   }
-  const nome = shortStr(item.produtoNome.toUpperCase(), 60);
-  const resp = shortStr(item.responsavel, 18);
-  const empresaNome = shortStr(item.empresa.razaoSocial ?? item.empresa.nome, 42);
-  const cnpj = item.empresa.cnpj ? `CNPJ ${item.empresa.cnpj}` : '';
+  const nome = shortStr(item.produtoNome.toUpperCase(), 36);
+  const resp = shortStr(item.responsavel, 9);
+  const empresa = shortStr(item.empresa.razaoSocial ?? item.empresa.nome, 28);
+  const serialCurto = item.serial.slice(-6);
+  const W = 360;
+  return [
+    // Faixa preta: método + fim do serial
+    `^FO${offsetX},6^GB${W},34,34,B,0^FS`,
+    `^FO${offsetX + 8},12^A0N,24,24^FR^FD${s(item.metodo)}^FS`,
+    `^FO${offsetX + W - 80},14^A0N,18,18^FR^FD#${s(serialCurto)}^FS`,
 
+    // Nome — 2 linhas, estreitado pra deixar o QR à direita
+    `^FO${offsetX},50^A0N,24,24^FB${W - 130},2,3,L,0^FD${s(nome)}^FS`,
+
+    // Validade (campo-chave do estoque controlado)
+    `^FO${offsetX},140^A0N,16,16^FDVALIDADE^FS`,
+    `^FO${offsetX},158^A0N,24,24^FD${s(validade)}^FS`,
+
+    // Produto (cdarvprod) + UN
+    `^FO${offsetX},198^A0N,14,14^FDPRODUTO^FS`,
+    `^FO${offsetX},214^A0N,18,18^FD${s(item.cdarvprod)} · ${s(item.unidade)}^FS`,
+
+    // Resp + empresa (rodapé compacto; CNPJ completo via QR → /l/etiqueta)
+    `^FO${offsetX},248^A0N,14,14^FDRESP^FS`,
+    `^FO${offsetX},264^A0N,16,16^FD${s(resp)}^FS`,
+    `^FO${offsetX},290^A0N,14,14^FD${s(empresa)}^FS`,
+
+    // QR = serial puro (scan da baixa). mag=5 ≈ 13mm, canto inf. direito.
+    `^FO${offsetX + W - 120},150^BQN,2,5^FD${s(item.serial)}^FS`,
+  ].join('\n');
+}
+
+export function generateEtiquetaControladaZplPair(
+  left: EtiquetaControladaItem,
+  right?: EtiquetaControladaItem,
+): string {
+  const blocks = [controladaHalfBlock(left, DUPLA_LEFT_X)];
+  if (right) blocks.push(controladaHalfBlock(right, DUPLA_RIGHT_X));
   return [
     '^XA',
     '^CI28',
-    '^PW800',
-    '^LL480',
+    `^PW${DUPLA_LABEL_WIDTH}`,
+    `^LL${DUPLA_LABEL_HEIGHT}`,
     '^LH0,0',
-
-    // Header preto: método + serial
-    '^FO0,0^GB800,72,72,B,0^FS',
-    `^FO20,16^A0N,46,46^FR^FD${s(item.metodo)}^FS`,
-    `^FO520,26^A0N,28,28^FR^FD#${s(item.serial)}^FS`,
-
-    // Nome do produto
-    `^FO20,90^A0N,52,52^FB760,2,4,L,0^FD${s(nome)}^FS`,
-
-    '^FO20,210^GB760,2,2^FS',
-
-    // Datas
-    '^FO20,222^A0N,18,18^FDMANIP.^FS',
-    `^FO20,246^A0N,30,30^FD${s(manip)}^FS`,
-    '^FO400,222^A0N,18,18^FDVALIDADE^FS',
-    `^FO400,246^A0N,30,30^FD${s(validade)}^FS`,
-
-    // Produto (cdarvprod) + UN + RESP
-    '^FO20,300^A0N,18,18^FDPRODUTO^FS',
-    `^FO20,324^A0N,26,26^FD${s(item.cdarvprod)}^FS`,
-    '^FO20,372^A0N,18,18^FDUN^FS',
-    `^FO20,396^A0N,28,28^FD${s(item.unidade)}^FS`,
-    '^FO180,372^A0N,18,18^FDRESP.^FS',
-    `^FO180,396^A0N,28,28^FD${s(resp)}^FS`,
-
-    // QR = serial puro (scan da baixa lê isso)
-    `^FO560,250^BQN,2,6^FD${s(item.serial)}^FS`,
-
-    // Rodapé: empresa (razão social + CNPJ)
-    `^FO20,440^A0N,20,20^FD${s(empresaNome)}^FS`,
-    `^FO20,462^A0N,18,18^FD${s(cnpj)}^FS`,
-
+    ...blocks,
     '^XZ',
   ].join('\n');
 }
 
+/** Gera ZPL de N etiquetas de estoque controlado no rolo 48×40 dupla (pareadas). */
 export function generateEtiquetasControladasZpl(items: EtiquetaControladaItem[]): string {
-  return items.map(generateEtiquetaControladaZpl).join('\n');
+  const lines: string[] = [];
+  for (let i = 0; i < items.length; i += 2) {
+    lines.push(generateEtiquetaControladaZplPair(items[i]!, items[i + 1]));
+  }
+  return lines.join('\n');
 }
 
 // =====================================================================
