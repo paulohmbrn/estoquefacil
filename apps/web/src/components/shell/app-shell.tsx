@@ -74,11 +74,12 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-white text-rm-ink">
       {/* Mobile chrome (header simples) — apenas <lg.
-         Switcher só pra Super Gestor; Gestor comum só vê a loja fixa. */}
+         Switcher aparece pra quem tem >1 loja (super = todas; Gestor/Operador
+         comum = seus vínculos). 1 loja só = badge fixo. */}
       <MobileChrome
         user={userInfo}
         apelidoLoja={ativa?.apelido ?? null}
-        lojas={isSuper ? lojas : ativa ? [ativa] : []}
+        lojas={lojas}
         lojaAtivaId={ativa?.id ?? null}
       />
 
@@ -89,7 +90,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           <Topbar
             user={userInfo}
             papel={papelAtivo}
-            lojas={isSuper ? lojas : ativa ? [ativa] : []}
+            lojas={lojas}
             lojaAtivaId={ativa?.id ?? null}
           />
           <main className="flex-1 overflow-auto p-10">{children}</main>
